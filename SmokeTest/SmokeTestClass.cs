@@ -1,16 +1,11 @@
-﻿using System;
+using System;
 using DeepCopyConstructor;
 
-namespace AssemblyToProcess
+namespace SmokeTest
 {
     [AddDeepCopyConstructor]
-    public class SimpleClass
+    public class SmokeTestClass
     {
-        public SimpleClass() { }
-
-        // ReSharper disable once UnusedParameter.Local
-        public SimpleClass(SimpleClass source) { }
-
         public int Integer { get; set; }
         public string String { get; set; }
         public DateTime DateTime { get; set; }
@@ -31,7 +26,8 @@ namespace AssemblyToProcess
 
         public SecondClass(SecondClass source)
         {
-            String = new string(source.String.ToCharArray());
+            if (source.String != null)
+                String = new string(source.String.ToCharArray());
             Float = source.Float;
         }
 
