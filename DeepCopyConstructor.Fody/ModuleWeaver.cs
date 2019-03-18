@@ -103,19 +103,16 @@ namespace DeepCopyConstructor.Fody
 
         private IEnumerable<Instruction> BuildCopyString(ILProcessor processor, PropertyDefinition property)
         {
-            var charArray = new ArrayType(TypeSystem.CharDefinition);
-            var toCharArray = new MethodReference(nameof(string.ToCharArray), charArray, TypeSystem.StringDefinition)
+            var copy = new MethodReference(nameof(string.Copy), TypeSystem.StringDefinition, TypeSystem.StringDefinition)
             {
-                HasThis = true
+                Parameters = {new ParameterDefinition(TypeSystem.StringDefinition)}
             };
-            var constructor = CreateConstructorReference(TypeSystem.StringDefinition, charArray);
             return new[]
             {
                 processor.Create(OpCodes.Ldarg_0),
                 processor.Create(OpCodes.Ldarg_1),
                 processor.Create(OpCodes.Callvirt, property.GetMethod),
-                processor.Create(OpCodes.Callvirt, ModuleDefinition.ImportReference(toCharArray)),
-                processor.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(constructor)),
+                processor.Create(OpCodes.Call, ModuleDefinition.ImportReference(copy)),
                 processor.Create(OpCodes.Call, property.SetMethod),
             };
         }
@@ -146,7 +143,7 @@ namespace DeepCopyConstructor.Fody
                     processor.Create(OpCodes.Brfalse_S, afterInstruction)
                 }
                 .Concat(instructions)
-                .Concat(new[] { afterInstruction });
+                .Concat(new[] {afterInstruction});
         }
 
         #region Utilities
@@ -156,7 +153,7 @@ namespace DeepCopyConstructor.Fody
             return new MethodReference(Constructor, TypeSystem.VoidDefinition, type)
             {
                 HasThis = true,
-                Parameters = { new ParameterDefinition(parameter) }
+                Parameters = {new ParameterDefinition(parameter)}
             };
         }
 

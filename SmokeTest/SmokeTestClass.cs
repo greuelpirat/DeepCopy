@@ -26,9 +26,8 @@ namespace SmokeTest
 
         public DemoClass(DemoClass source)
         {
-            
             if (source.String != null)
-                String = String = string.Copy(source.String);
+                String = string.Copy(source.String);
             Float = source.Float;
         }
 
