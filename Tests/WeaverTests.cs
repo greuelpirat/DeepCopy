@@ -34,12 +34,11 @@ namespace Tests
 
             Assert.Equal(instance.Integer, copy.Integer);
             Assert.Equal(instance.Enum, copy.Enum);
+            Assert.Equal(instance.DateTime, copy.DateTime);
+            Assert.Equal(instance.String, copy.String);
 
             Assert.False(ReferenceEquals(instance.DateTime, copy.DateTime));
-            Assert.Equal(instance.DateTime, copy.DateTime);
-
             Assert.False(ReferenceEquals(instance.String, copy.String));
-            Assert.Equal(instance.String, copy.String);
         }
 
         [Fact]
@@ -55,12 +54,29 @@ namespace Tests
             instance.Object.Float = 1.5f;
 
             var copy = Activator.CreateInstance(type, instance);
-            Assert.False(ReferenceEquals(instance.Object, copy.Object));
-
-            Assert.False(ReferenceEquals(instance.Object.String, copy.Object.String));
             Assert.Equal(instance.Object.String, copy.Object.String);
-            Assert.False(ReferenceEquals(instance.Object.Float, copy.Object.Float));
             Assert.Equal(instance.Object.Float, copy.Object.Float);
+
+            Assert.False(ReferenceEquals(instance.Object, copy.Object));
+            Assert.False(ReferenceEquals(instance.Object.String, copy.Object.String));
+            Assert.False(ReferenceEquals(instance.Object.Float, copy.Object.Float));
+        }
+
+        [Fact]
+        public void CopyClassWithArray()
+        {
+            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithArray");
+            dynamic instance = Activator.CreateInstance(type);
+            instance.Array = new[] {"Hello", "World"};
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.Equal(instance.Array.Length, copy.Array.Length);
+            Assert.Equal(instance.Array[0], copy.Array[0]);
+            Assert.Equal(instance.Array[1], copy.Array[1]);
+
+            Assert.False(ReferenceEquals(instance.Array, copy.Array));
+            Assert.False(ReferenceEquals(instance.Array[0], copy.Array[0]));
+            Assert.False(ReferenceEquals(instance.Array[1], copy.Array[1]));
         }
     }
 }
