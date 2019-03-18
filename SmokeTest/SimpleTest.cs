@@ -15,7 +15,7 @@ namespace SmokeTest
         public string String { get; set; }
         public DateTime DateTime { get; set; }
         public SimpleEnum Enum { get; set; }
-        public SecondClass SecondClass { get; set; }
+        public DemoClass DemoClass { get; set; }
     }
 
     public enum SimpleEnum
@@ -25,14 +25,15 @@ namespace SmokeTest
         Value3
     }
 
-    public class SecondClass
+    public class DemoClass
     {
-        public SecondClass() { }
+        public DemoClass() { }
 
-        public SecondClass(SecondClass source)
+        public DemoClass(DemoClass source)
         {
+            
             if (source.String != null)
-                String = new string(source.String.ToCharArray());
+                String = String = string.Copy(source.String);
             Float = source.Float;
         }
 
