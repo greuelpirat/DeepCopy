@@ -13,23 +13,21 @@ namespace DeepCopyConstructor.Fody
     public class ModuleWeaver : BaseModuleWeaver
     {
         private const string Constructor = ".ctor";
+        private const string DeepCopyConstructorAttribute = "DeepCopyConstructor.AddDeepCopyConstructorAttribute";
 
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
 
         public override void Execute()
         {
-            var targets = ModuleDefinition.Types.Where(t => t.CustomAttributes.Any(a =>
-                a.AttributeType.FullName == "DeepCopyConstructor.AddDeepCopyConstructorAttribute"));
+            var targets = ModuleDefinition.Types.Where(HasDeepCopyConstructorAttribute);
 
             foreach (var target in targets)
             {
-                var attribute = target.CustomAttributes.Single(a => a.AttributeType.FullName == "DeepCopyConstructor.AddDeepCopyConstructorAttribute");
-                target.CustomAttributes.Remove(attribute);
                 var constructor = FindCopyConstructor(target);
                 if (constructor != null)
                 {
-                    InsertCopies(target, constructor);
+                    InsertCopyInstructions(target, constructor);
                     LogInfo($"Extended copy constructor of type {target.FullName}");
                 }
                 else
@@ -37,6 +35,8 @@ namespace DeepCopyConstructor.Fody
                     AddDeepConstructor(target);
                     LogInfo($"Added deep copy constructor to type {target.FullName}");
                 }
+
+                target.CustomAttributes.Remove(target.CustomAttributes.Single(a => a.AttributeType.FullName == DeepCopyConstructorAttribute));
             }
         }
 
@@ -49,31 +49,25 @@ namespace DeepCopyConstructor.Fody
             processor.Emit(OpCodes.Ldarg_0);
             processor.Emit(OpCodes.Call, ModuleDefinition.ImportReference(TypeSystem.ObjectDefinition.GetConstructors().First()));
 
-            InsertCopies(type, constructor);
+            InsertCopyInstructions(type, constructor);
 
             processor.Emit(OpCodes.Ret);
             type.Methods.Add(constructor);
         }
 
-        private void InsertCopies(TypeDefinition type, MethodDefinition constructor)
+        private void InsertCopyInstructions(TypeDefinition type, MethodDefinition constructor)
         {
             var processor = constructor.Body.GetILProcessor();
             constructor.Body.InitLocals = true;
             constructor.Body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition)));
             var index = 2;
             foreach (var property in type.Properties)
-            {
-                var instructions = BuildCopy(processor, property, out var wrapWithIfNotNull);
-                if (wrapWithIfNotNull)
-                    instructions = WrapWithIfNotNull(instructions, processor, property, constructor.Body.Instructions[index]);
-                foreach (var instruction in instructions)
-                    constructor.Body.Instructions.Insert(index++, instruction);
-            }
+            foreach (var instruction in BuildCopy(processor, property))
+                constructor.Body.Instructions.Insert(index++, instruction);
         }
 
-        private IEnumerable<Instruction> BuildCopy(ILProcessor processor, PropertyDefinition property, out bool wrapWithIfNotNull)
+        private IEnumerable<Instruction> BuildCopy(ILProcessor processor, PropertyDefinition property)
         {
-            wrapWithIfNotNull = false;
             if (property.GetMethod == null || property.SetMethod == null)
                 return new Instruction[0];
 
@@ -81,19 +75,19 @@ namespace DeepCopyConstructor.Fody
                 return BuildCopyAssign(processor, property);
 
             if (property.PropertyType.FullName == typeof(string).FullName)
-            {
-                wrapWithIfNotNull = true;
-                return BuildCopyString(processor, property);
-            }
+                return WrapWithIfNotNull(BuildCopyString(processor, property), processor, property);
 
             var copyConstructor = FindCopyConstructor(property.PropertyType.Resolve());
             if (copyConstructor != null)
+                return WrapWithIfNotNull(BuildCopyUsingConstructor(processor, property, copyConstructor), processor, property);
+
+            if (HasDeepCopyConstructorAttribute(property.PropertyType.Resolve()))
             {
-                wrapWithIfNotNull = true;
-                return BuildCopyUsingConstructor(processor, property, copyConstructor);
+                var constructor = CreateConstructorReference(property.PropertyType, property.PropertyType);
+                return WrapWithIfNotNull(BuildCopyUsingConstructor(processor, property, constructor), processor, property);
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException(property.FullName);
         }
 
         private static IEnumerable<Instruction> BuildCopyAssign(ILProcessor processor, PropertyDefinition property)
@@ -114,11 +108,7 @@ namespace DeepCopyConstructor.Fody
             {
                 HasThis = true
             };
-            var constructor = new MethodReference(Constructor, TypeSystem.VoidDefinition, TypeSystem.StringDefinition)
-            {
-                HasThis = true,
-                Parameters = {new ParameterDefinition(charArray)}
-            };
+            var constructor = CreateConstructorReference(TypeSystem.StringDefinition, charArray);
             return new[]
             {
                 processor.Create(OpCodes.Ldarg_0),
@@ -142,21 +132,33 @@ namespace DeepCopyConstructor.Fody
             };
         }
 
-        private static IEnumerable<Instruction> WrapWithIfNotNull(IEnumerable<Instruction> instructions, ILProcessor processor, PropertyDefinition property, Instruction jumpTarget)
+        private static IEnumerable<Instruction> WrapWithIfNotNull(IEnumerable<Instruction> instructions, ILProcessor processor, PropertyDefinition property)
         {
+            var afterInstruction = processor.Create(OpCodes.Nop);
             return new[]
-            {
-                processor.Create(OpCodes.Ldarg_1),
-                processor.Create(OpCodes.Callvirt, property.GetMethod),
-                processor.Create(OpCodes.Ldnull),
-                processor.Create(OpCodes.Cgt_Un),
-                processor.Create(OpCodes.Stloc_0),
-                processor.Create(OpCodes.Ldloc_0),
-                processor.Create(OpCodes.Brfalse_S, jumpTarget)
-            }.Concat(instructions);
+                {
+                    processor.Create(OpCodes.Ldarg_1),
+                    processor.Create(OpCodes.Callvirt, property.GetMethod),
+                    processor.Create(OpCodes.Ldnull),
+                    processor.Create(OpCodes.Cgt_Un),
+                    processor.Create(OpCodes.Stloc_0),
+                    processor.Create(OpCodes.Ldloc_0),
+                    processor.Create(OpCodes.Brfalse_S, afterInstruction)
+                }
+                .Concat(instructions)
+                .Concat(new[] { afterInstruction });
         }
 
         #region Utilities
+
+        private MethodReference CreateConstructorReference(TypeReference type, TypeReference parameter)
+        {
+            return new MethodReference(Constructor, TypeSystem.VoidDefinition, type)
+            {
+                HasThis = true,
+                Parameters = { new ParameterDefinition(parameter) }
+            };
+        }
 
         private static MethodDefinition FindCopyConstructor(TypeDefinition type)
         {
@@ -164,6 +166,9 @@ namespace DeepCopyConstructor.Fody
                 .Where(constructor => constructor.Parameters.Count == 1)
                 .SingleOrDefault(constructor => constructor.Parameters.Single().ParameterType.FullName == type.FullName);
         }
+
+        private static bool HasDeepCopyConstructorAttribute(ICustomAttributeProvider type)
+            => type.CustomAttributes.Any(a => a.AttributeType.FullName == DeepCopyConstructorAttribute);
 
         #endregion
 

@@ -1,21 +1,16 @@
-﻿using System;
+using System;
 using DeepCopyConstructor;
 
-namespace AssemblyToProcess
+namespace SmokeTest
 {
     [AddDeepCopyConstructor]
-    public class SimpleClass
+    public class SmokeTestClass
     {
-        public SimpleClass() { }
-
-        // ReSharper disable once UnusedParameter.Local
-        public SimpleClass(SimpleClass source) { }
-
         public int Integer { get; set; }
         public string String { get; set; }
         public DateTime DateTime { get; set; }
         public SimpleEnum Enum { get; set; }
-        public SecondClass SecondClass { get; set; }
+        public DemoClass DemoClass { get; set; }
     }
 
     public enum SimpleEnum
@@ -25,13 +20,15 @@ namespace AssemblyToProcess
         Value3
     }
 
-    public class SecondClass
+    public class DemoClass
     {
-        public SecondClass() { }
+        public DemoClass() { }
 
-        public SecondClass(SecondClass source)
+        public DemoClass(DemoClass source)
         {
-            String = new string(source.String.ToCharArray());
+            
+            if (source.String != null)
+                String = String = string.Copy(source.String);
             Float = source.Float;
         }
 
