@@ -20,46 +20,46 @@ namespace Tests
             TestResult = weavingTask.ExecuteTestRun("AssemblyToProcess.dll");
         }
 
-        [Fact]
-        public void CopySomeClass()
+        private static dynamic CreateSomeClassInstance(out Type type)
         {
-            var type = TestResult.Assembly.GetType("AssemblyToProcess.SomeClass");
+            type = TestResult.Assembly.GetType("AssemblyToProcess.SomeClass");
             dynamic instance = Activator.CreateInstance(type);
             instance.Integer = 42;
             instance.Enum = (int) SomeEnum.Value1;
             instance.DateTime = DateTime.Now;
             instance.String = "Hello";
+            return instance;
+        }
 
-            var copy = Activator.CreateInstance(type, instance);
+        private static void AssertCopyOfSomeClass(dynamic instance, dynamic copy)
+        {
+            Assert.NotNull(copy);
+            Assert.False(ReferenceEquals(instance, copy));
+            Assert.False(ReferenceEquals(instance.DateTime, copy.DateTime));
+            Assert.False(ReferenceEquals(instance.String, copy.String));
 
             Assert.Equal(instance.Integer, copy.Integer);
             Assert.Equal(instance.Enum, copy.Enum);
             Assert.Equal(instance.DateTime, copy.DateTime);
             Assert.Equal(instance.String, copy.String);
+        }
 
-            Assert.False(ReferenceEquals(instance.DateTime, copy.DateTime));
-            Assert.False(ReferenceEquals(instance.String, copy.String));
+        [Fact]
+        public void CopySomeClass()
+        {
+            var instance = CreateSomeClassInstance(out var type);
+            var copy = Activator.CreateInstance(type, instance);
+            AssertCopyOfSomeClass(instance, copy);
         }
 
         [Fact]
         public void CopyClassWithObject()
         {
-            var otherType = TestResult.Assembly.GetType("AssemblyToProcess.OtherClass");
-            dynamic otherInstance = Activator.CreateInstance(otherType);
-
             var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithObject");
             dynamic instance = Activator.CreateInstance(type);
-            instance.Object = otherInstance;
-            instance.Object.String = "Hello";
-            instance.Object.Float = 1.5f;
-
+            instance.Object = CreateSomeClassInstance(out _);
             var copy = Activator.CreateInstance(type, instance);
-            Assert.Equal(instance.Object.String, copy.Object.String);
-            Assert.Equal(instance.Object.Float, copy.Object.Float);
-
-            Assert.False(ReferenceEquals(instance.Object, copy.Object));
-            Assert.False(ReferenceEquals(instance.Object.String, copy.Object.String));
-            Assert.False(ReferenceEquals(instance.Object.Float, copy.Object.Float));
+            AssertCopyOfSomeClass(instance.Object, copy.Object);
         }
 
         [Fact]
@@ -95,6 +95,28 @@ namespace Tests
             Assert.False(ReferenceEquals(instance.Array[0], copy.Array[0]));
             Assert.False(ReferenceEquals(instance.Array[1], copy.Array[1]));
 
+            Assert.Null(copy.Array[2]);
+        }
+
+        [Fact]
+        public void CopyClassWithObjectArray()
+        {
+            var someClass1 = CreateSomeClassInstance(out var someClassType);
+
+            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithObjectArray");
+
+            dynamic instance = Activator.CreateInstance(type);
+
+            dynamic array = Array.CreateInstance(someClassType, 3);
+            instance.Array = array;
+            instance.Array[0] = someClass1;
+            instance.Array[1] = CreateSomeClassInstance(out _);
+            instance.Array[2] = null;
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.Equal(instance.Array.Length, copy.Array.Length);
+            AssertCopyOfSomeClass(instance.Array[0], copy.Array[0]);
+            AssertCopyOfSomeClass(instance.Array[1], copy.Array[1]);
             Assert.Null(copy.Array[2]);
         }
     }

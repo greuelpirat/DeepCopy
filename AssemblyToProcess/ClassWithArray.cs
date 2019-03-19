@@ -13,4 +13,10 @@ namespace AssemblyToProcess
     {
         public string[] Array { get; set; }
     }
+
+    [AddDeepCopyConstructor]
+    public class ClassWithObjectArray
+    {
+        public SomeClass[] Array { get; set; }
+    }
 }

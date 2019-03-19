@@ -12,6 +12,9 @@ namespace DeepCopyConstructor.Fody
             if (property.GetMethod == null || property.SetMethod == null)
                 return new Instruction[0];
 
+            if (property.PropertyType.IsArray)
+                return WrapInIfNotNull(ArrayCopy(property), property);
+
             if (property.PropertyType.IsPrimitive || property.PropertyType.IsValueType)
                 return CopyAssignment(property);
 
@@ -20,9 +23,6 @@ namespace DeepCopyConstructor.Fody
 
             if (IsCopyConstructorAvailable(property.PropertyType.Resolve(), out var constructor))
                 return WrapInIfNotNull(CopyWithConstructor(property, constructor), property);
-
-            if (property.PropertyType.IsArray)
-                return WrapInIfNotNull(ArrayCopy(property), property);
 
             throw new NotSupportedException(property.FullName);
         }
@@ -61,7 +61,5 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Call, property.SetMethod),
             };
         }
-
-      
     }
 }

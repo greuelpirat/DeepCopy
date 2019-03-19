@@ -5,6 +5,7 @@ namespace SmokeTest
     [AddDeepCopyConstructor]
     public class SmokeTest
     {
+        public Demo[] Demos { get; set; }
         public string[] Strings { get; set; }
     }
 

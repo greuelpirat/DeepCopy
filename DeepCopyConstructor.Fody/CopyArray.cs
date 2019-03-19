@@ -35,10 +35,9 @@ namespace DeepCopyConstructor.Fody
             if (type.IsPrimitive || type.IsValueType)
                 list.AddRange(ArrayCopyAssignment(property));
             else if (type.FullName == typeof(string).FullName)
-                list.AddRange(WrapInIfNotNull(ArrayCopyString(property), property, true));
+                list.AddRange(WrapInIfNotNull(ArrayCopyWithMethod(property, OpCodes.Call, StringCopy()), property, true));
             else if (IsCopyConstructorAvailable(property.PropertyType.Resolve(), out var constructor))
-                list.AddRange(WrapInIfNotNull(ArrayCopyWithConstructor(property, constructor), property));
-
+                list.AddRange(WrapInIfNotNull(ArrayCopyWithMethod(property, OpCodes.Newobj, constructor), property, true));
             else
                 throw new NotSupportedException(property.FullName);
 
@@ -79,7 +78,7 @@ namespace DeepCopyConstructor.Fody
             };
         }
 
-        private IEnumerable<Instruction> ArrayCopyString(PropertyDefinition property)
+        private IEnumerable<Instruction> ArrayCopyWithMethod(PropertyDefinition property, OpCode opCode, MethodReference method)
         {
             return new[]
             {
@@ -90,26 +89,9 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod),
                 Instruction.Create(OpCodes.Ldloc_1),
                 Instruction.Create(OpCodes.Ldelem_Ref),
-                Instruction.Create(OpCodes.Call, StringCopy()),
+                Instruction.Create(opCode, method),
                 Instruction.Create(OpCodes.Stelem_Ref)
             };
         }
-
-        private IEnumerable<Instruction> ArrayCopyWithConstructor(PropertyDefinition property, MethodReference constructor)
-        {
-            return new[]
-            {
-                Instruction.Create(OpCodes.Ldarg_0),
-                Instruction.Create(OpCodes.Call, property.GetMethod),
-                Instruction.Create(OpCodes.Ldloc_1),
-                Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Ldloc_1),
-                Instruction.Create(OpCodes.Ldelem_Ref),
-                Instruction.Create(OpCodes.Call, StringCopy()),
-                Instruction.Create(OpCodes.Stelem_Ref)
-            };
-        }
-        
     }
 }
