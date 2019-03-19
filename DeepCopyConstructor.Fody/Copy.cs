@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
@@ -7,7 +8,34 @@ namespace DeepCopyConstructor.Fody
 {
     public partial class ModuleWeaver
     {
-        private IEnumerable<Instruction> CreateAssign(PropertyDefinition property)
+        private IEnumerable<Instruction> Copy(PropertyDefinition property)
+        {
+            if (property.GetMethod == null || property.SetMethod == null)
+                return new Instruction[0];
+
+            if (property.PropertyType.IsPrimitive || property.PropertyType.IsValueType)
+                return CopyAssignment(property);
+
+            if (property.PropertyType.FullName == typeof(string).FullName)
+                return WrapInIfNotNull(CopyString(property), property);
+
+            var copyConstructor = property.PropertyType.Resolve().FindCopyConstructor();
+            if (copyConstructor != null)
+                return WrapInIfNotNull(CopyWithConstructor(property, copyConstructor), property);
+
+            if (property.PropertyType.Resolve().HasDeepCopyConstructorAttribute())
+            {
+                var constructor = CreateConstructorReference(property.PropertyType, property.PropertyType);
+                return WrapInIfNotNull(CopyWithConstructor(property, constructor), property);
+            }
+
+            if (property.PropertyType.IsArray)
+                return WrapInIfNotNull(CopyArray(property), property);
+
+            throw new NotSupportedException(property.FullName);
+        }
+
+        private static IEnumerable<Instruction> CopyAssignment(PropertyDefinition property)
         {
             return new[]
             {
@@ -18,23 +46,19 @@ namespace DeepCopyConstructor.Fody
             };
         }
 
-        private IEnumerable<Instruction> CreateString(PropertyDefinition property)
+        private IEnumerable<Instruction> CopyString(PropertyDefinition property)
         {
-            var copy = new MethodReference(nameof(string.Copy), TypeSystem.StringDefinition, TypeSystem.StringDefinition)
-            {
-                Parameters = {new ParameterDefinition(TypeSystem.StringDefinition)}
-            };
             return new[]
             {
                 Instruction.Create(OpCodes.Ldarg_0),
                 Instruction.Create(OpCodes.Ldarg_1),
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Call, ModuleDefinition.ImportReference(copy)),
+                Instruction.Create(OpCodes.Call, StringCopy()),
                 Instruction.Create(OpCodes.Call, property.SetMethod),
             };
         }
 
-        private static IEnumerable<Instruction> BuildCopyUsingConstructor(PropertyDefinition property, MethodReference constructor)
+        private static IEnumerable<Instruction> CopyWithConstructor(PropertyDefinition property, MethodReference constructor)
         {
             return new[]
             {
@@ -61,22 +85,6 @@ namespace DeepCopyConstructor.Fody
                 }
                 .Concat(instructions)
                 .Concat(new[] {afterInstruction});
-        }
-
-        private static IEnumerable<Instruction> CreateArrayCopy(PropertyDefinition property)
-        {
-            var type = ((ArrayType) property.PropertyType).GetElementType();
-            
-            return new[]
-            {
-                Instruction.Create(OpCodes.Ldarg_0),
-                Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Ldlen),
-                Instruction.Create(OpCodes.Conv_I4),
-                Instruction.Create(OpCodes.Newarr, type),
-                Instruction.Create(OpCodes.Call, property.SetMethod),
-            };
         }
     }
 }

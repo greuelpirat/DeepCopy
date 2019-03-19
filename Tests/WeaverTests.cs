@@ -67,6 +67,23 @@ namespace Tests
         {
             var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithArray");
             dynamic instance = Activator.CreateInstance(type);
+            instance.Array = new[] {42, 84};
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.Equal(instance.Array.Length, copy.Array.Length);
+            Assert.Equal(instance.Array[0], copy.Array[0]);
+            Assert.Equal(instance.Array[1], copy.Array[1]);
+
+            Assert.False(ReferenceEquals(instance.Array, copy.Array));
+            Assert.False(ReferenceEquals(instance.Array[0], copy.Array[0]));
+            Assert.False(ReferenceEquals(instance.Array[1], copy.Array[1]));
+        }
+
+        [Fact]
+        public void CopyClassWithStringArray()
+        {
+            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithStringArray");
+            dynamic instance = Activator.CreateInstance(type);
             instance.Array = new[] {"Hello", "World"};
 
             var copy = Activator.CreateInstance(type, instance);

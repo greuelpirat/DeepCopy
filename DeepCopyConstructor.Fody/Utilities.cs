@@ -12,5 +12,14 @@ namespace DeepCopyConstructor.Fody
                 Parameters = {new ParameterDefinition(parameter)}
             };
         }
+
+        private MethodReference StringCopy()
+        {
+            return ModuleDefinition.ImportReference(
+                new MethodReference(nameof(string.Copy), TypeSystem.StringDefinition, TypeSystem.StringDefinition)
+                {
+                    Parameters = {new ParameterDefinition(TypeSystem.StringDefinition)}
+                });
+        }
     }
 }

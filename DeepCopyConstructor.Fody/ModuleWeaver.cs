@@ -59,37 +59,11 @@ namespace DeepCopyConstructor.Fody
         {
             constructor.Body.InitLocals = true;
             constructor.Body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition)));
+            constructor.Body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition)));
             var index = 2;
             foreach (var property in type.Properties)
-            foreach (var instruction in BuildCopy(property))
+            foreach (var instruction in Copy(property))
                 constructor.Body.Instructions.Insert(index++, instruction);
-        }
-
-        private IEnumerable<Instruction> BuildCopy(PropertyDefinition property)
-        {
-            if (property.GetMethod == null || property.SetMethod == null)
-                return new Instruction[0];
-
-            if (property.PropertyType.IsPrimitive || property.PropertyType.IsValueType)
-                return CreateAssign(property);
-
-            if (property.PropertyType.FullName == typeof(string).FullName)
-                return WrapInIfNotNull(CreateString(property), property);
-
-            var copyConstructor = property.PropertyType.Resolve().FindCopyConstructor();
-            if (copyConstructor != null)
-                return WrapInIfNotNull(BuildCopyUsingConstructor(property, copyConstructor), property);
-
-            if (property.PropertyType.Resolve().HasDeepCopyConstructorAttribute())
-            {
-                var constructor = CreateConstructorReference(property.PropertyType, property.PropertyType);
-                return WrapInIfNotNull(BuildCopyUsingConstructor(property, constructor), property);
-            }
-
-            if (property.PropertyType.IsArray)
-                return WrapInIfNotNull(CreateArrayCopy(property), property);
-
-            throw new NotSupportedException(property.FullName);
         }
 
         #region Setup
