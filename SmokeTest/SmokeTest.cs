@@ -17,7 +17,8 @@ namespace SmokeTest
                 Strings = new string[source.Strings.Length];
                 for (var i = 0; i < source.Strings.Length; i++)
                 {
-                    Strings[i] = string.Copy(source.Strings[i]);
+                    if (source.Strings[i] != null)
+                        Strings[i] = string.Copy(source.Strings[i]);
                 }
             }
         }

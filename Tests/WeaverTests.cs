@@ -84,7 +84,7 @@ namespace Tests
         {
             var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithStringArray");
             dynamic instance = Activator.CreateInstance(type);
-            instance.Array = new[] {"Hello", "World"};
+            instance.Array = new[] {"Hello", "World", null};
 
             var copy = Activator.CreateInstance(type, instance);
             Assert.Equal(instance.Array.Length, copy.Array.Length);
@@ -94,6 +94,8 @@ namespace Tests
             Assert.False(ReferenceEquals(instance.Array, copy.Array));
             Assert.False(ReferenceEquals(instance.Array[0], copy.Array[0]));
             Assert.False(ReferenceEquals(instance.Array[1], copy.Array[1]));
+
+            Assert.Null(copy.Array[2]);
         }
     }
 }

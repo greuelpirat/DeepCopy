@@ -70,21 +70,6 @@ namespace DeepCopyConstructor.Fody
             };
         }
 
-        private static IEnumerable<Instruction> WrapInIfNotNull(IEnumerable<Instruction> instructions, PropertyDefinition property)
-        {
-            var afterInstruction = Instruction.Create(OpCodes.Nop);
-            return new[]
-                {
-                    Instruction.Create(OpCodes.Ldarg_1),
-                    Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                    Instruction.Create(OpCodes.Ldnull),
-                    Instruction.Create(OpCodes.Cgt_Un),
-                    Instruction.Create(OpCodes.Stloc_0),
-                    Instruction.Create(OpCodes.Ldloc_0),
-                    Instruction.Create(OpCodes.Brfalse_S, afterInstruction)
-                }
-                .Concat(instructions)
-                .Concat(new[] {afterInstruction});
-        }
+      
     }
 }

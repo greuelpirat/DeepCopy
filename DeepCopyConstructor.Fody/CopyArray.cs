@@ -35,7 +35,7 @@ namespace DeepCopyConstructor.Fody
             if (type.IsPrimitive || type.IsValueType)
                 list.AddRange(CopyAssignmentArray(property));
             else if (type.FullName == typeof(string).FullName)
-                list.AddRange(CopyStringArray(property));
+                list.AddRange(WrapInIfNotNull(CopyStringArray(property), property, true));
             else
                 throw new NotSupportedException(property.FullName);
 

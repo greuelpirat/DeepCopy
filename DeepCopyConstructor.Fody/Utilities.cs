@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace DeepCopyConstructor.Fody
 {
@@ -20,6 +22,34 @@ namespace DeepCopyConstructor.Fody
                 {
                     Parameters = {new ParameterDefinition(TypeSystem.StringDefinition)}
                 });
+        }
+
+        private static IEnumerable<Instruction> WrapInIfNotNull(IEnumerable<Instruction> payload, PropertyDefinition property, bool checkType = false)
+        {
+            var instructions = new List<Instruction>
+            {
+                Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Callvirt, property.GetMethod)
+            };
+
+            if (checkType)
+                if (property.PropertyType.IsArray)
+                {
+                    instructions.Add(Instruction.Create(OpCodes.Ldloc_1));
+                    instructions.Add(Instruction.Create(OpCodes.Ldelem_Ref));
+                }
+
+            instructions.Add(Instruction.Create(OpCodes.Ldnull));
+            instructions.Add(Instruction.Create(OpCodes.Cgt_Un));
+            instructions.Add(Instruction.Create(OpCodes.Stloc_0));
+            instructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+
+            var afterIf = Instruction.Create(OpCodes.Nop);
+            instructions.Add(Instruction.Create(OpCodes.Brfalse_S, afterIf));
+            instructions.AddRange(payload);
+            instructions.Add(afterIf);
+
+            return instructions;
         }
     }
 }
