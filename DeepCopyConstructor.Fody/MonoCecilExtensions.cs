@@ -6,13 +6,13 @@ namespace DeepCopyConstructor.Fody
 {
     public static class Extensions
     {
-        public static MethodDefinition FindCopyConstructor(this TypeDefinition type)
+        public static bool HasCopyConstructor(this TypeDefinition type, out MethodReference constructor)
         {
-            return type.GetConstructors()
-                .Where(constructor => constructor.Parameters.Count == 1)
-                .SingleOrDefault(constructor => constructor.Parameters.Single().ParameterType.FullName == type.FullName);
+            constructor = type.GetConstructors()
+                .Where(c => c.Parameters.Count == 1)
+                .SingleOrDefault(c => c.Parameters.Single().ParameterType.FullName == type.FullName);
+            return constructor != null;
         }
-
 
         public static bool HasDeepCopyConstructorAttribute(this ICustomAttributeProvider type)
             => type.CustomAttributes.Any(a => a.AttributeType.FullName == ModuleWeaver.DeepCopyConstructorAttribute);

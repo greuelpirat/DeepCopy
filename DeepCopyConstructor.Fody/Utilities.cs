@@ -24,6 +24,24 @@ namespace DeepCopyConstructor.Fody
                 });
         }
 
+        private bool IsCopyConstructorAvailable(TypeDefinition type, out MethodReference constructor)
+        {
+            if (type.HasCopyConstructor(out var existingConstructor))
+            {
+                constructor = existingConstructor;
+                return true;
+            }
+
+            if (type.HasDeepCopyConstructorAttribute())
+            {
+                constructor = CreateConstructorReference(type, type);
+                return true;
+            }
+
+            constructor = null;
+            return false;
+        }
+
         private static IEnumerable<Instruction> WrapInIfNotNull(IEnumerable<Instruction> payload, PropertyDefinition property, bool checkType = false)
         {
             var instructions = new List<Instruction>

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Fody;
 using Mono.Cecil;
@@ -24,10 +23,9 @@ namespace DeepCopyConstructor.Fody
 
             foreach (var target in targets)
             {
-                var constructor = target.FindCopyConstructor();
-                if (constructor != null)
+                if (target.HasCopyConstructor(out var constructor))
                 {
-                    InsertCopyInstructions(target, constructor);
+                    InsertCopyInstructions(target, constructor.Resolve());
                     LogInfo($"Extended copy constructor of type {target.FullName}");
                 }
                 else

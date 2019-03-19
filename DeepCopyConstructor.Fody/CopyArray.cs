@@ -7,7 +7,7 @@ namespace DeepCopyConstructor.Fody
 {
     public partial class ModuleWeaver
     {
-        private IEnumerable<Instruction> CopyArray(PropertyDefinition property)
+        private IEnumerable<Instruction> ArrayCopy(PropertyDefinition property)
         {
             var type = ((ArrayType) property.PropertyType).GetElementType();
 
@@ -33,9 +33,12 @@ namespace DeepCopyConstructor.Fody
             };
 
             if (type.IsPrimitive || type.IsValueType)
-                list.AddRange(CopyAssignmentArray(property));
+                list.AddRange(ArrayCopyAssignment(property));
             else if (type.FullName == typeof(string).FullName)
-                list.AddRange(WrapInIfNotNull(CopyStringArray(property), property, true));
+                list.AddRange(WrapInIfNotNull(ArrayCopyString(property), property, true));
+            else if (IsCopyConstructorAvailable(property.PropertyType.Resolve(), out var constructor))
+                list.AddRange(WrapInIfNotNull(ArrayCopyWithConstructor(property, constructor), property));
+
             else
                 throw new NotSupportedException(property.FullName);
 
@@ -61,7 +64,7 @@ namespace DeepCopyConstructor.Fody
             return list;
         }
 
-        private static IEnumerable<Instruction> CopyAssignmentArray(PropertyDefinition property)
+        private static IEnumerable<Instruction> ArrayCopyAssignment(PropertyDefinition property)
         {
             return new[]
             {
@@ -76,7 +79,7 @@ namespace DeepCopyConstructor.Fody
             };
         }
 
-        private IEnumerable<Instruction> CopyStringArray(PropertyDefinition property)
+        private IEnumerable<Instruction> ArrayCopyString(PropertyDefinition property)
         {
             return new[]
             {
@@ -91,5 +94,22 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Stelem_Ref)
             };
         }
+
+        private IEnumerable<Instruction> ArrayCopyWithConstructor(PropertyDefinition property, MethodReference constructor)
+        {
+            return new[]
+            {
+                Instruction.Create(OpCodes.Ldarg_0),
+                Instruction.Create(OpCodes.Call, property.GetMethod),
+                Instruction.Create(OpCodes.Ldloc_1),
+                Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
+                Instruction.Create(OpCodes.Ldloc_1),
+                Instruction.Create(OpCodes.Ldelem_Ref),
+                Instruction.Create(OpCodes.Call, StringCopy()),
+                Instruction.Create(OpCodes.Stelem_Ref)
+            };
+        }
+        
     }
 }

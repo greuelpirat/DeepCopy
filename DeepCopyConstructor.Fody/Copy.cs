@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -19,18 +18,11 @@ namespace DeepCopyConstructor.Fody
             if (property.PropertyType.FullName == typeof(string).FullName)
                 return WrapInIfNotNull(CopyString(property), property);
 
-            var copyConstructor = property.PropertyType.Resolve().FindCopyConstructor();
-            if (copyConstructor != null)
-                return WrapInIfNotNull(CopyWithConstructor(property, copyConstructor), property);
-
-            if (property.PropertyType.Resolve().HasDeepCopyConstructorAttribute())
-            {
-                var constructor = CreateConstructorReference(property.PropertyType, property.PropertyType);
+            if (IsCopyConstructorAvailable(property.PropertyType.Resolve(), out var constructor))
                 return WrapInIfNotNull(CopyWithConstructor(property, constructor), property);
-            }
 
             if (property.PropertyType.IsArray)
-                return WrapInIfNotNull(CopyArray(property), property);
+                return WrapInIfNotNull(ArrayCopy(property), property);
 
             throw new NotSupportedException(property.FullName);
         }
