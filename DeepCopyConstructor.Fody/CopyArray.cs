@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -31,15 +30,8 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Br_S, conditionStart),
                 loopStart
             };
-
-            if (type.IsPrimitive || type.IsValueType)
-                list.AddRange(ArrayCopyItem(property));
-            else if (type.FullName == typeof(string).FullName)
-                list.AddRange(ArrayCopyItem(property, OpCodes.Call, StringCopy()));
-            else if (IsCopyConstructorAvailable(property.PropertyType.Resolve(), out var constructor))
-                list.AddRange(ArrayCopyItem(property, OpCodes.Newobj, constructor));
-            else
-                throw new NotSupportedException(property.FullName);
+            
+            list.AddRange(ArrayCopyItem(property, type.Resolve()));
 
             // increment index
             list.Add(Instruction.Create(OpCodes.Ldloc_1));
@@ -63,7 +55,7 @@ namespace DeepCopyConstructor.Fody
             return list;
         }
 
-        private IEnumerable<Instruction> ArrayCopyItem(PropertyDefinition property, OpCode opCode = default(OpCode), MethodReference method = null)
+        private IEnumerable<Instruction> ArrayCopyItem(PropertyDefinition property, TypeDefinition elementType)
         {
             var instructions = new List<Instruction>
             {
@@ -74,10 +66,11 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod),
                 Instruction.Create(OpCodes.Ldloc_1)
             };
-            if (method != null)
+            var value = CopyValue(elementType);
+            if (value.Length > 0)
             {
                 instructions.Add(Instruction.Create(OpCodes.Ldelem_Ref));
-                instructions.Add(Instruction.Create(opCode, method));
+                instructions.AddRange(value);
                 instructions.Add(Instruction.Create(OpCodes.Stelem_Ref));
             }
             else
@@ -86,7 +79,7 @@ namespace DeepCopyConstructor.Fody
                 instructions.Add(Instruction.Create(OpCodes.Stelem_I4));
             }
 
-            return method == null ? instructions : WrapInIfNotNull(instructions, property, PropertyAccessorChainArray);
+            return value.Length == 0 ? instructions : WrapInIfNotNull(instructions, property, PropertyAccessorChainArray);
         }
     }
 }

@@ -33,17 +33,7 @@ namespace DeepCopyConstructor.Fody
             list.Add(Instruction.Create(OpCodes.Br_S, conditionStart));
             list.Add(loopStart);
 
-            var getItem = ImportMethod(listType, "get_Item", argumentType);
-            var addItem = ImportMethod(listType, "Add", argumentType);
-
-            if (argumentType.IsPrimitive || argumentType.IsValueType)
-                list.AddRange(ListCopyItem(property, getItem, addItem));
-            else if (argumentType.FullName == typeof(string).FullName)
-                list.AddRange(ListCopyItem(property, getItem, addItem, OpCodes.Call, StringCopy()));
-            else if (IsCopyConstructorAvailable(argumentType, out var constructor))
-                list.AddRange(ListCopyItem(property, getItem, addItem, OpCodes.Newobj, constructor));
-            else
-                throw new NotSupportedException(property.FullName);
+            list.AddRange(ListCopyItem(property, listType, argumentType));
 
             // increment index
             list.Add(Instruction.Create(OpCodes.Ldloc_1));
@@ -55,7 +45,6 @@ namespace DeepCopyConstructor.Fody
             list.Add(conditionStart);
             list.Add(Instruction.Create(OpCodes.Ldarg_1));
             list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
-
             list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "get_Count", argumentType)));
             list.Add(Instruction.Create(OpCodes.Clt));
             list.Add(Instruction.Create(OpCodes.Stloc_0));
@@ -67,9 +56,11 @@ namespace DeepCopyConstructor.Fody
             return list;
         }
 
-        private static IEnumerable<Instruction> ListCopyItem(PropertyDefinition property, MethodReference getItem, MethodReference addItem,
-            OpCode opCode = default(OpCode), MethodReference method = null)
+        private IEnumerable<Instruction> ListCopyItem(PropertyDefinition property, TypeDefinition listType, TypeDefinition argumentType)
         {
+            var getItem = ImportMethod(listType, "get_Item", argumentType);
+            var addItem = ImportMethod(listType, "Add", argumentType);
+
             var list = new List<Instruction>
             {
                 Instruction.Create(OpCodes.Ldarg_0),
@@ -80,8 +71,10 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, getItem)
             };
 
+            var value = CopyValue(argumentType);
+            
             var addInstruction = Instruction.Create(OpCodes.Callvirt, addItem);
-            if (method != null)
+            if (value.Length > 0)
             {
                 var loadNotNullItem = Instruction.Create(OpCodes.Ldarg_1);
                 list.Add(Instruction.Create(OpCodes.Brtrue_S, loadNotNullItem));
@@ -91,7 +84,7 @@ namespace DeepCopyConstructor.Fody
                 list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
                 list.Add(Instruction.Create(OpCodes.Ldloc_1));
                 list.Add(Instruction.Create(OpCodes.Callvirt, getItem));
-                list.Add(Instruction.Create(opCode, method));
+                list.AddRange(value);
             }
 
             list.Add(addInstruction);
