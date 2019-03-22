@@ -6,13 +6,17 @@ namespace DeepCopyConstructor.Fody
 {
     public partial class ModuleWeaver
     {
-        private MethodReference CreateConstructorReference(TypeReference type, TypeReference parameter)
+        private MethodReference Constructor(TypeReference type, TypeReference parameter = null)
         {
-            return new MethodReference(Constructor, TypeSystem.VoidDefinition, type)
-            {
-                HasThis = true,
-                Parameters = {new ParameterDefinition(parameter)}
-            };
+            var constructor = new MethodReference(ConstructorName, TypeSystem.VoidDefinition, type) { HasThis = true };
+            if (parameter != null)
+                constructor.Parameters.Add(new ParameterDefinition(parameter));
+            return constructor;
+        }
+        
+        private MethodReference ImportMethod(TypeDefinition type, string name, TypeReference genericArgumentType)
+        {
+            return ModuleDefinition.ImportReference(type.GetMethod(name).MakeGeneric(genericArgumentType));
         }
 
         private MethodReference StringCopy()
@@ -20,7 +24,7 @@ namespace DeepCopyConstructor.Fody
             return ModuleDefinition.ImportReference(
                 new MethodReference(nameof(string.Copy), TypeSystem.StringDefinition, TypeSystem.StringDefinition)
                 {
-                    Parameters = {new ParameterDefinition(TypeSystem.StringDefinition)}
+                    Parameters = { new ParameterDefinition(TypeSystem.StringDefinition) }
                 });
         }
 
@@ -34,7 +38,7 @@ namespace DeepCopyConstructor.Fody
 
             if (type.HasDeepCopyConstructorAttribute())
             {
-                constructor = CreateConstructorReference(type, type);
+                constructor = Constructor(type, type);
                 return true;
             }
 
@@ -42,7 +46,13 @@ namespace DeepCopyConstructor.Fody
             return false;
         }
 
-        private static IEnumerable<Instruction> WrapInIfNotNull(IEnumerable<Instruction> payload, PropertyDefinition property, bool checkType = false)
+        private IEnumerable<Instruction> PropertyAccessorChainArray { get; } = new[]
+        {
+            Instruction.Create(OpCodes.Ldloc_1),
+            Instruction.Create(OpCodes.Ldelem_Ref)
+        };
+
+        private static IEnumerable<Instruction> WrapInIfNotNull(IEnumerable<Instruction> payload, PropertyDefinition property, IEnumerable<Instruction> accessorChain = null)
         {
             var instructions = new List<Instruction>
             {
@@ -50,12 +60,8 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod)
             };
 
-            if (checkType)
-                if (property.PropertyType.IsArray)
-                {
-                    instructions.Add(Instruction.Create(OpCodes.Ldloc_1));
-                    instructions.Add(Instruction.Create(OpCodes.Ldelem_Ref));
-                }
+            if (accessorChain != null)
+                instructions.AddRange(accessorChain);
 
             instructions.Add(Instruction.Create(OpCodes.Ldnull));
             instructions.Add(Instruction.Create(OpCodes.Cgt_Un));

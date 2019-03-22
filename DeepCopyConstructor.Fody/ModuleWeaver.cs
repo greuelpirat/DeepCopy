@@ -11,7 +11,7 @@ namespace DeepCopyConstructor.Fody
 {
     public partial class ModuleWeaver : BaseModuleWeaver
     {
-        private const string Constructor = ".ctor";
+        private const string ConstructorName = ".ctor";
         internal const string DeepCopyConstructorAttribute = "DeepCopyConstructor.AddDeepCopyConstructorAttribute";
 
         private const MethodAttributes ConstructorAttributes
@@ -40,7 +40,7 @@ namespace DeepCopyConstructor.Fody
 
         private void AddDeepConstructor(TypeDefinition type)
         {
-            var constructor = new MethodDefinition(Constructor, ConstructorAttributes, TypeSystem.VoidReference);
+            var constructor = new MethodDefinition(ConstructorName, ConstructorAttributes, TypeSystem.VoidReference);
             constructor.Parameters.Add(new ParameterDefinition(type));
 
             var processor = constructor.Body.GetILProcessor();

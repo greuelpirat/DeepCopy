@@ -33,11 +33,11 @@ namespace DeepCopyConstructor.Fody
             };
 
             if (type.IsPrimitive || type.IsValueType)
-                list.AddRange(ArrayCopyAssignment(property));
+                list.AddRange(ArrayCopyItem(property));
             else if (type.FullName == typeof(string).FullName)
-                list.AddRange(WrapInIfNotNull(ArrayCopyWithMethod(property, OpCodes.Call, StringCopy()), property, true));
+                list.AddRange(ArrayCopyItem(property, OpCodes.Call, StringCopy()));
             else if (IsCopyConstructorAvailable(property.PropertyType.Resolve(), out var constructor))
-                list.AddRange(WrapInIfNotNull(ArrayCopyWithMethod(property, OpCodes.Newobj, constructor), property, true));
+                list.AddRange(ArrayCopyItem(property, OpCodes.Newobj, constructor));
             else
                 throw new NotSupportedException(property.FullName);
 
@@ -63,35 +63,30 @@ namespace DeepCopyConstructor.Fody
             return list;
         }
 
-        private static IEnumerable<Instruction> ArrayCopyAssignment(PropertyDefinition property)
+        private IEnumerable<Instruction> ArrayCopyItem(PropertyDefinition property, OpCode opCode = default(OpCode), MethodReference method = null)
         {
-            return new[]
+            var instructions = new List<Instruction>
             {
                 Instruction.Create(OpCodes.Ldarg_0),
                 Instruction.Create(OpCodes.Call, property.GetMethod),
                 Instruction.Create(OpCodes.Ldloc_1),
                 Instruction.Create(OpCodes.Ldarg_1),
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Ldloc_1),
-                Instruction.Create(OpCodes.Ldelem_I4),
-                Instruction.Create(OpCodes.Stelem_I4)
+                Instruction.Create(OpCodes.Ldloc_1)
             };
-        }
+            if (method != null)
+            {
+                instructions.Add(Instruction.Create(OpCodes.Ldelem_Ref));
+                instructions.Add(Instruction.Create(opCode, method));
+                instructions.Add(Instruction.Create(OpCodes.Stelem_Ref));
+            }
+            else
+            {
+                instructions.Add(Instruction.Create(OpCodes.Ldelem_I4));
+                instructions.Add(Instruction.Create(OpCodes.Stelem_I4));
+            }
 
-        private IEnumerable<Instruction> ArrayCopyWithMethod(PropertyDefinition property, OpCode opCode, MethodReference method)
-        {
-            return new[]
-            {
-                Instruction.Create(OpCodes.Ldarg_0),
-                Instruction.Create(OpCodes.Call, property.GetMethod),
-                Instruction.Create(OpCodes.Ldloc_1),
-                Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Ldloc_1),
-                Instruction.Create(OpCodes.Ldelem_Ref),
-                Instruction.Create(opCode, method),
-                Instruction.Create(OpCodes.Stelem_Ref)
-            };
+            return method == null ? instructions : WrapInIfNotNull(instructions, property, PropertyAccessorChainArray);
         }
     }
 }

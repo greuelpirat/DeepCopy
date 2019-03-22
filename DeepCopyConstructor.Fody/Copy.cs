@@ -15,51 +15,34 @@ namespace DeepCopyConstructor.Fody
             if (property.PropertyType.IsArray)
                 return WrapInIfNotNull(ArrayCopy(property), property);
 
+            if (property.PropertyType.IsImplementing(typeof(IList<>).FullName))
+                return WrapInIfNotNull(ListCopy(property), property);
+
             if (property.PropertyType.IsPrimitive || property.PropertyType.IsValueType)
-                return CopyAssignment(property);
+                return CopyItem(property);
 
             if (property.PropertyType.FullName == typeof(string).FullName)
-                return WrapInIfNotNull(CopyString(property), property);
+                return CopyItem(property, OpCodes.Call, StringCopy());
 
             if (IsCopyConstructorAvailable(property.PropertyType.Resolve(), out var constructor))
-                return WrapInIfNotNull(CopyWithConstructor(property, constructor), property);
+                return CopyItem(property, OpCodes.Newobj, constructor);
 
             throw new NotSupportedException(property.FullName);
         }
 
-        private static IEnumerable<Instruction> CopyAssignment(PropertyDefinition property)
+        private static IEnumerable<Instruction> CopyItem(PropertyDefinition property, OpCode opCode = default(OpCode), MethodReference method = null)
         {
-            return new[]
+            var instructions = new List<Instruction>
             {
                 Instruction.Create(OpCodes.Ldarg_0),
                 Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Call, property.SetMethod),
+                Instruction.Create(OpCodes.Callvirt, property.GetMethod)
             };
-        }
+            if (method != null)
+                instructions.Add(Instruction.Create(opCode, method));
+            instructions.Add(Instruction.Create(OpCodes.Call, property.SetMethod));
 
-        private IEnumerable<Instruction> CopyString(PropertyDefinition property)
-        {
-            return new[]
-            {
-                Instruction.Create(OpCodes.Ldarg_0),
-                Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Call, StringCopy()),
-                Instruction.Create(OpCodes.Call, property.SetMethod),
-            };
-        }
-
-        private static IEnumerable<Instruction> CopyWithConstructor(PropertyDefinition property, MethodReference constructor)
-        {
-            return new[]
-            {
-                Instruction.Create(OpCodes.Ldarg_0),
-                Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Newobj, constructor),
-                Instruction.Create(OpCodes.Call, property.SetMethod),
-            };
+            return method == null ? instructions : WrapInIfNotNull(instructions, property);
         }
     }
 }
