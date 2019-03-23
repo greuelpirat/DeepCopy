@@ -27,7 +27,7 @@ namespace DeepCopyConstructor.Fody
 
         private IEnumerable<Instruction> CopyItem(PropertyDefinition property)
         {
-            var setter = Instruction.Create(OpCodes.Call, property.SetMethod);
+            var instructions = new List<Instruction> { Instruction.Create(OpCodes.Ldarg_0) };
 
             IEnumerable<Instruction> Getter() => new[]
             {
@@ -35,26 +35,24 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod)
             };
 
-            var instructions = new List<Instruction> { Instruction.Create(OpCodes.Ldarg_0) };
+            var setter = Instruction.Create(OpCodes.Call, property.SetMethod);
             instructions.AddRange(CopyNullableValue(property.PropertyType.Resolve(), Getter, setter));
+            instructions.Add(setter);
             return instructions;
         }
 
-        private IEnumerable<Instruction> CopyNullableValue(TypeReference type, Func<IEnumerable<Instruction>> getterBuilder, Instruction setter)
+        private IEnumerable<Instruction> CopyNullableValue(TypeReference type, Func<IEnumerable<Instruction>> getterBuilder, Instruction followUp)
         {
             var list = new List<Instruction>();
             list.AddRange(getterBuilder.Invoke());
 
             if (type.IsPrimitive || type.IsValueType)
-            {
-                list.Add(setter);
                 return list;
-            }
 
             var getterAfterNullCheck = getterBuilder.Invoke().ToList();
             list.Add(Instruction.Create(OpCodes.Brtrue_S, getterAfterNullCheck.First()));
             list.Add(Instruction.Create(OpCodes.Ldnull));
-            list.Add(Instruction.Create(OpCodes.Br_S, setter));
+            list.Add(Instruction.Create(OpCodes.Br_S, followUp));
             list.AddRange(getterAfterNullCheck);
 
             if (type.FullName == typeof(string).FullName)
@@ -64,7 +62,6 @@ namespace DeepCopyConstructor.Fody
             else
                 throw new NotSupportedException(type.FullName);
 
-            list.Add(setter);
             return list;
         }
     }

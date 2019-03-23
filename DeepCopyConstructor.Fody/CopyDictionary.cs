@@ -57,18 +57,24 @@ namespace DeepCopyConstructor.Fody
 
             list.Add(Instruction.Create(OpCodes.Ldarg_0));
             list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
-            list.Add(Instruction.Create(OpCodes.Ldloca_S, varKeyValuePair));
-            list.Add(Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Key", typesArguments)));
 
-            var setter = Instruction.Create(OpCodes.Callvirt, ImportMethod(typeDictionary, "set_Item", typesArguments));
+            IEnumerable<Instruction> GetterKey() => new[]
+            {
+                Instruction.Create(OpCodes.Ldloca_S, varKeyValuePair),
+                Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Key", typesArguments))
+            };
 
-            IEnumerable<Instruction> Getter() => new[]
+            IEnumerable<Instruction> GetterValue() => new[]
             {
                 Instruction.Create(OpCodes.Ldloca_S, varKeyValuePair),
                 Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Value", typesArguments))
             };
 
-            list.AddRange(CopyNullableValue(typesArguments[1], Getter, setter));
+            var setItem = Instruction.Create(OpCodes.Callvirt, ImportMethod(typeDictionary, "set_Item", typesArguments));
+            var getValue = CopyNullableValue(typesArguments[1], GetterValue, setItem).ToList();
+            list.AddRange(GetterKey());
+            list.AddRange(getValue);
+            list.Add(setItem);
 
             list.Add(startCondition);
             list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeEnumerator, nameof(IEnumerator.MoveNext))));

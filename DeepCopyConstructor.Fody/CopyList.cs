@@ -66,8 +66,6 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Call, property.GetMethod)
             };
 
-            var setter = Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "Add", argumentType));
-
             IEnumerable<Instruction> Getter() => new[]
             {
                 Instruction.Create(OpCodes.Ldarg_1),
@@ -76,7 +74,9 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "get_Item", argumentType))
             };
 
-            list.AddRange(CopyNullableValue(argumentType, Getter, setter));
+            var add = Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "Add", argumentType));
+            list.AddRange(CopyNullableValue(argumentType, Getter, add));
+            list.Add(add);
 
             return list;
         }

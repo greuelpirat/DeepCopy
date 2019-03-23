@@ -74,8 +74,6 @@ namespace DeepCopyConstructor.Fody
             }
             else
             {
-                var setter = Instruction.Create(OpCodes.Stelem_Ref);
-
                 IEnumerable<Instruction> Getter() => new[]
                 {
                     Instruction.Create(OpCodes.Ldarg_1),
@@ -84,7 +82,9 @@ namespace DeepCopyConstructor.Fody
                     Instruction.Create(OpCodes.Ldelem_Ref)
                 };
 
-                instructions.AddRange(CopyNullableValue(elementType, Getter, setter));
+                var setElementReference = Instruction.Create(OpCodes.Stelem_Ref);
+                instructions.AddRange(CopyNullableValue(elementType, Getter, setElementReference));
+                instructions.Add(setElementReference);
             }
 
             return instructions;
