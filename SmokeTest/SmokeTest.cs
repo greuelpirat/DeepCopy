@@ -14,18 +14,38 @@ namespace SmokeTest
     {
         public Demo(Demo source)
         {
+            if (source.Array != null)
+            {
+                Array = new string[source.Array.Length];
+                for (var i = 0; i < source.Array.Length; i++)
+                    Array[i] = source.Array[i] != null ? string.Copy(source.Array[i]) : null;
+            }
+
             if (source.List != null)
             {
-                List = new List<string>();
+                List = new List<int>();
                 for (var i = 0; i < source.List.Count; i++)
-                    List.Add(source.List[i] != null ? string.Copy(source.List[i]) : null);
+                    List.Add(source.List[i]);
+            }
 
-                for (var i = 0; i < source.Ints.Count; i++)
-                    Ints.Add(source.Ints[i]);
+            if (source.Ints != null)
+            {
+                Ints = new Dictionary<int, int>();
+                foreach (var pair in Ints)
+                    Ints[pair.Key] = pair.Value;
+            }
+
+            if (source.Strings != null)
+            {
+                Strings = new Dictionary<string, string>();
+                foreach (var pair in Strings)
+                    Strings[pair.Key] = pair.Value == null ? null : string.Copy(pair.Value);
             }
         }
 
-        public IList<string> List { get; set; }
-        public IList<int> Ints { get; set; }
+        public string[] Array { get; set; }
+        public IList<int> List { get; set; }
+        public IDictionary<int, int> Ints { get; set; }
+        public IDictionary<string, string> Strings { get; set; }
     }
 }

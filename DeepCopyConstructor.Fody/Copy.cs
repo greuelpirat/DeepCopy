@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -21,35 +22,50 @@ namespace DeepCopyConstructor.Fody
             return CopyItem(property);
         }
 
-        private Instruction[] CopyValue(TypeDefinition type)
-        {
-            if (type.IsPrimitive || type.IsValueType)
-                return new Instruction[0];
-
-            if (type.FullName == typeof(string).FullName)
-                return new[] { Instruction.Create(OpCodes.Call, StringCopy()) };
-
-            if (IsCopyConstructorAvailable(type.Resolve(), out var constructor))
-                return new[] { Instruction.Create(OpCodes.Newobj, constructor) };
-
-            throw new NotSupportedException(type.FullName);
-        }
-
         private IEnumerable<Instruction> CopyItem(PropertyDefinition property)
         {
-            var instructions = new List<Instruction>
+            var setter = Instruction.Create(OpCodes.Call, property.SetMethod);
+
+            IEnumerable<Instruction> GetterBuilder() => new[]
             {
-                Instruction.Create(OpCodes.Ldarg_0),
                 Instruction.Create(OpCodes.Ldarg_1),
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod)
             };
 
-            var values = CopyValue(property.PropertyType.Resolve());
-            if (values.Length > 0)
-                instructions.AddRange(values);
+            var instructions = new List<Instruction>
+            {
+                Instruction.Create(OpCodes.Ldarg_0)
+            };
+            instructions.AddRange(BuildValueCopy(property.PropertyType.Resolve(), setter, GetterBuilder));
+            return instructions;
+        }
 
-            instructions.Add(Instruction.Create(OpCodes.Call, property.SetMethod));
-            return values.Length == 0 ? instructions : WrapInIfNotNull(instructions, property);
+        private IEnumerable<Instruction> BuildValueCopy(TypeDefinition type, Instruction setter, Func<IEnumerable<Instruction>> getterBuilder)
+        {
+            var list = new List<Instruction>();
+            list.AddRange(getterBuilder.Invoke());
+
+            if (type.IsPrimitive || type.IsValueType)
+            {
+                list.Add(setter);
+                return list;
+            }
+
+            var getterAfterNullCheck = getterBuilder.Invoke().ToList();
+            list.Add(Instruction.Create(OpCodes.Brtrue_S, getterAfterNullCheck.First()));
+            list.Add(Instruction.Create(OpCodes.Ldnull));
+            list.Add(Instruction.Create(OpCodes.Br_S, setter));
+            list.AddRange(getterAfterNullCheck);
+
+            if (type.FullName == typeof(string).FullName)
+                list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
+            else if (IsCopyConstructorAvailable(type, out var constructor))
+                list.Add(Instruction.Create(OpCodes.Newobj, constructor));
+            else
+                throw new NotSupportedException(type.FullName);
+
+            list.Add(setter);
+            return list;
         }
     }
 }

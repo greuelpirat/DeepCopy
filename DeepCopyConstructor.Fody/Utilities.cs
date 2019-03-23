@@ -13,7 +13,7 @@ namespace DeepCopyConstructor.Fody
                 constructor.Parameters.Add(new ParameterDefinition(parameter));
             return constructor;
         }
-        
+
         private MethodReference ImportMethod(TypeDefinition type, string name, TypeReference genericArgumentType)
         {
             return ModuleDefinition.ImportReference(type.GetMethod(name).MakeGeneric(genericArgumentType));
@@ -46,27 +46,17 @@ namespace DeepCopyConstructor.Fody
             return false;
         }
 
-        private IEnumerable<Instruction> PropertyAccessorChainArray { get; } = new[]
-        {
-            Instruction.Create(OpCodes.Ldloc_1),
-            Instruction.Create(OpCodes.Ldelem_Ref)
-        };
-
-        private static IEnumerable<Instruction> WrapInIfNotNull(IEnumerable<Instruction> payload, PropertyDefinition property, IEnumerable<Instruction> accessorChain = null)
+        private static IEnumerable<Instruction> WrapInIfNotNull(IEnumerable<Instruction> payload, PropertyDefinition property)
         {
             var instructions = new List<Instruction>
             {
                 Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod)
+                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
+                Instruction.Create(OpCodes.Ldnull),
+                Instruction.Create(OpCodes.Cgt_Un),
+                Instruction.Create(OpCodes.Stloc_0),
+                Instruction.Create(OpCodes.Ldloc_0)
             };
-
-            if (accessorChain != null)
-                instructions.AddRange(accessorChain);
-
-            instructions.Add(Instruction.Create(OpCodes.Ldnull));
-            instructions.Add(Instruction.Create(OpCodes.Cgt_Un));
-            instructions.Add(Instruction.Create(OpCodes.Stloc_0));
-            instructions.Add(Instruction.Create(OpCodes.Ldloc_0));
 
             var afterIf = Instruction.Create(OpCodes.Nop);
             instructions.Add(Instruction.Create(OpCodes.Brfalse_S, afterIf));

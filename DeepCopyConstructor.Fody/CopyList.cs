@@ -58,37 +58,23 @@ namespace DeepCopyConstructor.Fody
 
         private IEnumerable<Instruction> ListCopyItem(PropertyDefinition property, TypeDefinition listType, TypeDefinition argumentType)
         {
-            var getItem = ImportMethod(listType, "get_Item", argumentType);
-            var addItem = ImportMethod(listType, "Add", argumentType);
-
             var list = new List<Instruction>
             {
                 Instruction.Create(OpCodes.Ldarg_0),
-                Instruction.Create(OpCodes.Call, property.GetMethod),
+                Instruction.Create(OpCodes.Call, property.GetMethod)
+            };
+
+            var setter = Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "Add", argumentType));
+
+            IEnumerable<Instruction> Getter() => new[]
+            {
                 Instruction.Create(OpCodes.Ldarg_1),
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod),
                 Instruction.Create(OpCodes.Ldloc_1),
-                Instruction.Create(OpCodes.Callvirt, getItem)
+                Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "get_Item", argumentType))
             };
 
-            var value = CopyValue(argumentType);
-            
-            var addInstruction = Instruction.Create(OpCodes.Callvirt, addItem);
-            if (value.Length > 0)
-            {
-                var loadNotNullItem = Instruction.Create(OpCodes.Ldarg_1);
-                list.Add(Instruction.Create(OpCodes.Brtrue_S, loadNotNullItem));
-                list.Add(Instruction.Create(OpCodes.Ldnull));
-                list.Add(Instruction.Create(OpCodes.Br_S, addInstruction));
-                list.Add(loadNotNullItem);
-                list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
-                list.Add(Instruction.Create(OpCodes.Ldloc_1));
-                list.Add(Instruction.Create(OpCodes.Callvirt, getItem));
-                list.AddRange(value);
-            }
-
-            list.Add(addInstruction);
-            list.Add(Instruction.Create(OpCodes.Nop));
+            list.AddRange(BuildValueCopy(argumentType, setter, Getter));
 
             return list;
         }

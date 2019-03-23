@@ -30,7 +30,7 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Br_S, conditionStart),
                 loopStart
             };
-            
+
             list.AddRange(ArrayCopyItem(property, type.Resolve()));
 
             // increment index
@@ -62,24 +62,32 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Ldarg_0),
                 Instruction.Create(OpCodes.Call, property.GetMethod),
                 Instruction.Create(OpCodes.Ldloc_1),
-                Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Ldloc_1)
             };
-            var value = CopyValue(elementType);
-            if (value.Length > 0)
+
+            if (elementType.IsPrimitive || elementType.IsValueType)
             {
-                instructions.Add(Instruction.Create(OpCodes.Ldelem_Ref));
-                instructions.AddRange(value);
-                instructions.Add(Instruction.Create(OpCodes.Stelem_Ref));
-            }
-            else
-            {
+                instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+                instructions.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
+                instructions.Add(Instruction.Create(OpCodes.Ldloc_1));
                 instructions.Add(Instruction.Create(OpCodes.Ldelem_I4));
                 instructions.Add(Instruction.Create(OpCodes.Stelem_I4));
             }
+            else
+            {
+                var setter = Instruction.Create(OpCodes.Stelem_Ref);
 
-            return value.Length == 0 ? instructions : WrapInIfNotNull(instructions, property, PropertyAccessorChainArray);
+                IEnumerable<Instruction> GetterBuilder() => new[]
+                {
+                    Instruction.Create(OpCodes.Ldarg_1),
+                    Instruction.Create(OpCodes.Callvirt, property.GetMethod),
+                    Instruction.Create(OpCodes.Ldloc_1),
+                    Instruction.Create(OpCodes.Ldelem_Ref)
+                };
+
+                instructions.AddRange(BuildValueCopy(elementType, setter, GetterBuilder));
+            }
+
+            return instructions;
         }
     }
 }
