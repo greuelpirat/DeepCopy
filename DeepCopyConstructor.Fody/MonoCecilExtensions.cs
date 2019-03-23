@@ -7,11 +7,15 @@ namespace DeepCopyConstructor.Fody
 {
     public static class Extensions
     {
+        public static bool HasDefaultConstructor(this TypeDefinition type)
+        {
+            return type.GetConstructors().Any(c => c.Parameters.Count == 0);
+        }
+
         public static bool HasCopyConstructor(this TypeDefinition type, out MethodReference constructor)
         {
-            constructor = type.GetConstructors()
-                .Where(c => c.Parameters.Count == 1)
-                .SingleOrDefault(c => c.Parameters.Single().ParameterType.FullName == type.FullName);
+            constructor = type.GetConstructors().SingleOrDefault(c => c.Parameters.Count == 1
+                                                                      && c.Parameters.Single().ParameterType.FullName == type.FullName);
             return constructor != null;
         }
 
@@ -34,7 +38,7 @@ namespace DeepCopyConstructor.Fody
 
             return false;
         }
-        
+
         public static MethodReference GetMethod(this TypeDefinition type, string name)
         {
             if (TryFindMethod(type, name, out var method))
@@ -65,20 +69,31 @@ namespace DeepCopyConstructor.Fody
             return false;
         }
 
-        public static TypeReference SingleGenericArgument(this TypeReference type)
+        public static TypeDefinition SolveGenericArgument(this TypeReference type)
         {
-            return ((GenericInstanceType) type).GenericArguments.Single().GetElementType();
+            if (!type.IsGenericInstance)
+                throw new ArgumentException();
+            return ((GenericInstanceType) type).GenericArguments.Single().GetElementType().Resolve();
+        }
+
+        public static TypeDefinition[] SolveGenericArguments(this TypeReference type)
+        {
+            if (!type.IsGenericInstance)
+                throw new ArgumentException();
+            var arguments = ((GenericInstanceType) type).GenericArguments;
+            if (arguments.Count != 2)
+                throw new ArgumentException();
+            return arguments.Select(a => a.GetElementType().Resolve()).ToArray();
         }
 
         public static TypeReference MakeGeneric(this TypeReference source, params TypeReference[] arguments)
         {
-            if (source.GenericParameters.Count != arguments.Length)
-                throw new ArgumentException();
-
-            var instance = new GenericInstanceType(source);
+            var resolved = source.Resolve();
+            if (resolved.GenericParameters.Count != arguments.Length)
+                throw new ArgumentException($"Expected {source.GenericParameters.Count} generic parameters, got {arguments.Length}");
+            var instance = new GenericInstanceType(resolved);
             foreach (var argument in arguments)
                 instance.GenericArguments.Add(argument);
-
             return instance;
         }
 

@@ -19,6 +19,9 @@ namespace DeepCopyConstructor.Fody
             if (property.PropertyType.IsImplementing(typeof(IList<>).FullName))
                 return WrapInIfNotNull(ListCopy(property), property);
 
+            if (property.PropertyType.IsImplementing(typeof(IDictionary<,>).FullName))
+                return WrapInIfNotNull(DictionaryCopy(property), property);
+
             return CopyItem(property);
         }
 

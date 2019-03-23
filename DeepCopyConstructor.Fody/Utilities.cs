@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -14,9 +15,34 @@ namespace DeepCopyConstructor.Fody
             return constructor;
         }
 
-        private MethodReference ImportMethod(TypeDefinition type, string name, TypeReference genericArgumentType)
+        private bool IsType(IMetadataTokenProvider typeDefinition, Type type)
         {
-            return ModuleDefinition.ImportReference(type.GetMethod(name).MakeGeneric(genericArgumentType));
+            return typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).Resolve().MetadataToken;
+        }
+
+        private TypeReference ImportType(Type type, params TypeReference[] genericArguments)
+        {
+            return ImportType(ModuleDefinition.ImportReference(type), genericArguments);
+        }
+
+        private TypeReference ImportType(TypeReference type, params TypeReference[] genericArguments)
+        {
+            return genericArguments.Length == 0
+                ? ModuleDefinition.ImportReference(type)
+                : ModuleDefinition.ImportReference(type.MakeGeneric(genericArguments));
+        }
+
+        private MethodReference ImportMethod(Type type, string name, params TypeReference[] genericArguments)
+        {
+            return ImportMethod(ModuleDefinition.ImportReference(type).Resolve(), name, genericArguments);
+        }
+
+        private MethodReference ImportMethod(TypeReference type, string name, params TypeReference[] genericArguments)
+        {
+            var method = type.Resolve().GetMethod(name);
+            if (genericArguments.Length > 0)
+                method = method.MakeGeneric(genericArguments);
+            return ModuleDefinition.ImportReference(method);
         }
 
         private MethodReference StringCopy()

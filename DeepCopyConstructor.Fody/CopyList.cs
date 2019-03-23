@@ -14,15 +14,17 @@ namespace DeepCopyConstructor.Fody
 
             var listType = property.PropertyType.Resolve();
             var instanceType = (TypeReference) listType;
-            var argumentType = property.PropertyType.SingleGenericArgument().Resolve();
+            var argumentType = property.PropertyType.SolveGenericArgument();
 
             if (listType.IsInterface)
             {
-                if (listType.FullName == typeof(IList<>).FullName)
+                if (IsType(listType, typeof(IList<>)))
                     instanceType = ModuleDefinition.ImportReference(typeof(List<>)).MakeGeneric(argumentType);
                 else
                     throw new NotSupportedException(property.FullName);
             }
+            else if (!listType.HasDefaultConstructor())
+                throw new NotSupportedException(property.FullName);
 
             var list = new List<Instruction>();
             list.Add(Instruction.Create(OpCodes.Ldarg_0));

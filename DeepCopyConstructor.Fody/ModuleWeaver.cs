@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -16,6 +17,8 @@ namespace DeepCopyConstructor.Fody
 
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
+
+        private ThreadLocal<MethodBody> CurrentBody { get; } = new ThreadLocal<MethodBody>();
 
         public override void Execute()
         {
@@ -55,13 +58,18 @@ namespace DeepCopyConstructor.Fody
 
         private void InsertCopyInstructions(TypeDefinition type, MethodDefinition constructor)
         {
-            constructor.Body.InitLocals = true;
-            constructor.Body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition)));
-            constructor.Body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition)));
+            var body = constructor.Body;
+            CurrentBody.Value = constructor.Body;
+            
+            body.InitLocals = true;
+            body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition)));
+            body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition)));
+
+
             var index = 2;
             foreach (var property in type.Properties)
             foreach (var instruction in Copy(property))
-                constructor.Body.Instructions.Insert(index++, instruction);
+                body.Instructions.Insert(index++, instruction);
         }
 
         #region Setup
