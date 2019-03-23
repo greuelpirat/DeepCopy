@@ -1,4 +1,5 @@
 using System;
+using AssemblyToProcess;
 using Xunit;
 
 namespace Tests
@@ -6,7 +7,7 @@ namespace Tests
     public partial class WeaverTests
     {
         [Fact]
-        public void CopySomeClass()
+        public void TestSomeClass()
         {
             var instance = CreateSomeClassInstance(out var type);
             var copy = Activator.CreateInstance(type, instance);
@@ -14,9 +15,9 @@ namespace Tests
         }
 
         [Fact]
-        public void CopyClassWithObject()
+        public void TestClassWithObject()
         {
-            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithObject");
+            var type = TestResult.Assembly.GetType(typeof(ClassWithObject).FullName);
             dynamic instance = Activator.CreateInstance(type);
             instance.Object = CreateSomeClassInstance(out _);
             var copy = Activator.CreateInstance(type, instance);

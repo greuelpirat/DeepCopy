@@ -40,7 +40,7 @@ namespace DeepCopyConstructor.Fody
             return instructions;
         }
 
-        private IEnumerable<Instruction> CopyNullableValue(TypeDefinition type, Func<IEnumerable<Instruction>> getterBuilder, Instruction setter)
+        private IEnumerable<Instruction> CopyNullableValue(TypeReference type, Func<IEnumerable<Instruction>> getterBuilder, Instruction setter)
         {
             var list = new List<Instruction>();
             list.AddRange(getterBuilder.Invoke());

@@ -13,6 +13,7 @@ namespace Tests
     public partial class WeaverTests
     {
         private static readonly TestResult TestResult;
+        private static Random Random { get; } = new Random();
 
         static WeaverTests()
         {
@@ -22,12 +23,19 @@ namespace Tests
 
         private static dynamic CreateSomeClassInstance(out Type type)
         {
-            type = TestResult.Assembly.GetType("AssemblyToProcess.SomeClass");
+            type = TestResult.Assembly.GetType(typeof(SomeObject).FullName);
             dynamic instance = Activator.CreateInstance(type);
-            instance.Integer = 42;
+            instance.Integer = Random.Next();
             instance.Enum = (int) SomeEnum.Value1;
             instance.DateTime = DateTime.Now;
-            instance.String = "Hello";
+            instance.String = "Hello " + Random.Next();
+            return instance;
+        }
+
+        private static dynamic CreateSomeKeyInstance(out Type type)
+        {
+            type = TestResult.Assembly.GetType(typeof(SomeKey).FullName);
+            dynamic instance = Activator.CreateInstance(type, Random.Next(), Random.Next());
             return instance;
         }
 

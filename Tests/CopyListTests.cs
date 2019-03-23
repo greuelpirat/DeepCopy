@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AssemblyToProcess;
 using Xunit;
 
 namespace Tests
@@ -7,9 +8,9 @@ namespace Tests
     public partial class WeaverTests
     {
         [Fact]
-        public void CopyClassWithList()
+        public void TestClassWithList()
         {
-            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithList");
+            var type = TestResult.Assembly.GetType(typeof(ClassWithList).FullName);
             dynamic instance = Activator.CreateInstance(type);
             instance.List = new List<int> { 42, 84 };
 
@@ -24,9 +25,9 @@ namespace Tests
         }
 
         [Fact]
-        public void CopyClassWithStringList()
+        public void TestClassWithStringList()
         {
-            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithStringList");
+            var type = TestResult.Assembly.GetType(typeof(ClassWithListString).FullName);
             dynamic instance = Activator.CreateInstance(type);
             instance.List = new List<string> { "Hello", "World", null };
 
@@ -43,11 +44,11 @@ namespace Tests
         }
 
         [Fact]
-        public void CopyClassWithObjectList()
+        public void TestClassWithObjectList()
         {
             var someClass1 = CreateSomeClassInstance(out var someClassType);
 
-            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithObjectList");
+            var type = TestResult.Assembly.GetType(typeof(ClassWithListObject).FullName);
 
             dynamic instance = Activator.CreateInstance(type);
 

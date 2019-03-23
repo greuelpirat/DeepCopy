@@ -59,10 +59,16 @@ namespace DeepCopyConstructor.Fody
             list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
             list.Add(Instruction.Create(OpCodes.Ldloca_S, varKeyValuePair));
             list.Add(Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Key", typesArguments)));
-            list.Add(Instruction.Create(OpCodes.Ldloca_S, varKeyValuePair));
-            list.Add(Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Value", typesArguments)));
-            list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeDictionary, "set_Item", typesArguments)));
-            list.Add(Instruction.Create(OpCodes.Nop));
+
+            var setter = Instruction.Create(OpCodes.Callvirt, ImportMethod(typeDictionary, "set_Item", typesArguments));
+
+            IEnumerable<Instruction> Getter() => new[]
+            {
+                Instruction.Create(OpCodes.Ldloca_S, varKeyValuePair),
+                Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Value", typesArguments))
+            };
+
+            list.AddRange(CopyNullableValue(typesArguments[1], Getter, setter));
 
             list.Add(startCondition);
             list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeEnumerator, nameof(IEnumerator.MoveNext))));

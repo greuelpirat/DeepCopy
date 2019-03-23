@@ -54,15 +54,16 @@ namespace DeepCopyConstructor.Fody
                 });
         }
 
-        private bool IsCopyConstructorAvailable(TypeDefinition type, out MethodReference constructor)
+        private bool IsCopyConstructorAvailable(TypeReference type, out MethodReference constructor)
         {
-            if (type.HasCopyConstructor(out var existingConstructor))
+            var resolved = type.Resolve();
+            if (resolved.HasCopyConstructor(out var existingConstructor))
             {
                 constructor = existingConstructor;
                 return true;
             }
 
-            if (type.HasDeepCopyConstructorAttribute())
+            if (resolved.HasDeepCopyConstructorAttribute())
             {
                 constructor = Constructor(type, type);
                 return true;

@@ -9,14 +9,14 @@ namespace AssemblyToProcess
     }
 
     [AddDeepCopyConstructor]
-    public class ClassWithStringArray
+    public class ClassWithArrayString
     {
         public string[] Array { get; set; }
     }
 
     [AddDeepCopyConstructor]
-    public class ClassWithObjectArray
+    public class ClassWithArrayObject
     {
-        public SomeClass[] Array { get; set; }
+        public SomeObject[] Array { get; set; }
     }
 }

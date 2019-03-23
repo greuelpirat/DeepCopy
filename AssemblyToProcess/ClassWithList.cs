@@ -10,14 +10,14 @@ namespace AssemblyToProcess
     }
 
     [AddDeepCopyConstructor]
-    public class ClassWithStringList
+    public class ClassWithListString
     {
         public IList<string> List { get; set; }
     }
 
     [AddDeepCopyConstructor]
-    public class ClassWithObjectList
+    public class ClassWithListObject
     {
-        public IList<SomeClass> List { get; set; }
+        public IList<SomeObject> List { get; set; }
     }
 }

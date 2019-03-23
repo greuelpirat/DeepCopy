@@ -1,4 +1,5 @@
 using System;
+using AssemblyToProcess;
 using Xunit;
 
 namespace Tests
@@ -6,11 +7,11 @@ namespace Tests
     public partial class WeaverTests
     {
         [Fact]
-        public void CopyClassWithArray()
+        public void TestClassWithArray()
         {
-            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithArray");
+            var type = TestResult.Assembly.GetType(typeof(ClassWithArray).FullName);
             dynamic instance = Activator.CreateInstance(type);
-            instance.Array = new[] {42, 84};
+            instance.Array = new[] { 42, 84 };
 
             var copy = Activator.CreateInstance(type, instance);
             Assert.Equal(instance.Array.Length, copy.Array.Length);
@@ -23,11 +24,11 @@ namespace Tests
         }
 
         [Fact]
-        public void CopyClassWithStringArray()
+        public void TestClassWithArrayString()
         {
-            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithStringArray");
+            var type = TestResult.Assembly.GetType(typeof(ClassWithArrayString).FullName);
             dynamic instance = Activator.CreateInstance(type);
-            instance.Array = new[] {"Hello", "World", null};
+            instance.Array = new[] { "Hello", "World", null };
 
             var copy = Activator.CreateInstance(type, instance);
             Assert.Equal(instance.Array.Length, copy.Array.Length);
@@ -42,11 +43,11 @@ namespace Tests
         }
 
         [Fact]
-        public void CopyClassWithObjectArray()
+        public void TestClassWithArrayObject()
         {
             var someClass1 = CreateSomeClassInstance(out var someClassType);
 
-            var type = TestResult.Assembly.GetType("AssemblyToProcess.ClassWithObjectArray");
+            var type = TestResult.Assembly.GetType(typeof(ClassWithArrayObject).FullName);
 
             dynamic instance = Activator.CreateInstance(type);
 

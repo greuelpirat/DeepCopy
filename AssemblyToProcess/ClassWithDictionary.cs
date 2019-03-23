@@ -9,17 +9,15 @@ namespace AssemblyToProcess
         public IDictionary<int, int> Dictionary { get; set; }
     }
 
-    /*
     [AddDeepCopyConstructor]
-    public class ClassWithStringDictionary
+    public class ClassWithDictionaryString
     {
         public IDictionary<string, string> Dictionary { get; set; }
     }
 
     [AddDeepCopyConstructor]
-    public class ClassWithObjectDictionary
+    public class ClassWithDictionaryObject
     {
-        public IDictionary<SomeClass, SomeClass> Dictionary { get; set; }
+        public IDictionary<SomeKey, SomeObject> Dictionary { get; set; }
     }
-    */
 }
