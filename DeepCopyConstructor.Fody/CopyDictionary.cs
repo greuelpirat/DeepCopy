@@ -9,7 +9,7 @@ namespace DeepCopyConstructor.Fody
 {
     public partial class ModuleWeaver
     {
-        private IEnumerable<Instruction> DictionaryCopy(PropertyDefinition property)
+        private IEnumerable<Instruction> CopyDictionary(PropertyDefinition property)
         {
             var typeDictionary = property.PropertyType.Resolve();
             var typeInstance = (TypeReference) typeDictionary;
@@ -79,6 +79,7 @@ namespace DeepCopyConstructor.Fody
             list.Add(Instruction.Create(OpCodes.Brfalse_S, endFinally));
             list.Add(Instruction.Create(OpCodes.Ldloc, varEnumerator));
             list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeof(IDisposable), nameof(IDisposable.Dispose))));
+            list.Add(Instruction.Create(OpCodes.Nop));
             list.Add(endFinally);
 
             list.Add(end);

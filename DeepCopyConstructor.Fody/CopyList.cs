@@ -7,7 +7,7 @@ namespace DeepCopyConstructor.Fody
 {
     public partial class ModuleWeaver
     {
-        private IEnumerable<Instruction> ListCopy(PropertyDefinition property)
+        private IEnumerable<Instruction> CopyList(PropertyDefinition property)
         {
             var loopStart = Instruction.Create(OpCodes.Nop);
             var conditionStart = Instruction.Create(OpCodes.Ldloc_1);
@@ -35,7 +35,7 @@ namespace DeepCopyConstructor.Fody
             list.Add(Instruction.Create(OpCodes.Br_S, conditionStart));
             list.Add(loopStart);
 
-            list.AddRange(ListCopyItem(property, listType, argumentType));
+            list.AddRange(CopyListItem(property, listType, argumentType));
 
             // increment index
             list.Add(Instruction.Create(OpCodes.Ldloc_1));
@@ -58,7 +58,7 @@ namespace DeepCopyConstructor.Fody
             return list;
         }
 
-        private IEnumerable<Instruction> ListCopyItem(PropertyDefinition property, TypeDefinition listType, TypeDefinition argumentType)
+        private IEnumerable<Instruction> CopyListItem(PropertyDefinition property, TypeDefinition listType, TypeDefinition argumentType)
         {
             var list = new List<Instruction>
             {
@@ -76,7 +76,7 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "get_Item", argumentType))
             };
 
-            list.AddRange(BuildValueCopy(argumentType, setter, Getter));
+            list.AddRange(CopyNullableValue(argumentType, Getter, setter));
 
             return list;
         }

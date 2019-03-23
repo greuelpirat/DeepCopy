@@ -72,7 +72,7 @@ namespace DeepCopyConstructor.Fody
             return false;
         }
 
-        private static IEnumerable<Instruction> WrapInIfNotNull(IEnumerable<Instruction> payload, PropertyDefinition property)
+        private static IEnumerable<Instruction> IfPropertyNotNull(PropertyDefinition property, IEnumerable<Instruction> payload)
         {
             var instructions = new List<Instruction>
             {

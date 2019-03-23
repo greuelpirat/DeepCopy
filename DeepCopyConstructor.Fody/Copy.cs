@@ -14,13 +14,13 @@ namespace DeepCopyConstructor.Fody
                 return new Instruction[0];
 
             if (property.PropertyType.IsArray)
-                return WrapInIfNotNull(ArrayCopy(property), property);
+                return IfPropertyNotNull(property, CopyArray(property));
 
             if (property.PropertyType.IsImplementing(typeof(IList<>).FullName))
-                return WrapInIfNotNull(ListCopy(property), property);
+                return IfPropertyNotNull(property, CopyList(property));
 
             if (property.PropertyType.IsImplementing(typeof(IDictionary<,>).FullName))
-                return WrapInIfNotNull(DictionaryCopy(property), property);
+                return IfPropertyNotNull(property, CopyDictionary(property));
 
             return CopyItem(property);
         }
@@ -29,21 +29,18 @@ namespace DeepCopyConstructor.Fody
         {
             var setter = Instruction.Create(OpCodes.Call, property.SetMethod);
 
-            IEnumerable<Instruction> GetterBuilder() => new[]
+            IEnumerable<Instruction> Getter() => new[]
             {
                 Instruction.Create(OpCodes.Ldarg_1),
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod)
             };
 
-            var instructions = new List<Instruction>
-            {
-                Instruction.Create(OpCodes.Ldarg_0)
-            };
-            instructions.AddRange(BuildValueCopy(property.PropertyType.Resolve(), setter, GetterBuilder));
+            var instructions = new List<Instruction> { Instruction.Create(OpCodes.Ldarg_0) };
+            instructions.AddRange(CopyNullableValue(property.PropertyType.Resolve(), Getter, setter));
             return instructions;
         }
 
-        private IEnumerable<Instruction> BuildValueCopy(TypeDefinition type, Instruction setter, Func<IEnumerable<Instruction>> getterBuilder)
+        private IEnumerable<Instruction> CopyNullableValue(TypeDefinition type, Func<IEnumerable<Instruction>> getterBuilder, Instruction setter)
         {
             var list = new List<Instruction>();
             list.AddRange(getterBuilder.Invoke());
