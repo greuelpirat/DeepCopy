@@ -47,7 +47,6 @@ namespace DeepCopyConstructor.Fody
             list.Add(Instruction.Create(OpCodes.Conv_I4));
             list.Add(Instruction.Create(OpCodes.Clt));
             list.Add(Instruction.Create(OpCodes.Stloc, BooleanVariable));
-            list.Add(Instruction.Create(OpCodes.Stloc, BooleanVariable));
 
             // loop end
             list.Add(Instruction.Create(OpCodes.Ldloc, BooleanVariable));
