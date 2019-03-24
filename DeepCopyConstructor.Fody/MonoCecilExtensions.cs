@@ -69,7 +69,7 @@ namespace DeepCopyConstructor.Fody
             method = null;
             return false;
         }
-        
+
         public static Instruction MakeSet(this PropertyDefinition property)
         {
             if (property.SetMethod != null)

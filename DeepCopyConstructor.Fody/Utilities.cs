@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 namespace DeepCopyConstructor.Fody
 {
@@ -13,6 +15,11 @@ namespace DeepCopyConstructor.Fody
             if (parameter != null)
                 constructor.Parameters.Add(new ParameterDefinition(parameter));
             return constructor;
+        }
+
+        private MethodReference ImportDefaultConstructor(TypeDefinition type)
+        {
+            return ModuleDefinition.ImportReference(type.GetConstructors().Single(c => !c.HasParameters));
         }
 
         private bool IsType(IMetadataTokenProvider typeDefinition, Type type)
@@ -56,6 +63,12 @@ namespace DeepCopyConstructor.Fody
 
         private bool IsCopyConstructorAvailable(TypeReference type, out MethodReference constructor)
         {
+            if (type == null)
+            {
+                constructor = null;
+                return false;
+            }
+
             var resolved = type.Resolve();
             if (resolved.HasCopyConstructor(out var existingConstructor))
             {

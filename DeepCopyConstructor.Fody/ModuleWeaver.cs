@@ -4,7 +4,6 @@ using System.Threading;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
 
 #region ModuleWeaver
 
@@ -29,7 +28,7 @@ namespace DeepCopyConstructor.Fody
             {
                 if (target.HasCopyConstructor(out var constructor))
                 {
-                    InsertCopyInstructions(target, constructor.Resolve());
+                    InsertCopyInstructions(target, constructor.Resolve().Body, 2);
                     LogInfo($"Extended copy constructor of type {target.FullName}");
                 }
                 else
@@ -48,35 +47,47 @@ namespace DeepCopyConstructor.Fody
             constructor.Parameters.Add(new ParameterDefinition(type));
 
             var processor = constructor.Body.GetILProcessor();
-            processor.Emit(OpCodes.Ldarg_0);
-            processor.Emit(OpCodes.Call, ModuleDefinition.ImportReference(TypeSystem.ObjectDefinition.GetConstructors().First()));
+            var offset = 2;
 
-            InsertCopyInstructions(type, constructor);
+            if (type.BaseType.Resolve().MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
+            {
+                processor.Emit(OpCodes.Ldarg_0);
+                processor.Emit(OpCodes.Call, ImportDefaultConstructor(TypeSystem.ObjectDefinition));
+            }
+            else if (IsCopyConstructorAvailable(type.BaseType, out var baseConstructor))
+            {
+                processor.Emit(OpCodes.Ldarg_0);
+                processor.Emit(OpCodes.Ldarg_1);
+                processor.Emit(OpCodes.Call, baseConstructor);
+                offset = 3;
+            }
+            else
+                throw new WeavingException($"{type.FullName} requires a copy constructor for {type.BaseType.FullName}");
+
+            InsertCopyInstructions(type, constructor.Body, offset);
 
             processor.Emit(OpCodes.Ret);
             type.Methods.Add(constructor);
         }
 
-        private void InsertCopyInstructions(TypeDefinition type, MethodDefinition constructor)
+        private void InsertCopyInstructions(TypeDefinition type, MethodBody body, int offset)
         {
-            var body = constructor.Body;
-            CurrentBody.Value = constructor.Body;
+            CurrentBody.Value = body;
 
             body.InitLocals = true;
             body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition)));
             body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition)));
 
-            var index = 2;
+            var index = offset;
             var properties = new List<string>();
 
             foreach (var property in type.Properties)
             {
-                if (TryCopy(property, out var instructions))
-                {
-                    properties.Add(property.Name);
-                    foreach (var instruction in instructions)
-                        body.Instructions.Insert(index++, instruction);
-                }
+                if (!TryCopy(property, out var instructions))
+                    continue;
+                properties.Add(property.Name);
+                foreach (var instruction in instructions)
+                    body.Instructions.Insert(index++, instruction);
             }
 
             if (properties.Count == 0)
