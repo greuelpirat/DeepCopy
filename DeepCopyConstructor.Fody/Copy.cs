@@ -10,10 +10,9 @@ namespace DeepCopyConstructor.Fody
     {
         private bool TryCopy(PropertyDefinition property, out IEnumerable<Instruction> instructions)
         {
-            var ignoreAttribute = property.CustomAttributes.SingleOrDefault(a => a.AttributeType.FullName == IgnoreDuringDeepCopyAttribute);
-            if (ignoreAttribute != null)
+            if (property.AnyAttribute(IgnoreDuringDeepCopyAttribute))
             {
-                property.CustomAttributes.Remove(ignoreAttribute);
+                property.CustomAttributes.Remove(property.SingleAttribute(IgnoreDuringDeepCopyAttribute));
                 instructions = null;
                 return false;
             }

@@ -13,4 +13,10 @@ namespace AssemblyToProcess
     {
         public SomeObject BaseObject { get; set; }
     }
+
+    [AddDeepCopyConstructor]
+    public class OtherDerivedClass : BaseClass
+    {
+        public SomeObject OtherObject { get; set; }
+    }
 }

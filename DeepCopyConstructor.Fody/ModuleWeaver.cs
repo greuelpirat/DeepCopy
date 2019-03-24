@@ -4,6 +4,7 @@ using System.Threading;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 #region ModuleWeaver
 
@@ -12,32 +13,69 @@ namespace DeepCopyConstructor.Fody
     public partial class ModuleWeaver : BaseModuleWeaver
     {
         private const string ConstructorName = ".ctor";
-        internal const string DeepCopyConstructorAttribute = "DeepCopyConstructor.AddDeepCopyConstructorAttribute";
+        private const string AddDeepCopyConstructorAttribute = "DeepCopyConstructor.AddDeepCopyConstructorAttribute";
+        private const string InjectDeepCopyAttribute = "DeepCopyConstructor.InjectDeepCopyAttribute";
         private const string IgnoreDuringDeepCopyAttribute = "DeepCopyConstructor.IgnoreDuringDeepCopyAttribute";
 
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
 
+        private VariableDefinition _booleanVariable;
+        private VariableDefinition _indexVariable;
+
         private ThreadLocal<MethodBody> CurrentBody { get; } = new ThreadLocal<MethodBody>();
+
+        private VariableDefinition BooleanVariable
+        {
+            get
+            {
+                if (_booleanVariable != null) return _booleanVariable;
+                _booleanVariable = new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition));
+                CurrentBody.Value.InitLocals = true;
+                CurrentBody.Value.Variables.Add(_booleanVariable);
+                return _booleanVariable;
+            }
+        }
+
+        private VariableDefinition IndexVariable
+        {
+            get
+            {
+                if (_indexVariable != null) return _indexVariable;
+                _indexVariable = new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition));
+                CurrentBody.Value.InitLocals = true;
+                CurrentBody.Value.Variables.Add(_indexVariable);
+                return _indexVariable;
+            }
+        }
 
         public override void Execute()
         {
-            var targets = ModuleDefinition.Types.Where(t => t.HasDeepCopyConstructorAttribute());
-
-            foreach (var target in targets)
+            foreach (var target in ModuleDefinition.Types.Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)))
             {
-                if (target.HasCopyConstructor(out var constructor))
-                {
-                    InsertCopyInstructions(target, constructor.Resolve().Body, 2);
-                    LogInfo($"Extended copy constructor of type {target.FullName}");
-                }
-                else
-                {
-                    AddDeepConstructor(target);
-                    LogInfo($"Added deep copy constructor to type {target.FullName}");
-                }
+                if (target.HasCopyConstructor(out _))
+                    throw new WeavingException($"{target.FullName} has copy constructor. Use [InjectDeepCopy] on constructor if needed");
 
-                target.CustomAttributes.Remove(target.CustomAttributes.Single(a => a.AttributeType.FullName == DeepCopyConstructorAttribute));
+                LogInfo($"Adding deep copy constructor to type {target.FullName}");
+                AddDeepConstructor(target);
+                target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
+            }
+
+            foreach (var target in ModuleDefinition.Types.Where(t => t.GetConstructors().Any(c => c.AnyAttribute(InjectDeepCopyAttribute))))
+            {
+                var constructors = target.GetConstructors().Where(c => c.AnyAttribute(InjectDeepCopyAttribute)).ToList();
+                if (constructors.Count > 1)
+                    throw new WeavingException($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
+                var constructor = constructors.Single();
+                if (constructor.Parameters.Count != 1
+                    || constructor.Parameters.Single().ParameterType.Resolve().MetadataToken != target.Resolve().MetadataToken)
+                    throw new WeavingException($"Constructor {constructor} is no copy constructor");
+
+                LogInfo($"Injecting deep copy into {constructor}");
+                var constructorResolved = constructor.Resolve();
+                constructorResolved.Body.SimplifyMacros();
+                InsertCopyInstructions(target, constructorResolved.Body, 2);
+                constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
             }
         }
 
@@ -72,11 +110,9 @@ namespace DeepCopyConstructor.Fody
 
         private void InsertCopyInstructions(TypeDefinition type, MethodBody body, int offset)
         {
+            _booleanVariable = null;
+            _indexVariable = null;
             CurrentBody.Value = body;
-
-            body.InitLocals = true;
-            body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition)));
-            body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition)));
 
             var index = offset;
             var properties = new List<string>();
@@ -94,6 +130,9 @@ namespace DeepCopyConstructor.Fody
                 throw new WeavingException($"no properties found for {type}");
 
             LogInfo.Invoke($"DeepCopy {type.FullName} -> {string.Join(", ", properties)}");
+            body.OptimizeMacros();
+
+            CurrentBody.Value = null;
         }
 
         #region Setup

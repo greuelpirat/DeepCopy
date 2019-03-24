@@ -76,7 +76,7 @@ namespace DeepCopyConstructor.Fody
                 return true;
             }
 
-            if (resolved.HasDeepCopyConstructorAttribute())
+            if (resolved.AnyAttribute(AddDeepCopyConstructorAttribute))
             {
                 constructor = Constructor(type, type);
                 return true;
@@ -86,7 +86,7 @@ namespace DeepCopyConstructor.Fody
             return false;
         }
 
-        private static IEnumerable<Instruction> IfPropertyNotNull(PropertyDefinition property, IEnumerable<Instruction> payload)
+        private IEnumerable<Instruction> IfPropertyNotNull(PropertyDefinition property, IEnumerable<Instruction> payload)
         {
             var instructions = new List<Instruction>
             {
@@ -94,8 +94,8 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod),
                 Instruction.Create(OpCodes.Ldnull),
                 Instruction.Create(OpCodes.Cgt_Un),
-                Instruction.Create(OpCodes.Stloc_0),
-                Instruction.Create(OpCodes.Ldloc_0)
+                Instruction.Create(OpCodes.Stloc, BooleanVariable),
+                Instruction.Create(OpCodes.Ldloc, BooleanVariable)
             };
 
             var afterIf = Instruction.Create(OpCodes.Nop);

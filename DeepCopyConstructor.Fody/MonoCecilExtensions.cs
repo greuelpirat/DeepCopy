@@ -20,9 +20,6 @@ namespace DeepCopyConstructor.Fody
             return constructor != null;
         }
 
-        public static bool HasDeepCopyConstructorAttribute(this ICustomAttributeProvider type)
-            => type.CustomAttributes.Any(a => a.AttributeType.FullName == ModuleWeaver.DeepCopyConstructorAttribute);
-
         public static bool IsImplementing(this TypeReference type, string typeFullName)
         {
             while (type != null)
@@ -79,6 +76,16 @@ namespace DeepCopyConstructor.Fody
             if (field != null)
                 return Instruction.Create(OpCodes.Stfld, field);
             return null;
+        }
+
+        public static bool AnyAttribute(this ICustomAttributeProvider attributeProvider, string name)
+        {
+            return attributeProvider.CustomAttributes.Any(a => a.AttributeType.FullName == name);
+        }
+
+        public static CustomAttribute SingleAttribute(this ICustomAttributeProvider attributeProvider, string name)
+        {
+            return attributeProvider.CustomAttributes.Single(a => a.AttributeType.FullName == name);
         }
 
         public static TypeDefinition SolveGenericArgument(this TypeReference type)
