@@ -14,6 +14,7 @@ namespace DeepCopyConstructor.Fody
     {
         private const string ConstructorName = ".ctor";
         internal const string DeepCopyConstructorAttribute = "DeepCopyConstructor.AddDeepCopyConstructorAttribute";
+        private const string IgnoreDuringDeepCopyAttribute = "DeepCopyConstructor.IgnoreDuringDeepCopyAttribute";
 
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;

@@ -34,5 +34,22 @@ namespace Tests
             Assert.Equal(35, copy.HighKey);
             Assert.Equal(148, copy.LowKey);
         }
+
+        [Fact]
+        public void TestIgnoreDuringDeepCopy()
+        {
+            var type = GetTestType(typeof(ClassWithIgnoreDuringDeepCopy));
+            dynamic instance = Activator.CreateInstance(type);
+            instance.Integer = 42;
+            instance.IntegerIgnored = 84;
+            instance.String = "Hello";
+            instance.StringIgnored = "World";
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotSame(instance, copy);
+            Assert.Equal(42, copy.Integer);
+            Assert.Equal(default(int), copy.IntegerIgnored);
+            Assert.Equal("Hello", copy.String);
+            Assert.Null(copy.StringIgnored);
+        }
     }
 }
