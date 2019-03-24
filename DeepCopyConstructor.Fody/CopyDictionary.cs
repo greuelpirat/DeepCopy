@@ -38,7 +38,7 @@ namespace DeepCopyConstructor.Fody
             var list = new List<Instruction>();
             list.Add(Instruction.Create(OpCodes.Ldarg_0));
             list.Add(Instruction.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(Constructor(typeInstance))));
-            list.Add(Instruction.Create(OpCodes.Call, property.SetMethod));
+            list.Add(property.MakeSet());
 
             list.Add(Instruction.Create(OpCodes.Ldarg_1));
             list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
@@ -71,8 +71,9 @@ namespace DeepCopyConstructor.Fody
             };
 
             var setItem = Instruction.Create(OpCodes.Callvirt, ImportMethod(typeDictionary, "set_Item", typesArguments));
-            var getValue = CopyNullableValue(typesArguments[1], GetterValue, setItem).ToList();
-            list.AddRange(GetterKey());
+            var getValue = CopyValue(typesArguments[1], GetterValue, setItem).ToList();
+            list.AddRange(CopyValue(typesArguments[0], GetterKey, getValue.First(), false));
+            //list.AddRange(GetterKey());
             list.AddRange(getValue);
             list.Add(setItem);
 

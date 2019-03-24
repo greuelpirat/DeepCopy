@@ -60,16 +60,26 @@ namespace DeepCopyConstructor.Fody
         {
             var body = constructor.Body;
             CurrentBody.Value = constructor.Body;
-            
+
             body.InitLocals = true;
             body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition)));
             body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition)));
 
-
             var index = 2;
+            var properties = 0;
             foreach (var property in type.Properties)
-            foreach (var instruction in Copy(property))
-                body.Instructions.Insert(index++, instruction);
+            {
+                if (TryCopy(property, out var instructions))
+                {
+                    properties++;
+                    LogInfo.Invoke($"copy {type.FullName}.{property.Name}");
+                    foreach (var instruction in instructions)
+                        body.Instructions.Insert(index++, instruction);
+                }
+            }
+
+            if (properties == 0)
+                LogWarning.Invoke($"no properties for {type.FullName}");
         }
 
         #region Setup

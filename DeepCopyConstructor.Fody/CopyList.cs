@@ -29,7 +29,7 @@ namespace DeepCopyConstructor.Fody
             var list = new List<Instruction>();
             list.Add(Instruction.Create(OpCodes.Ldarg_0));
             list.Add(Instruction.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(Constructor(instanceType))));
-            list.Add(Instruction.Create(OpCodes.Call, property.SetMethod));
+            list.Add(property.MakeSet());
             list.Add(Instruction.Create(OpCodes.Ldc_I4_0));
             list.Add(Instruction.Create(OpCodes.Stloc_1));
             list.Add(Instruction.Create(OpCodes.Br_S, conditionStart));
@@ -75,7 +75,7 @@ namespace DeepCopyConstructor.Fody
             };
 
             var add = Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "Add", argumentType));
-            list.AddRange(CopyNullableValue(argumentType, Getter, add));
+            list.AddRange(CopyValue(argumentType, Getter, add));
             list.Add(add);
 
             return list;

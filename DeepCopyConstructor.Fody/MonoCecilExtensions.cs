@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
 namespace DeepCopyConstructor.Fody
@@ -67,6 +68,17 @@ namespace DeepCopyConstructor.Fody
 
             method = null;
             return false;
+        }
+        
+        public static Instruction MakeSet(this PropertyDefinition property)
+        {
+            if (property.SetMethod != null)
+                return Instruction.Create(OpCodes.Call, property.SetMethod);
+            var backingFieldName = $"<{property.Name}>k__BackingField";
+            var field = property.DeclaringType.Fields.SingleOrDefault(f => f.Name == backingFieldName);
+            if (field != null)
+                return Instruction.Create(OpCodes.Stfld, field);
+            return null;
         }
 
         public static TypeDefinition SolveGenericArgument(this TypeReference type)

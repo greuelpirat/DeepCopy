@@ -8,21 +8,34 @@ namespace DeepCopyConstructor.Fody
 {
     public partial class ModuleWeaver
     {
-        private IEnumerable<Instruction> Copy(PropertyDefinition property)
+        private bool TryCopy(PropertyDefinition property, out IEnumerable<Instruction> instructions)
         {
-            if (property.GetMethod == null || property.SetMethod == null)
-                return new Instruction[0];
+            if (property.GetMethod == null || property.MakeSet() == null)
+            {
+                instructions = null;
+                return false;
+            }
 
             if (property.PropertyType.IsArray)
-                return IfPropertyNotNull(property, CopyArray(property));
+            {
+                instructions = IfPropertyNotNull(property, CopyArray(property));
+                return true;
+            }
 
             if (property.PropertyType.IsImplementing(typeof(IList<>).FullName))
-                return IfPropertyNotNull(property, CopyList(property));
+            {
+                instructions = IfPropertyNotNull(property, CopyList(property));
+                return true;
+            }
 
             if (property.PropertyType.IsImplementing(typeof(IDictionary<,>).FullName))
-                return IfPropertyNotNull(property, CopyDictionary(property));
+            {
+                instructions = CopyDictionary(property);
+                return true;
+            }
 
-            return CopyItem(property);
+            instructions = CopyItem(property);
+            return true;
         }
 
         private IEnumerable<Instruction> CopyItem(PropertyDefinition property)
@@ -35,13 +48,13 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod)
             };
 
-            var setter = Instruction.Create(OpCodes.Call, property.SetMethod);
-            instructions.AddRange(CopyNullableValue(property.PropertyType.Resolve(), Getter, setter));
+            var setter = property.MakeSet();
+            instructions.AddRange(CopyValue(property.PropertyType.Resolve(), Getter, setter));
             instructions.Add(setter);
             return instructions;
         }
 
-        private IEnumerable<Instruction> CopyNullableValue(TypeReference type, Func<IEnumerable<Instruction>> getterBuilder, Instruction followUp)
+        private IEnumerable<Instruction> CopyValue(TypeReference type, Func<IEnumerable<Instruction>> getterBuilder, Instruction followUp, bool nullableCheck = true)
         {
             var list = new List<Instruction>();
             list.AddRange(getterBuilder.Invoke());
@@ -49,11 +62,14 @@ namespace DeepCopyConstructor.Fody
             if (type.IsPrimitive || type.IsValueType)
                 return list;
 
-            var getterAfterNullCheck = getterBuilder.Invoke().ToList();
-            list.Add(Instruction.Create(OpCodes.Brtrue_S, getterAfterNullCheck.First()));
-            list.Add(Instruction.Create(OpCodes.Ldnull));
-            list.Add(Instruction.Create(OpCodes.Br_S, followUp));
-            list.AddRange(getterAfterNullCheck);
+            if (nullableCheck)
+            {
+                var getterNotNull = getterBuilder.Invoke().ToList();
+                list.Add(Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First()));
+                list.Add(Instruction.Create(OpCodes.Ldnull));
+                list.Add(Instruction.Create(OpCodes.Br_S, followUp));
+                list.AddRange(getterNotNull);
+            }
 
             if (type.FullName == typeof(string).FullName)
                 list.Add(Instruction.Create(OpCodes.Call, StringCopy()));

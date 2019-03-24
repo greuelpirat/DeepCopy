@@ -22,7 +22,7 @@ namespace DeepCopyConstructor.Fody
                 Instruction.Create(OpCodes.Ldlen),
                 Instruction.Create(OpCodes.Conv_I4),
                 Instruction.Create(OpCodes.Newarr, type),
-                Instruction.Create(OpCodes.Call, property.SetMethod),
+                property.MakeSet(),
                 Instruction.Create(OpCodes.Ldc_I4_0),
 
                 // init index
@@ -83,7 +83,7 @@ namespace DeepCopyConstructor.Fody
                 };
 
                 var setElementReference = Instruction.Create(OpCodes.Stelem_Ref);
-                instructions.AddRange(CopyNullableValue(elementType, Getter, setElementReference));
+                instructions.AddRange(CopyValue(elementType, Getter, setElementReference));
                 instructions.Add(setElementReference);
             }
 

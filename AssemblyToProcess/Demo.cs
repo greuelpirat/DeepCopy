@@ -6,14 +6,15 @@ namespace AssemblyToProcess
     {
         public Demo(Demo source)
         {
-            if (source.Strings != null)
+            if (source.Dictionary != null)
             {
-                Strings = new Dictionary<string, string>();
-                foreach (var pair in source.Strings)
-                    Strings[pair.Key] = pair.Value == null ? null : string.Copy(pair.Value);
+                Dictionary = new Dictionary<string, string>();
+                foreach (var pair in source.Dictionary)
+                    Dictionary[string.Copy(pair.Key)] = pair.Value != null ? string.Copy(pair.Value) : null;
             }
         }
 
-        public IDictionary<string, string> Strings { get; set; }
+        //public IDictionary<string, string> Dictionary { get; set; }
+        public IDictionary<string, string> Dictionary { get; set; }
     }
 }
