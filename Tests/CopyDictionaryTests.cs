@@ -10,7 +10,7 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionary()
         {
-            var type = TestResult.Assembly.GetType(typeof(ClassWithDictionary).FullName);
+            var type = GetTestType(typeof(ClassWithDictionary));
             dynamic instance = Activator.CreateInstance(type);
             instance.Dictionary = new Dictionary<int, int> { [42] = 100, [84] = 200 };
 
@@ -27,7 +27,7 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionaryString()
         {
-            var type = TestResult.Assembly.GetType(typeof(ClassWithDictionaryString).FullName);
+            var type = GetTestType(typeof(ClassWithDictionaryString));
             dynamic instance = Activator.CreateInstance(type);
             instance.Dictionary = new Dictionary<string, string> { ["Hello"] = "World", ["One"] = "Two", ["Three"] = null };
 
@@ -45,18 +45,18 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionaryObject()
         {
-            var someClass1 = CreateSomeClassInstance(out var someClassType);
-            var someKey1 = CreateSomeKeyInstance(out var someKeyType);
-            var someKey2 = CreateSomeKeyInstance(out _);
-            var someKey3 = CreateSomeKeyInstance(out _);
+            var someKey1 = CreateSomeKey();
+            var someKey2 = CreateSomeKey();
+            var someKey3 = CreateSomeKey();
 
-            var type = TestResult.Assembly.GetType(typeof(ClassWithDictionaryObject).FullName);
+            var type = GetTestType(typeof(ClassWithDictionaryObject));
             dynamic instance = Activator.CreateInstance(type);
 
-            dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(someKeyType, someClassType));
+            dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>)
+                .MakeGenericType(GetTestType(typeof(SomeKey)), GetTestType(typeof(SomeObject))));
             instance.Dictionary = dictionary;
-            instance.Dictionary[someKey1] = someClass1;
-            instance.Dictionary[someKey2] = CreateSomeClassInstance(out _);
+            instance.Dictionary[someKey1] = CreateSomeObject();
+            instance.Dictionary[someKey2] = CreateSomeObject();
             instance.Dictionary[someKey3] = null;
 
             var copy = Activator.CreateInstance(type, instance);

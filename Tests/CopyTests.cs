@@ -9,17 +9,17 @@ namespace Tests
         [Fact]
         public void TestSomeClass()
         {
-            var instance = CreateSomeClassInstance(out var type);
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = CreateSomeObject();
+            var copy = Activator.CreateInstance(GetTestType(typeof(SomeObject)), instance);
             AssertCopyOfSomeClass(instance, copy);
         }
 
         [Fact]
         public void TestClassWithObject()
         {
-            var type = TestResult.Assembly.GetType(typeof(ClassWithObject).FullName);
+            var type = GetTestType(typeof(ClassWithObject));
             dynamic instance = Activator.CreateInstance(type);
-            instance.Object = CreateSomeClassInstance(out _);
+            instance.Object = CreateSomeObject();
             var copy = Activator.CreateInstance(type, instance);
             AssertCopyOfSomeClass(instance.Object, copy.Object);
         }

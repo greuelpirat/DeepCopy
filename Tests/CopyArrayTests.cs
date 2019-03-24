@@ -9,7 +9,7 @@ namespace Tests
         [Fact]
         public void TestClassWithArray()
         {
-            var type = TestResult.Assembly.GetType(typeof(ClassWithArray).FullName);
+            var type = GetTestType(typeof(ClassWithArray));
             dynamic instance = Activator.CreateInstance(type);
             instance.Array = new[] { 42, 84 };
 
@@ -26,7 +26,7 @@ namespace Tests
         [Fact]
         public void TestClassWithArrayString()
         {
-            var type = TestResult.Assembly.GetType(typeof(ClassWithArrayString).FullName);
+            var type = GetTestType(typeof(ClassWithArrayString));
             dynamic instance = Activator.CreateInstance(type);
             instance.Array = new[] { "Hello", "World", null };
 
@@ -45,19 +45,15 @@ namespace Tests
         [Fact]
         public void TestClassWithArrayObject()
         {
-            var someClass1 = CreateSomeClassInstance(out var someClassType);
+            dynamic instance = Activator.CreateInstance(GetTestType(typeof(ClassWithArrayObject)));
 
-            var type = TestResult.Assembly.GetType(typeof(ClassWithArrayObject).FullName);
-
-            dynamic instance = Activator.CreateInstance(type);
-
-            dynamic array = Array.CreateInstance(someClassType, 3);
+            dynamic array = Array.CreateInstance(GetTestType(typeof(SomeObject)), 3);
             instance.Array = array;
-            instance.Array[0] = someClass1;
-            instance.Array[1] = CreateSomeClassInstance(out _);
+            instance.Array[0] = CreateSomeObject();
+            instance.Array[1] = CreateSomeObject();
             instance.Array[2] = null;
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = Activator.CreateInstance(GetTestType(typeof(ClassWithArrayObject)), instance);
             Assert.Equal(instance.Array.Length, copy.Array.Length);
             AssertCopyOfSomeClass(instance.Array[0], copy.Array[0]);
             AssertCopyOfSomeClass(instance.Array[1], copy.Array[1]);

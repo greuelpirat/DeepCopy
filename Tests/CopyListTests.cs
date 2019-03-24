@@ -10,7 +10,7 @@ namespace Tests
         [Fact]
         public void TestClassWithList()
         {
-            var type = TestResult.Assembly.GetType(typeof(ClassWithList).FullName);
+            var type = GetTestType(typeof(ClassWithList));
             dynamic instance = Activator.CreateInstance(type);
             instance.List = new List<int> { 42, 84 };
 
@@ -27,7 +27,7 @@ namespace Tests
         [Fact]
         public void TestClassWithStringList()
         {
-            var type = TestResult.Assembly.GetType(typeof(ClassWithListString).FullName);
+            var type = GetTestType(typeof(ClassWithListString));
             dynamic instance = Activator.CreateInstance(type);
             instance.List = new List<string> { "Hello", "World", null };
 
@@ -46,16 +46,14 @@ namespace Tests
         [Fact]
         public void TestClassWithObjectList()
         {
-            var someClass1 = CreateSomeClassInstance(out var someClassType);
-
-            var type = TestResult.Assembly.GetType(typeof(ClassWithListObject).FullName);
+            var type = GetTestType(typeof(ClassWithListObject));
 
             dynamic instance = Activator.CreateInstance(type);
 
-            dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(someClassType));
+            dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTestType(typeof(SomeObject))));
             instance.List = list;
-            instance.List.Add(someClass1);
-            instance.List.Add(CreateSomeClassInstance(out _));
+            instance.List.Add(CreateSomeObject());
+            instance.List.Add(CreateSomeObject());
             instance.List.Add(null);
 
             var copy = Activator.CreateInstance(type, instance);

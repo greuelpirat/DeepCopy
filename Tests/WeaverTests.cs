@@ -21,10 +21,14 @@ namespace Tests
             TestResult = weavingTask.ExecuteTestRun("AssemblyToProcess.dll");
         }
 
-        private static dynamic CreateSomeClassInstance(out Type type)
+        private static Type GetTestType(Type type)
         {
-            type = TestResult.Assembly.GetType(typeof(SomeObject).FullName);
-            dynamic instance = Activator.CreateInstance(type);
+            return TestResult.Assembly.GetType(type.FullName ?? throw new ArgumentException());
+        }
+
+        private static dynamic CreateSomeObject()
+        {
+            dynamic instance = Activator.CreateInstance(GetTestType(typeof(SomeObject)));
             instance.Integer = Random.Next();
             instance.Enum = (int) SomeEnum.Value1;
             instance.DateTime = DateTime.Now;
@@ -32,11 +36,9 @@ namespace Tests
             return instance;
         }
 
-        private static dynamic CreateSomeKeyInstance(out Type type)
+        private static dynamic CreateSomeKey()
         {
-            type = TestResult.Assembly.GetType(typeof(SomeKey).FullName);
-            dynamic instance = Activator.CreateInstance(type, Random.Next(), Random.Next());
-            return instance;
+            return Activator.CreateInstance(GetTestType(typeof(SomeKey)), Random.Next(), Random.Next());
         }
 
         private static void AssertCopyOfSomeClass(dynamic instance, dynamic copy)
