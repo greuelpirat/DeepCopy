@@ -18,9 +18,20 @@ namespace Tests
             Assert.Equal(instance.Array[0], copy.Array[0]);
             Assert.Equal(instance.Array[1], copy.Array[1]);
 
-            Assert.False(ReferenceEquals(instance.Array, copy.Array));
-            Assert.False(ReferenceEquals(instance.Array[0], copy.Array[0]));
-            Assert.False(ReferenceEquals(instance.Array[1], copy.Array[1]));
+            Assert.NotSame(instance.Array, copy.Array);
+            Assert.NotSame(instance.Array[0], copy.Array[0]);
+            Assert.NotSame(instance.Array[1], copy.Array[1]);
+        }
+
+        [Fact]
+        public void TestClassWithArrayNull()
+        {
+            var type = GetTestType(typeof(ClassWithArray));
+            dynamic instance = Activator.CreateInstance(type);
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotSame(instance, copy);
+            Assert.Null(copy.Array);
         }
 
         [Fact]
@@ -35,9 +46,9 @@ namespace Tests
             Assert.Equal(instance.Array[0], copy.Array[0]);
             Assert.Equal(instance.Array[1], copy.Array[1]);
 
-            Assert.False(ReferenceEquals(instance.Array, copy.Array));
-            Assert.False(ReferenceEquals(instance.Array[0], copy.Array[0]));
-            Assert.False(ReferenceEquals(instance.Array[1], copy.Array[1]));
+            Assert.NotSame(instance.Array, copy.Array);
+            Assert.NotSame(instance.Array[0], copy.Array[0]);
+            Assert.NotSame(instance.Array[1], copy.Array[1]);
 
             Assert.Null(copy.Array[2]);
         }

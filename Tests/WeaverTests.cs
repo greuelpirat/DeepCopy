@@ -44,9 +44,9 @@ namespace Tests
         private static void AssertCopyOfSomeClass(dynamic instance, dynamic copy)
         {
             Assert.NotNull(copy);
-            Assert.False(ReferenceEquals(instance, copy));
-            Assert.False(ReferenceEquals(instance.DateTime, copy.DateTime));
-            Assert.False(ReferenceEquals(instance.String, copy.String));
+            Assert.NotSame(instance, copy);
+            Assert.NotSame(instance.DateTime, copy.DateTime);
+            Assert.NotSame(instance.String, copy.String);
 
             Assert.Equal(instance.Integer, copy.Integer);
             Assert.Equal(instance.Enum, copy.Enum);

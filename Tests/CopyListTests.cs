@@ -19,13 +19,24 @@ namespace Tests
             Assert.Equal(instance.List[0], copy.List[0]);
             Assert.Equal(instance.List[1], copy.List[1]);
 
-            Assert.False(ReferenceEquals(instance.List, copy.List));
-            Assert.False(ReferenceEquals(instance.List[0], copy.List[0]));
-            Assert.False(ReferenceEquals(instance.List[1], copy.List[1]));
+            Assert.NotSame(instance.List, copy.List);
+            Assert.NotSame(instance.List[0], copy.List[0]);
+            Assert.NotSame(instance.List[1], copy.List[1]);
         }
 
         [Fact]
-        public void TestClassWithStringList()
+        public void TestClassWithListNull()
+        {
+            var type = GetTestType(typeof(ClassWithList));
+            dynamic instance = Activator.CreateInstance(type);
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotSame(instance, copy);
+            Assert.Null(copy.List);
+        }
+
+        [Fact]
+        public void TestClassWithListString()
         {
             var type = GetTestType(typeof(ClassWithListString));
             dynamic instance = Activator.CreateInstance(type);
@@ -36,15 +47,15 @@ namespace Tests
             Assert.Equal(instance.List[0], copy.List[0]);
             Assert.Equal(instance.List[1], copy.List[1]);
 
-            Assert.False(ReferenceEquals(instance.List, copy.List));
-            Assert.False(ReferenceEquals(instance.List[0], copy.List[0]));
-            Assert.False(ReferenceEquals(instance.List[1], copy.List[1]));
+            Assert.NotSame(instance.List, copy.List);
+            Assert.NotSame(instance.List[0], copy.List[0]);
+            Assert.NotSame(instance.List[1], copy.List[1]);
 
             Assert.Null(copy.List[2]);
         }
 
         [Fact]
-        public void TestClassWithObjectList()
+        public void TestClassWithListObject()
         {
             var type = GetTestType(typeof(ClassWithListObject));
 

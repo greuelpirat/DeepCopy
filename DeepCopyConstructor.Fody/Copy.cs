@@ -30,7 +30,7 @@ namespace DeepCopyConstructor.Fody
 
             if (property.PropertyType.IsImplementing(typeof(IDictionary<,>).FullName))
             {
-                instructions = CopyDictionary(property);
+                instructions = IfPropertyNotNull(property, CopyDictionary(property));
                 return true;
             }
 

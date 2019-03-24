@@ -66,20 +66,22 @@ namespace DeepCopyConstructor.Fody
             body.Variables.Add(new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition)));
 
             var index = 2;
-            var properties = 0;
+            var properties = new List<string>();
+
             foreach (var property in type.Properties)
             {
                 if (TryCopy(property, out var instructions))
                 {
-                    properties++;
-                    LogInfo.Invoke($"copy {type.FullName}.{property.Name}");
+                    properties.Add(property.Name);
                     foreach (var instruction in instructions)
                         body.Instructions.Insert(index++, instruction);
                 }
             }
 
-            if (properties == 0)
-                LogWarning.Invoke($"no properties for {type.FullName}");
+            if (properties.Count == 0)
+                throw new WeavingException($"no properties found for {type}");
+
+            LogInfo.Invoke($"DeepCopy {type.FullName} -> {string.Join(", ", properties)}");
         }
 
         #region Setup

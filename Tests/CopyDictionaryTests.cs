@@ -19,9 +19,20 @@ namespace Tests
             Assert.Equal(instance.Dictionary[42], copy.Dictionary[42]);
             Assert.Equal(instance.Dictionary[84], copy.Dictionary[84]);
 
-            Assert.False(ReferenceEquals(instance.Dictionary, copy.Dictionary));
-            Assert.False(ReferenceEquals(instance.Dictionary[42], copy.Dictionary[42]));
-            Assert.False(ReferenceEquals(instance.Dictionary[84], copy.Dictionary[84]));
+            Assert.NotSame(instance.Dictionary, copy.Dictionary);
+            Assert.NotSame(instance.Dictionary[42], copy.Dictionary[42]);
+            Assert.NotSame(instance.Dictionary[84], copy.Dictionary[84]);
+        }
+
+        [Fact]
+        public void TestClassWithDictionaryNull()
+        {
+            var type = GetTestType(typeof(ClassWithDictionary));
+            dynamic instance = Activator.CreateInstance(type);
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotSame(instance, copy);
+            Assert.Null(copy.Dictionary);
         }
 
         [Fact]
@@ -37,9 +48,9 @@ namespace Tests
             Assert.Equal(instance.Dictionary["One"], copy.Dictionary["One"]);
             Assert.Null(instance.Dictionary["Three"]);
 
-            Assert.False(ReferenceEquals(instance.Dictionary, copy.Dictionary));
-            Assert.False(ReferenceEquals(instance.Dictionary["Hello"], copy.Dictionary["Hello"]));
-            Assert.False(ReferenceEquals(instance.Dictionary["One"], copy.Dictionary["One"]));
+            Assert.NotSame(instance.Dictionary, copy.Dictionary);
+            Assert.NotSame(instance.Dictionary["Hello"], copy.Dictionary["Hello"]);
+            Assert.NotSame(instance.Dictionary["One"], copy.Dictionary["One"]);
         }
 
         [Fact]
@@ -65,9 +76,9 @@ namespace Tests
             AssertCopyOfSomeClass(instance.Dictionary[someKey2], copy.Dictionary[someKey2]);
             Assert.Null(copy.Dictionary[someKey3]);
 
-            Assert.False(ReferenceEquals(instance.Dictionary, copy.Dictionary));
-            Assert.False(ReferenceEquals(instance.Dictionary[someKey1], copy.Dictionary[someKey1]));
-            Assert.False(ReferenceEquals(instance.Dictionary[someKey2], copy.Dictionary[someKey2]));
+            Assert.NotSame(instance.Dictionary, copy.Dictionary);
+            Assert.NotSame(instance.Dictionary[someKey1], copy.Dictionary[someKey1]);
+            Assert.NotSame(instance.Dictionary[someKey2], copy.Dictionary[someKey2]);
         }
     }
 }
