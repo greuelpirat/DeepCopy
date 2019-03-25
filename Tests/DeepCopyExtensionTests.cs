@@ -11,8 +11,8 @@ namespace Tests
         {
             var instance = CreateSomeObject();
 
-            var method = GetTestType(typeof(SampleDeepCopyExtension))
-                .GetMethod(nameof(SampleDeepCopyExtension.CopyOtherObject), BindingFlags.Public | BindingFlags.Static);
+            var method = GetTestType(typeof(ClassWithDeepCopyExtension))
+                .GetMethod(nameof(ClassWithDeepCopyExtension.CopyOtherObject), BindingFlags.Public | BindingFlags.Static);
             Assert.NotNull(method);
 
             dynamic copy = method.Invoke(null, new object[] { instance });
