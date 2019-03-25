@@ -13,6 +13,7 @@ namespace DeepCopyConstructor.Fody
     public partial class ModuleWeaver : BaseModuleWeaver
     {
         private const string ConstructorName = ".ctor";
+        private const string DeepCopyExtensionAttribute = "DeepCopyConstructor.DeepCopyExtensionAttribute";
         private const string AddDeepCopyConstructorAttribute = "DeepCopyConstructor.AddDeepCopyConstructorAttribute";
         private const string InjectDeepCopyAttribute = "DeepCopyConstructor.InjectDeepCopyAttribute";
         private const string IgnoreDuringDeepCopyAttribute = "DeepCopyConstructor.IgnoreDuringDeepCopyAttribute";
@@ -51,6 +52,22 @@ namespace DeepCopyConstructor.Fody
 
         public override void Execute()
         {
+            ExecuteDeepCopyProvider();
+            ExecuteAddDeepCopyConstructor();
+            ExecuteInjectDeepCopy();
+        }
+
+        private void ExecuteDeepCopyProvider()
+        {
+            foreach (var method in ModuleDefinition.Types.SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
+            {
+                InjectDeepCopyExtension(method);
+                method.CustomAttributes.Remove(method.SingleAttribute(DeepCopyExtensionAttribute));
+            }
+        }
+
+        private void ExecuteAddDeepCopyConstructor()
+        {
             foreach (var target in ModuleDefinition.Types.Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)))
             {
                 if (target.HasCopyConstructor(out _))
@@ -60,7 +77,10 @@ namespace DeepCopyConstructor.Fody
                 AddDeepConstructor(target);
                 target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
             }
+        }
 
+        private void ExecuteInjectDeepCopy()
+        {
             foreach (var target in ModuleDefinition.Types.Where(t => t.GetConstructors().Any(c => c.AnyAttribute(InjectDeepCopyAttribute))))
             {
                 var constructors = target.GetConstructors().Where(c => c.AnyAttribute(InjectDeepCopyAttribute)).ToList();

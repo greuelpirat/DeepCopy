@@ -15,8 +15,7 @@ namespace DeepCopyConstructor.Fody
 
         public static bool HasCopyConstructor(this TypeDefinition type, out MethodReference constructor)
         {
-            constructor = type.GetConstructors().SingleOrDefault(c => c.Parameters.Count == 1
-                                                                      && c.Parameters.Single().ParameterType.FullName == type.FullName);
+            constructor = type.GetConstructors().SingleOrDefault(c => c.HasSingleParameter(type));
             return constructor != null;
         }
 
@@ -71,11 +70,14 @@ namespace DeepCopyConstructor.Fody
         {
             if (property.SetMethod != null)
                 return Instruction.Create(OpCodes.Call, property.SetMethod);
+            var field = property.GetBackingField();
+            return field != null ? Instruction.Create(OpCodes.Stfld, field) : null;
+        }
+
+        public static FieldDefinition GetBackingField(this PropertyDefinition property)
+        {
             var backingFieldName = $"<{property.Name}>k__BackingField";
-            var field = property.DeclaringType.Fields.SingleOrDefault(f => f.Name == backingFieldName);
-            if (field != null)
-                return Instruction.Create(OpCodes.Stfld, field);
-            return null;
+            return property.DeclaringType.Fields.SingleOrDefault(f => f.Name == backingFieldName);
         }
 
         public static bool AnyAttribute(this ICustomAttributeProvider attributeProvider, string name)
@@ -86,6 +88,12 @@ namespace DeepCopyConstructor.Fody
         public static CustomAttribute SingleAttribute(this ICustomAttributeProvider attributeProvider, string name)
         {
             return attributeProvider.CustomAttributes.Single(a => a.AttributeType.FullName == name);
+        }
+
+        public static bool HasSingleParameter(this MethodDefinition method, TypeDefinition parameterType)
+        {
+            return method.Parameters.Count == 1
+                   && method.Parameters.Single().ParameterType.Resolve().MetadataToken == parameterType.MetadataToken;
         }
 
         public static TypeDefinition SolveGenericArgument(this TypeReference type)

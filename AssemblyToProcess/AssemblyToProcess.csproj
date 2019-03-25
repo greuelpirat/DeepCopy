@@ -7,4 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DeepCopyConstructor\DeepCopyConstructor.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Facade" />
+  </ItemGroup>
 </Project>
