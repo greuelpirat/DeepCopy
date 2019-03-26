@@ -26,9 +26,11 @@ namespace Tests
             return TestResult.Assembly.GetType(type.FullName ?? throw new ArgumentException());
         }
 
+        private static dynamic CreateTestInstance(Type type, params object[] args) => Activator.CreateInstance(GetTestType(type), args);
+
         private static dynamic CreateSomeObject()
         {
-            dynamic instance = Activator.CreateInstance(GetTestType(typeof(SomeObject)));
+            var instance = CreateTestInstance(typeof(SomeObject));
             instance.Integer = Random.Next();
             instance.Enum = (int) SomeEnum.Value1;
             instance.DateTime = DateTime.Now;
@@ -38,7 +40,7 @@ namespace Tests
 
         private static dynamic CreateSomeKey()
         {
-            return Activator.CreateInstance(GetTestType(typeof(SomeKey)), Random.Next(), Random.Next());
+            return CreateTestInstance(typeof(SomeKey), Random.Next(), Random.Next());
         }
 
         private static void AssertCopyOfSomeClass(dynamic instance, dynamic copy)

@@ -142,5 +142,12 @@ namespace DeepCopyConstructor.Fody
 
             return reference;
         }
+
+        public static bool GetProperty(this CustomAttribute attribute, string name, bool defaultValue)
+        {
+            if (attribute.Properties.Any(p => p.Name == name))
+                return (bool) attribute.Properties.Single(p => p.Name == name).Argument.Value;
+            return defaultValue;
+        }
     }
 }

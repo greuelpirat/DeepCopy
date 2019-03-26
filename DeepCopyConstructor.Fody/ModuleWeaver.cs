@@ -61,8 +61,9 @@ namespace DeepCopyConstructor.Fody
         {
             foreach (var method in ModuleDefinition.Types.SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
             {
-                InjectDeepCopyExtension(method);
-                method.CustomAttributes.Remove(method.SingleAttribute(DeepCopyExtensionAttribute));
+                var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
+                InjectDeepCopyExtension(method, attribute);
+                method.CustomAttributes.Remove(attribute);
             }
         }
 
