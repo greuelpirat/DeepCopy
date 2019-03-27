@@ -6,8 +6,6 @@ namespace DeepCopyConstructor
     /// Add a DeepCopyConstructor to the class
     /// </summary>
     /// <inheritdoc />
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public class AddDeepCopyConstructorAttribute : Attribute
-    {
-    }
+    [AttributeUsage(AttributeTargets.Class)]
+    public class AddDeepCopyConstructorAttribute : Attribute { }
 }

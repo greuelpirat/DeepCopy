@@ -9,7 +9,7 @@ namespace DeepCopyConstructor.Fody
 {
     public partial class ModuleWeaver
     {
-        private MethodReference Constructor(TypeReference type, TypeReference parameter = null)
+        private MethodReference NewConstructor(TypeReference type, TypeReference parameter = null)
         {
             var constructor = new MethodReference(ConstructorName, TypeSystem.VoidDefinition, type) { HasThis = true };
             if (parameter != null)
@@ -20,6 +20,12 @@ namespace DeepCopyConstructor.Fody
         private MethodReference ImportDefaultConstructor(TypeDefinition type)
         {
             return ModuleDefinition.ImportReference(type.GetConstructors().Single(c => !c.HasParameters));
+        }
+
+        private void AddDeepCopyConstructorAttributeToType(TypeDefinition type)
+        {
+            var attribute = FindType.Invoke(AddDeepCopyConstructorAttribute);
+            type.CustomAttributes.Add(new CustomAttribute(attribute.GetConstructors().Single()));
         }
 
         private bool IsType(IMetadataTokenProvider typeDefinition, Type type)
@@ -54,10 +60,11 @@ namespace DeepCopyConstructor.Fody
 
         private MethodReference StringCopy()
         {
+            var typeString = TypeSystem.StringDefinition;
             return ModuleDefinition.ImportReference(
-                new MethodReference(nameof(string.Copy), TypeSystem.StringDefinition, TypeSystem.StringDefinition)
+                new MethodReference(nameof(string.Copy), typeString, typeString)
                 {
-                    Parameters = { new ParameterDefinition(TypeSystem.StringDefinition) }
+                    Parameters = { new ParameterDefinition(typeString) }
                 });
         }
 
@@ -78,7 +85,7 @@ namespace DeepCopyConstructor.Fody
 
             if (resolved.AnyAttribute(AddDeepCopyConstructorAttribute))
             {
-                constructor = Constructor(type, type);
+                constructor = NewConstructor(type, type);
                 return true;
             }
 

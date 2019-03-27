@@ -28,7 +28,7 @@ namespace DeepCopyConstructor.Fody
 
             var list = new List<Instruction>();
             list.Add(Instruction.Create(OpCodes.Ldarg_0));
-            list.Add(Instruction.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(Constructor(instanceType))));
+            list.Add(Instruction.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(NewConstructor(instanceType))));
             list.Add(property.MakeSet());
             list.Add(Instruction.Create(OpCodes.Ldc_I4_0));
             list.Add(Instruction.Create(OpCodes.Stloc, IndexVariable));

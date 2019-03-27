@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -74,7 +75,7 @@ namespace DeepCopyConstructor.Fody
             return field != null ? Instruction.Create(OpCodes.Stfld, field) : null;
         }
 
-        public static FieldDefinition GetBackingField(this PropertyDefinition property)
+        private static FieldDefinition GetBackingField(this PropertyDefinition property)
         {
             var backingFieldName = $"<{property.Name}>k__BackingField";
             return property.DeclaringType.Fields.SingleOrDefault(f => f.Name == backingFieldName);
@@ -103,7 +104,7 @@ namespace DeepCopyConstructor.Fody
             return ((GenericInstanceType) type).GenericArguments.Single().GetElementType().Resolve();
         }
 
-        public static TypeDefinition[] SolveGenericArguments(this TypeReference type)
+        public static IEnumerable<TypeDefinition> SolveGenericArguments(this TypeReference type)
         {
             if (!type.IsGenericInstance)
                 throw new ArgumentException();

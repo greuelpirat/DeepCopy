@@ -3,6 +3,7 @@ using System.Linq;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 namespace DeepCopyConstructor.Fody
 {
@@ -23,7 +24,7 @@ namespace DeepCopyConstructor.Fody
                 throw new WeavingException($"{method.FullName} has no types to copy (check abstraction)");
 
             if (types.Count > 1)
-                BuildMultiTypeSwitchMethodBody();
+                BuildMultiTypeSwitchMethodBody(method, copyType, types);
             else
                 BuildSingleTypeMethodBody(method, types.Single());
         }
@@ -57,7 +58,64 @@ namespace DeepCopyConstructor.Fody
             processor.Emit(OpCodes.Ret);
         }
 
-        private void BuildMultiTypeSwitchMethodBody() { }
+        private void BuildMultiTypeSwitchMethodBody(MethodDefinition method, TypeDefinition baseType, IEnumerable<TypeDefinition> types)
+        {
+            var body = method.Body;
+            body.InitLocals = true;
+            body.Variables.Add(new VariableDefinition(TypeSystem.BooleanDefinition));
+            body.Variables.Add(new VariableDefinition(baseType));
+            body.Instructions.Clear();
+
+            var processor = body.GetILProcessor();
+
+            var loadReturnValue = Instruction.Create(OpCodes.Ldloc_1);
+            var loadTypeForCheck = Instruction.Create(OpCodes.Ldarg_0);
+
+            // null check
+            processor.Emit(OpCodes.Ldarg_0);
+            processor.Emit(OpCodes.Ldnull);
+            processor.Emit(OpCodes.Ceq);
+            processor.Emit(OpCodes.Stloc_0);
+            processor.Emit(OpCodes.Ldloc_0);
+            processor.Emit(OpCodes.Brfalse_S, loadTypeForCheck);
+            processor.Emit(OpCodes.Ldnull);
+            processor.Emit(OpCodes.Stloc_1);
+            processor.Emit(OpCodes.Br_S, loadReturnValue);
+
+            foreach (var type in types)
+            {
+                if (!IsCopyConstructorAvailable(type, out var constructor))
+                {
+                    AddDeepCopyConstructorAttributeToType(type);
+                    constructor = NewConstructor(type, type);
+                }
+
+                var variable = new VariableDefinition(type);
+                body.Variables.Add(variable);
+
+                var endType = Instruction.Create(OpCodes.Nop);
+
+                processor.Append(loadTypeForCheck);
+                processor.Emit(OpCodes.Isinst, type);
+                processor.Emit(OpCodes.Dup);
+                processor.Emit(OpCodes.Stloc, variable);
+                processor.Emit(OpCodes.Brfalse_S, endType);
+                processor.Emit(OpCodes.Ldloc, variable);
+
+                processor.Emit(OpCodes.Newobj, constructor);
+                processor.Emit(OpCodes.Stloc_1);
+                processor.Emit(OpCodes.Br_S, loadReturnValue);
+
+                processor.Append(endType);
+                
+                loadTypeForCheck = Instruction.Create(OpCodes.Ldarg_0);
+            }
+
+            processor.Append(loadReturnValue);
+            processor.Emit(OpCodes.Ret);
+            
+            body.OptimizeMacros();
+        }
 
         private IEnumerable<TypeDefinition> FindDerivedTypes(TypeDefinition type)
         {
