@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using AssemblyToProcess;
 using Xunit;
@@ -54,6 +55,41 @@ namespace Tests
             Assert.NotSame(derivedInstance, derivedCopy);
             AssertCopyOfSomeClass(derivedInstance.OtherObject, derivedCopy.OtherObject);
             AssertCopyOfSomeClass(derivedInstance.BaseObject, derivedCopy.BaseObject);
+        }
+
+        [Fact]
+        public void TestClassWithDeepCopyExtension_CopyBaseClassCollection()
+        {
+            var method = GetTestType(typeof(ClassWithDeepCopyExtension))
+                .GetMethod(nameof(ClassWithDeepCopyExtension.CopyBaseClassCollection), BindingFlags.Public | BindingFlags.Static);
+            Assert.NotNull(method);
+
+            var anotherDerivedClass = CreateTestInstance(typeof(AnotherDerivedClass));
+            anotherDerivedClass.BaseObject = CreateSomeObject();
+            anotherDerivedClass.AnotherObject = CreateSomeObject();
+
+            var yetAnotherDerivedClass = CreateTestInstance(typeof(YetAnotherDerivedClass));
+            yetAnotherDerivedClass.BaseObject = CreateSomeObject();
+            yetAnotherDerivedClass.YetAnotherObject = CreateSomeObject();
+
+            var instance = CreateTestInstance(typeof(BaseClassCollection));
+            instance.BaseClasses = new List<AbstractBaseClass>
+            {
+                anotherDerivedClass,
+                yetAnotherDerivedClass
+            };
+
+            dynamic copy = method.Invoke(null, new object[] { instance });
+            Assert.NotNull(copy);
+            Assert.Equal(instance.GetType(), copy.GetType());
+            Assert.NotSame(instance, copy);
+            Assert.NotNull(copy.BaseClasses);
+            Assert.Equal(2, copy.BaseClasses.Count);
+
+            AssertCopyOfSomeClass(instance.BaseClasses[0].BaseObject, copy.BaseClasses[0].BaseObject);
+            AssertCopyOfSomeClass(instance.BaseClasses[0].AnotherObject, copy.BaseClasses[0].AnotherObject);
+            AssertCopyOfSomeClass(instance.BaseClasses[1].BaseObject, copy.BaseClasses[1].BaseObject);
+            AssertCopyOfSomeClass(instance.BaseClasses[1].YetAnotherObject, copy.BaseClasses[1].YetAnotherObject);
         }
     }
 }

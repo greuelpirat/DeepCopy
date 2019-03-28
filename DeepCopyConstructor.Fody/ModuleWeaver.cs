@@ -25,6 +25,8 @@ namespace DeepCopyConstructor.Fody
         private VariableDefinition _indexVariable;
 
         private ThreadLocal<MethodBody> CurrentBody { get; } = new ThreadLocal<MethodBody>();
+        private IDictionary<MetadataToken, TypeDefinition> AddDeepCopyConstructorTargets { get; } = new Dictionary<MetadataToken, TypeDefinition>();
+        private IDictionary<MetadataToken, MethodReference> DeepCopyExtensions { get; } = new Dictionary<MetadataToken, MethodReference>();
 
         private VariableDefinition BooleanVariable
         {
@@ -69,6 +71,15 @@ namespace DeepCopyConstructor.Fody
 
         private void ExecuteAddDeepCopyConstructor()
         {
+            foreach (var target in AddDeepCopyConstructorTargets.Values)
+            {
+                if (target.HasCopyConstructor(out _))
+                    throw new WeavingException($"{target.FullName} has copy constructor. Use [InjectDeepCopy] on constructor if needed");
+
+                LogInfo($"Adding deep copy constructor to type {target.FullName}");
+                AddDeepConstructor(target);
+            }
+
             foreach (var target in ModuleDefinition.Types.Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)))
             {
                 if (target.HasCopyConstructor(out _))
@@ -121,7 +132,7 @@ namespace DeepCopyConstructor.Fody
                 offset = 3;
             }
             else
-                throw new WeavingException($"{type.FullName} requires a copy constructor for {type.BaseType.FullName}");
+                throw new WeavingException($"{type.FullName} requests a copy constructor for {type.BaseType.FullName}");
 
             InsertCopyInstructions(type, constructor.Body, offset);
 

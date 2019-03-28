@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DeepCopyConstructor;
 
 namespace AssemblyToProcess
@@ -18,5 +19,25 @@ namespace AssemblyToProcess
     public class OtherDerivedClass : BaseClass
     {
         public SomeObject OtherObject { get; set; }
+    }
+
+    public abstract class AbstractBaseClass
+    {
+        public SomeObject BaseObject { get; set; }
+    }
+
+    public class AnotherDerivedClass : AbstractBaseClass
+    {
+        public SomeObject AnotherObject { get; set; }
+    }
+
+    public class YetAnotherDerivedClass : AbstractBaseClass
+    {
+        public SomeObject YetAnotherObject { get; set; }
+    }
+
+    public class BaseClassCollection
+    {
+        public IList<AbstractBaseClass> BaseClasses { get; set; }
     }
 }

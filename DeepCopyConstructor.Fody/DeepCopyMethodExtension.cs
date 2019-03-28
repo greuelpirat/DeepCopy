@@ -23,6 +23,8 @@ namespace DeepCopyConstructor.Fody
             if (types.Count == 0)
                 throw new WeavingException($"{method.FullName} has no types to copy (check abstraction)");
 
+            DeepCopyExtensions[copyType.MetadataToken] = method;
+
             if (types.Count > 1)
                 BuildMultiTypeSwitchMethodBody(method, copyType, types);
             else
@@ -33,8 +35,11 @@ namespace DeepCopyConstructor.Fody
         {
             var copyTypeReference = ModuleDefinition.ImportReference(type);
 
-            if (!IsCopyConstructorAvailable(copyTypeReference, out var constructor))
-                throw new WeavingException($"{copyTypeReference} has no copy constructor");
+            if (!IsCopyConstructorAvailable(type, out var constructor))
+            {
+                AddDeepCopyConstructorTargets[type.MetadataToken] = type;
+                constructor = NewConstructor(type, type);
+            }
 
             var body = method.Body = new MethodBody(method);
             var loadArgument = Instruction.Create(OpCodes.Ldarg_0);
@@ -86,9 +91,12 @@ namespace DeepCopyConstructor.Fody
             {
                 if (!IsCopyConstructorAvailable(type, out var constructor))
                 {
-                    AddDeepCopyConstructorAttributeToType(type);
+                    AddDeepCopyConstructorTargets[type.MetadataToken] = type;
                     constructor = NewConstructor(type, type);
                 }
+                
+                if (type.IsAbstract)
+                    continue;
 
                 var variable = new VariableDefinition(type);
                 body.Variables.Add(variable);
@@ -126,8 +134,7 @@ namespace DeepCopyConstructor.Fody
             foreach (var derivedOfDerivedType in FindDerivedTypes(derivedType))
                 yield return derivedOfDerivedType;
 
-            if (!type.IsAbstract)
-                yield return type;
+            yield return type;
         }
     }
 }

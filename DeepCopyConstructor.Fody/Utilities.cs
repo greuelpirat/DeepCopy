@@ -22,12 +22,6 @@ namespace DeepCopyConstructor.Fody
             return ModuleDefinition.ImportReference(type.GetConstructors().Single(c => !c.HasParameters));
         }
 
-        private void AddDeepCopyConstructorAttributeToType(TypeDefinition type)
-        {
-            var attribute = FindType.Invoke(AddDeepCopyConstructorAttribute);
-            type.CustomAttributes.Add(new CustomAttribute(attribute.GetConstructors().Single()));
-        }
-
         private bool IsType(IMetadataTokenProvider typeDefinition, Type type)
         {
             return typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).Resolve().MetadataToken;
@@ -84,6 +78,12 @@ namespace DeepCopyConstructor.Fody
             }
 
             if (resolved.AnyAttribute(AddDeepCopyConstructorAttribute))
+            {
+                constructor = NewConstructor(type, type);
+                return true;
+            }
+
+            if (AddDeepCopyConstructorTargets.ContainsKey(resolved.MetadataToken))
             {
                 constructor = NewConstructor(type, type);
                 return true;
