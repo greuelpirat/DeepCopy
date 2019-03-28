@@ -58,7 +58,7 @@ namespace DeepCopyConstructor.Fody
             processor.Emit(OpCodes.Ret);
         }
 
-        private void BuildMultiTypeSwitchMethodBody(MethodDefinition method, TypeDefinition baseType, IEnumerable<TypeDefinition> types)
+        private void BuildMultiTypeSwitchMethodBody(MethodDefinition method, TypeReference baseType, IEnumerable<TypeDefinition> types)
         {
             var body = method.Body;
             body.InitLocals = true;
@@ -96,24 +96,27 @@ namespace DeepCopyConstructor.Fody
                 var endType = Instruction.Create(OpCodes.Nop);
 
                 processor.Append(loadTypeForCheck);
-                processor.Emit(OpCodes.Isinst, type);
-                processor.Emit(OpCodes.Dup);
-                processor.Emit(OpCodes.Stloc, variable);
-                processor.Emit(OpCodes.Brfalse_S, endType);
-                processor.Emit(OpCodes.Ldloc, variable);
+                if (type.Resolve().MetadataToken != baseType.MetadataToken)
+                {
+                    processor.Emit(OpCodes.Isinst, type);
+                    processor.Emit(OpCodes.Dup);
+                    processor.Emit(OpCodes.Stloc, variable);
+                    processor.Emit(OpCodes.Brfalse_S, endType);
+                    processor.Emit(OpCodes.Ldloc, variable);
+                }
 
                 processor.Emit(OpCodes.Newobj, constructor);
                 processor.Emit(OpCodes.Stloc_1);
                 processor.Emit(OpCodes.Br_S, loadReturnValue);
 
                 processor.Append(endType);
-                
+
                 loadTypeForCheck = Instruction.Create(OpCodes.Ldarg_0);
             }
 
             processor.Append(loadReturnValue);
             processor.Emit(OpCodes.Ret);
-            
+
             body.OptimizeMacros();
         }
 
