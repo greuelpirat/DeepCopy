@@ -20,4 +20,10 @@ namespace AssemblyToProcess
     {
         public IList<SomeObject> List { get; set; }
     }
+    
+    [AddDeepCopyConstructor]
+    public class ClassWithListInstance
+    {
+        public List<SomeObject> List { get; set; }
+    }
 }

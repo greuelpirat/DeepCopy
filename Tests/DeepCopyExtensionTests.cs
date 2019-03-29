@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using AssemblyToProcess;
@@ -73,11 +74,10 @@ namespace Tests
             yetAnotherDerivedClass.YetAnotherObject = CreateSomeObject();
 
             var instance = CreateTestInstance(typeof(BaseClassCollection));
-            instance.BaseClasses = new List<AbstractBaseClass>
-            {
-                anotherDerivedClass,
-                yetAnotherDerivedClass
-            };
+            dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTestType(typeof(AbstractBaseClass))));
+            instance.BaseClasses = list;
+            instance.BaseClasses.Add(anotherDerivedClass);
+            instance.BaseClasses.Add(yetAnotherDerivedClass);
 
             dynamic copy = method.Invoke(null, new object[] { instance });
             Assert.NotNull(copy);

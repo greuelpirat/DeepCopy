@@ -80,5 +80,33 @@ namespace Tests
             Assert.NotSame(instance.Dictionary[someKey1], copy.Dictionary[someKey1]);
             Assert.NotSame(instance.Dictionary[someKey2], copy.Dictionary[someKey2]);
         }
+
+        [Fact]
+        public void TestClassWithDictionaryInstance()
+        {
+            var someKey1 = CreateSomeKey();
+            var someKey2 = CreateSomeKey();
+            var someKey3 = CreateSomeKey();
+
+            var type = GetTestType(typeof(ClassWithDictionaryInstance));
+            dynamic instance = Activator.CreateInstance(type);
+
+            dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>)
+                .MakeGenericType(GetTestType(typeof(SomeKey)), GetTestType(typeof(SomeObject))));
+            instance.Dictionary = dictionary;
+            instance.Dictionary[someKey1] = CreateSomeObject();
+            instance.Dictionary[someKey2] = CreateSomeObject();
+            instance.Dictionary[someKey3] = null;
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.Equal(instance.Dictionary.Count, copy.Dictionary.Count);
+            AssertCopyOfSomeClass(instance.Dictionary[someKey1], copy.Dictionary[someKey1]);
+            AssertCopyOfSomeClass(instance.Dictionary[someKey2], copy.Dictionary[someKey2]);
+            Assert.Null(copy.Dictionary[someKey3]);
+
+            Assert.NotSame(instance.Dictionary, copy.Dictionary);
+            Assert.NotSame(instance.Dictionary[someKey1], copy.Dictionary[someKey1]);
+            Assert.NotSame(instance.Dictionary[someKey2], copy.Dictionary[someKey2]);
+        }
     }
 }

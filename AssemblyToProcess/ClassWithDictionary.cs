@@ -20,4 +20,10 @@ namespace AssemblyToProcess
     {
         public IDictionary<SomeKey, SomeObject> Dictionary { get; set; }
     }
+
+    [AddDeepCopyConstructor]
+    public class ClassWithDictionaryInstance
+    {
+        public Dictionary<SomeKey, SomeObject> Dictionary { get; set; }
+    }
 }

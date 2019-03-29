@@ -26,9 +26,11 @@ namespace DeepCopyConstructor.Fody
             else if (!listType.HasDefaultConstructor())
                 throw new NotSupportedException(property.FullName);
 
+            var listConstructor = ModuleDefinition.ImportReference(NewConstructor(instanceType).MakeGeneric(argumentType));
+
             var list = new List<Instruction>();
             list.Add(Instruction.Create(OpCodes.Ldarg_0));
-            list.Add(Instruction.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(NewConstructor(instanceType))));
+            list.Add(Instruction.Create(OpCodes.Newobj, listConstructor));
             list.Add(property.MakeSet());
             list.Add(Instruction.Create(OpCodes.Ldc_I4_0));
             list.Add(Instruction.Create(OpCodes.Stloc, IndexVariable));

@@ -73,5 +73,25 @@ namespace Tests
             AssertCopyOfSomeClass(instance.List[1], copy.List[1]);
             Assert.Null(copy.List[2]);
         }
+
+        [Fact]
+        public void TestAnotherClassWithListObject()
+        {
+            var type = GetTestType(typeof(ClassWithListInstance));
+
+            dynamic instance = Activator.CreateInstance(type);
+
+            dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTestType(typeof(SomeObject))));
+            instance.List = list;
+            instance.List.Add(CreateSomeObject());
+            instance.List.Add(CreateSomeObject());
+            instance.List.Add(null);
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.Equal(instance.List.Count, copy.List.Count);
+            AssertCopyOfSomeClass(instance.List[0], copy.List[0]);
+            AssertCopyOfSomeClass(instance.List[1], copy.List[1]);
+            Assert.Null(copy.List[2]);
+        }
     }
 }

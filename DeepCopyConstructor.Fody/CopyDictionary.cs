@@ -16,7 +16,7 @@ namespace DeepCopyConstructor.Fody
             var typesArguments = property.PropertyType.SolveGenericArguments().Cast<TypeReference>().ToArray();
             var typeKeyValuePair = ImportType(typeof(KeyValuePair<,>), typesArguments);
 
-            var methodGetEnumerator = ImportMethod(typeDictionary, nameof(IEnumerable.GetEnumerator), typeKeyValuePair);
+            var methodGetEnumerator = ImportMethod(ImportType(typeof(IEnumerable<>), typeKeyValuePair), nameof(IEnumerable.GetEnumerator), typeKeyValuePair);
             var typeEnumerator = ImportType(methodGetEnumerator.ReturnType, typeKeyValuePair);
 
             var varKeyValuePair = new VariableDefinition(typeKeyValuePair);
@@ -35,9 +35,10 @@ namespace DeepCopyConstructor.Fody
             else if (!typeDictionary.HasDefaultConstructor())
                 throw new NotSupportedException(property.FullName);
 
+            var constructor = ModuleDefinition.ImportReference(NewConstructor(typeInstance).MakeGeneric(typesArguments));
             var list = new List<Instruction>();
             list.Add(Instruction.Create(OpCodes.Ldarg_0));
-            list.Add(Instruction.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(NewConstructor(typeInstance))));
+            list.Add(Instruction.Create(OpCodes.Newobj, constructor));
             list.Add(property.MakeSet());
 
             list.Add(Instruction.Create(OpCodes.Ldarg_1));
