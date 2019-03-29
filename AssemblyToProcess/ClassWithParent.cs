@@ -38,6 +38,6 @@ namespace AssemblyToProcess
 
     public class BaseClassCollection
     {
-        public IList<AbstractBaseClass> BaseClasses { get; set; }
+        public List<AbstractBaseClass> BaseClasses { get; set; }
     }
 }

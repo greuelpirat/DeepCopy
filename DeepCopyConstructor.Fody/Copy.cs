@@ -78,12 +78,12 @@ namespace DeepCopyConstructor.Fody
                 list.AddRange(getterNotNull);
             }
 
-            if (type.FullName == typeof(string).FullName)
+            if (DeepCopyExtensions.TryGetValue(type.Resolve().MetadataToken, out var extensionMethod))
+                list.Add(Instruction.Create(OpCodes.Call, extensionMethod));
+            else if (type.FullName == typeof(string).FullName)
                 list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
             else if (IsCopyConstructorAvailable(type, out var constructor))
                 list.Add(Instruction.Create(OpCodes.Newobj, constructor));
-            else if (DeepCopyExtensions.TryGetValue(type.Resolve().MetadataToken, out var extensionMethod))
-                list.Add(Instruction.Create(OpCodes.Call, extensionMethod));
             else
                 throw new NotSupportedException(type.FullName);
 
