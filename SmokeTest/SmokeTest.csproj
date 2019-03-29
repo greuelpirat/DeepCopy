@@ -18,11 +18,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <WeaverFiles Include="$(SolutionDir)DeepCopyConstructor.Fody\bin\$(Configuration)\$(WeaverTargetFolder)\DeepCopyConstructor.Fody.dll" />
+    <WeaverFiles Include="$(SolutionDir)DeepCopy.Fody\bin\$(Configuration)\$(WeaverTargetFolder)\DeepCopy.Fody.dll" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DeepCopyConstructor\DeepCopyConstructor.csproj" />
+    <ProjectReference Include="..\DeepCopy\DeepCopy.csproj" />
   </ItemGroup>
 
 </Project>

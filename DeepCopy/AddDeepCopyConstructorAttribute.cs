@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace DeepCopyConstructor
+namespace DeepCopy
 {
     /// <summary>
-    /// Add a DeepCopyConstructor to the class
+    /// Add a DeepCopy to the class
     /// </summary>
     /// <inheritdoc />
     [AttributeUsage(AttributeTargets.Class)]

@@ -5,6 +5,6 @@
     <DisableFody>true</DisableFody>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DeepCopyConstructor\DeepCopyConstructor.csproj" />
+    <ProjectReference Include="..\DeepCopy\DeepCopy.csproj" />
   </ItemGroup>
 </Project>

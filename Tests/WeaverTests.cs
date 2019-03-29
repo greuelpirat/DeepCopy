@@ -1,6 +1,6 @@
 ﻿using System;
 using AssemblyToProcess;
-using DeepCopyConstructor.Fody;
+using DeepCopy.Fody;
 using Fody;
 using Xunit;
 

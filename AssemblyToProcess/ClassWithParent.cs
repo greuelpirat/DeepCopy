@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using DeepCopyConstructor;
+using DeepCopy;
 
 namespace AssemblyToProcess
 {

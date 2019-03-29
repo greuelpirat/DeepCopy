@@ -8,15 +8,15 @@ using Mono.Cecil.Rocks;
 
 #region ModuleWeaver
 
-namespace DeepCopyConstructor.Fody
+namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver : BaseModuleWeaver
     {
         private const string ConstructorName = ".ctor";
-        private const string DeepCopyExtensionAttribute = "DeepCopyConstructor.DeepCopyExtensionAttribute";
-        private const string AddDeepCopyConstructorAttribute = "DeepCopyConstructor.AddDeepCopyConstructorAttribute";
-        private const string InjectDeepCopyAttribute = "DeepCopyConstructor.InjectDeepCopyAttribute";
-        private const string IgnoreDuringDeepCopyAttribute = "DeepCopyConstructor.IgnoreDuringDeepCopyAttribute";
+        private const string DeepCopyExtensionAttribute = "DeepCopy.DeepCopyExtensionAttribute";
+        private const string AddDeepCopyConstructorAttribute = "DeepCopy.AddDeepCopyConstructorAttribute";
+        private const string InjectDeepCopyAttribute = "DeepCopy.InjectDeepCopyAttribute";
+        private const string IgnoreDuringDeepCopyAttribute = "DeepCopy.IgnoreDuringDeepCopyAttribute";
 
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;

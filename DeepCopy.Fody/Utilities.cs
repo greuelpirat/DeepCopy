@@ -5,7 +5,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
-namespace DeepCopyConstructor.Fody
+namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {

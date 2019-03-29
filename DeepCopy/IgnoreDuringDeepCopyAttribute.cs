@@ -1,9 +1,9 @@
 using System;
 
-namespace DeepCopyConstructor
+namespace DeepCopy
 {
     /// <summary>
-    /// Marked Property will be skip by DeepCopyConstructor
+    /// Marked Property will be skip by DeepCopy
     /// </summary>
     /// <inheritdoc />
     [AttributeUsage(AttributeTargets.Property)]

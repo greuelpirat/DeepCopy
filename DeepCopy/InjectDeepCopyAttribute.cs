@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DeepCopyConstructor
+namespace DeepCopy
 {
     /// <summary>
     /// Injects deep copy functionality to an existing copy constructor

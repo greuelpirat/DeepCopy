@@ -1,6 +1,6 @@
 using System;
 
-namespace DeepCopyConstructor
+namespace DeepCopy
 {
     /// <inheritdoc />
     /// <summary>

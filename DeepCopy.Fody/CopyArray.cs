@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace DeepCopyConstructor.Fody
+namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {
