@@ -1,6 +1,7 @@
 image: Visual Studio 2017
 build_script:
-- cmd: dotnet build --configuration Release
+- cmd: dotnet restore
+- cmd: dotnet msbuild -p:Configuration=Release
 test:
   assemblies:
     - '**\*Tests.dll'
