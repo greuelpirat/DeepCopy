@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DeepCopy.Fody\DeepCopy.Fody.csproj" />
     <ProjectReference Include="..\DeepCopy\DeepCopy.csproj" />
   </ItemGroup>
 
