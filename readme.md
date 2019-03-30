@@ -3,7 +3,7 @@
 
 ## This is an add-in for [Fody](https://github.com/Fody/Home/)
 
-![Icon](https://raw.githubusercontent.com/Fody/Equals/master/package_icon.png)
+![Icon](https://github.com/greuelpirat/DeepCopy/blob/master/package_icon.png)
 
 Generate copy constructors and extension methods to create a new instance with deep copy of properties.
 
@@ -94,11 +94,11 @@ public class SomeObject
       for (int index = 0; index < obj.List.Count; ++index)
         this.List.Add(obj.List[index] != null ? new SomeObject(obj0.List[index]) : (SomeObject) null);
     }
-	if (obj.Dictionary != null) {
+    if (obj.Dictionary != null) {
       this.Dictionary = (IDictionary<SomeKey, SomeObject>) new System.Collections.Generic.Dictionary<SomeKey, SomeObject>();
       foreach (KeyValuePair<SomeKey, SomeObject> keyValuePair in (IEnumerable<KeyValuePair<SomeKey, SomeObject>>) obj.Dictionary)
         this.Dictionary[new SomeKey(keyValuePair.Key)] = keyValuePair.Value != null ? new SomeObject(keyValuePair.Value) : (SomeObject) null;
-	}
+    }
   }
 
   public int Integer { get; set; }
