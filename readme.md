@@ -45,11 +45,11 @@ Add `<DeepCopy/>` to [FodyWeavers.xml](https://github.com/Fody/Home/blob/master/
 
 - `IList<>`-properties are supported (new instance is `List<>`)
 - `IDictionary<,>`-properties are supported (new instance is `Dictionary<,>`)
-- DeepCopyExtension-methods supports inheritance.
+- `DeepCopyExtension`-methods supports inheritance.
 
-### Sample
+## Sample
 
-** Your Code **
+#### Your Code
 ```csharp
 public static class MyStaticClass
 {
@@ -68,7 +68,7 @@ public class SomeObject
 }
 ```
 
-** What gets compiled **
+#### What gets compiled
 ```csharp
 public static class MyStaticClass
 {
