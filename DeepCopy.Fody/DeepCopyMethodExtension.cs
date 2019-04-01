@@ -115,7 +115,7 @@ namespace DeepCopy.Fody
 
                 processor.Emit(OpCodes.Newobj, constructor);
                 processor.Emit(OpCodes.Stloc_1);
-                processor.Emit(OpCodes.Br_S, loadReturnValue);
+                processor.Emit(OpCodes.Br, loadReturnValue);
 
                 processor.Append(endType);
 
