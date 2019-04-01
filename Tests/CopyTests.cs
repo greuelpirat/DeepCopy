@@ -51,5 +51,14 @@ namespace Tests
             Assert.Equal("Hello", copy.String);
             Assert.Null(copy.StringIgnored);
         }
+
+        [Fact]
+        public void TestEmptyObject()
+        {
+            var type = GetTestType(typeof(EmptyObject));
+            var instance = Activator.CreateInstance(type);
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotSame(instance, copy);
+        }
     }
 }

@@ -158,10 +158,10 @@ namespace DeepCopy.Fody
                     body.Instructions.Insert(index++, instruction);
             }
 
-            if (properties.Count == 0)
-                throw new WeavingException($"no properties found for {type}");
+            LogInfo.Invoke(properties.Count == 0
+                ? $"DeepCopy {type.FullName} -> no properties"
+                : $"DeepCopy {type.FullName} -> {string.Join(", ", properties)}");
 
-            LogInfo.Invoke($"DeepCopy {type.FullName} -> {string.Join(", ", properties)}");
             body.OptimizeMacros();
 
             CurrentBody.Value = null;
