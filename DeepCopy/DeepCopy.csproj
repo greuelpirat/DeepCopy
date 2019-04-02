@@ -6,7 +6,7 @@
     <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
     <Authors>Oliver Ehrenmüller</Authors>
     <Copyright>Copyright $([System.DateTime]::UtcNow.ToString(yyyy)).</Copyright>
-    <Description>Injects deep copy constructors and methods.</Description>
+    <Description>Injects deep copy constructors and methods for properties.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <!-- PackageTags are optional. Defaults to 'ILWeaving, Fody, Cecil, AOP' -->
     <PackageTags>Deep copy, ILWeaving, Fody, Cecil, AOP</PackageTags>
