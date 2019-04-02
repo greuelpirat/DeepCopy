@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fody;
@@ -63,7 +64,7 @@ namespace DeepCopy.Fody
             processor.Emit(OpCodes.Ret);
         }
 
-        private void BuildMultiTypeSwitchMethodBody(MethodDefinition method, TypeReference baseType, IEnumerable<TypeDefinition> types)
+        private void BuildMultiTypeSwitchMethodBody(MethodDefinition method, TypeDefinition baseType, IEnumerable<TypeDefinition> types)
         {
             var body = method.Body;
             body.InitLocals = true;
@@ -73,8 +74,7 @@ namespace DeepCopy.Fody
 
             var processor = body.GetILProcessor();
 
-            var loadReturnValue = Instruction.Create(OpCodes.Ldloc_1);
-            var loadTypeForCheck = Instruction.Create(OpCodes.Ldarg_0);
+            var startType = Instruction.Create(OpCodes.Ldarg_0);
 
             // null check
             processor.Emit(OpCodes.Ldarg_0);
@@ -82,10 +82,11 @@ namespace DeepCopy.Fody
             processor.Emit(OpCodes.Ceq);
             processor.Emit(OpCodes.Stloc_0);
             processor.Emit(OpCodes.Ldloc_0);
-            processor.Emit(OpCodes.Brfalse_S, loadTypeForCheck);
+            processor.Emit(OpCodes.Brfalse_S, startType);
             processor.Emit(OpCodes.Ldnull);
             processor.Emit(OpCodes.Stloc_1);
-            processor.Emit(OpCodes.Br_S, loadReturnValue);
+            processor.Emit(OpCodes.Ldloc_1);
+            processor.Emit(OpCodes.Ret);
 
             foreach (var type in types)
             {
@@ -94,7 +95,10 @@ namespace DeepCopy.Fody
                     AddDeepCopyConstructorTargets[type.MetadataToken] = type;
                     constructor = NewConstructor(type, type);
                 }
-                
+
+                if (type.Resolve().MetadataToken == baseType.MetadataToken)
+                    break;
+
                 if (type.IsAbstract)
                     continue;
 
@@ -103,27 +107,38 @@ namespace DeepCopy.Fody
 
                 var endType = Instruction.Create(OpCodes.Nop);
 
-                processor.Append(loadTypeForCheck);
-                if (type.Resolve().MetadataToken != baseType.MetadataToken)
-                {
-                    processor.Emit(OpCodes.Isinst, type);
-                    processor.Emit(OpCodes.Dup);
-                    processor.Emit(OpCodes.Stloc, variable);
-                    processor.Emit(OpCodes.Brfalse_S, endType);
-                    processor.Emit(OpCodes.Ldloc, variable);
-                }
+                processor.Append(startType);
+
+                processor.Emit(OpCodes.Isinst, type);
+                processor.Emit(OpCodes.Dup);
+                processor.Emit(OpCodes.Stloc, variable);
+                processor.Emit(OpCodes.Brfalse_S, endType);
+                processor.Emit(OpCodes.Ldloc, variable);
 
                 processor.Emit(OpCodes.Newobj, constructor);
                 processor.Emit(OpCodes.Stloc_1);
-                processor.Emit(OpCodes.Br, loadReturnValue);
+                processor.Emit(OpCodes.Ldloc_1);
+                processor.Emit(OpCodes.Ret);
 
                 processor.Append(endType);
 
-                loadTypeForCheck = Instruction.Create(OpCodes.Ldarg_0);
+                startType = Instruction.Create(OpCodes.Ldarg_0);
             }
 
-            processor.Append(loadReturnValue);
-            processor.Emit(OpCodes.Ret);
+            if (baseType.IsAbstract)
+            {
+                processor.Emit(OpCodes.Newobj, ImportDefaultConstructor(ImportType(typeof(InvalidOperationException)).Resolve()));
+                processor.Emit(OpCodes.Throw);
+            }
+            else
+            {
+                if (!IsCopyConstructorAvailable(baseType, out var constructor))
+                    throw new CopyConstructorRequiredException(baseType);
+
+                processor.Emit(OpCodes.Ldarg_0);
+                processor.Emit(OpCodes.Newobj, constructor);
+                processor.Emit(OpCodes.Ret);
+            }
 
             body.OptimizeMacros();
         }

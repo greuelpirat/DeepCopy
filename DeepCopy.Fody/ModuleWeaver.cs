@@ -132,7 +132,7 @@ namespace DeepCopy.Fody
                 offset = 3;
             }
             else
-                throw new WeavingException($"{type.FullName} requests a copy constructor for {type.BaseType.FullName}");
+                throw new CopyConstructorRequiredException(type.BaseType);
 
             InsertCopyInstructions(type, constructor.Body, offset);
 
