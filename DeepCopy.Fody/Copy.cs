@@ -85,7 +85,7 @@ namespace DeepCopy.Fody
             else if (IsCopyConstructorAvailable(type, out var constructor))
                 list.Add(Instruction.Create(OpCodes.Newobj, constructor));
             else
-                throw new NotSupportedException(type.FullName);
+                throw new CopyConstructorRequiredException(type);
 
             return list;
         }
