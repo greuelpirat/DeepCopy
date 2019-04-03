@@ -69,6 +69,12 @@ namespace DeepCopy.Fody
             if (type.IsPrimitive || type.IsValueType)
                 return list;
 
+            if (DeepCopyExtensions.TryGetValue(type.Resolve().MetadataToken, out var extensionMethod))
+            {
+                list.Add(Instruction.Create(OpCodes.Call, extensionMethod));
+                return list;
+            }
+
             if (nullableCheck)
             {
                 var getterNotNull = getterBuilder.Invoke().ToList();
@@ -78,9 +84,7 @@ namespace DeepCopy.Fody
                 list.AddRange(getterNotNull);
             }
 
-            if (DeepCopyExtensions.TryGetValue(type.Resolve().MetadataToken, out var extensionMethod))
-                list.Add(Instruction.Create(OpCodes.Call, extensionMethod));
-            else if (type.FullName == typeof(string).FullName)
+            if (type.FullName == typeof(string).FullName)
                 list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
             else if (IsCopyConstructorAvailable(type, out var constructor))
                 list.Add(Instruction.Create(OpCodes.Newobj, constructor));
