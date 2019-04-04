@@ -3,7 +3,7 @@
 
 ## This is an add-in for [Fody](https://github.com/Fody/Home/)
 
-![Icon](https://github.com/greuelpirat/DeepCopy/blob/master/package_icon.png)
+![Icon](https://github.com/greuelpirat/DeepCopy/blob/master/package_icon.png) [![nuget](https://img.shields.io/nuget/v/DeepCopy.Fody.svg)](https://www.nuget.org/packages/DeepCopy.Fody/)
 
 Generate copy constructors and extension methods to create a new instance with deep copy of properties.
 
