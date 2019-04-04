@@ -74,18 +74,16 @@ namespace DeepCopy.Fody
             foreach (var target in AddDeepCopyConstructorTargets.Values)
             {
                 if (target.HasCopyConstructor(out _))
-                    throw new WeavingException($"{target.FullName} has copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                    throw new WeavingException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
 
-                LogInfo($"Adding deep copy constructor to type {target.FullName}");
                 AddDeepConstructor(target);
             }
 
             foreach (var target in ModuleDefinition.Types.Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)))
             {
                 if (target.HasCopyConstructor(out _))
-                    throw new WeavingException($"{target.FullName} has copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                    throw new WeavingException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
 
-                LogInfo($"Adding deep copy constructor to type {target.FullName}");
                 AddDeepConstructor(target);
                 target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
             }
@@ -103,7 +101,6 @@ namespace DeepCopy.Fody
                     || constructor.Parameters.Single().ParameterType.Resolve().MetadataToken != target.Resolve().MetadataToken)
                     throw new WeavingException($"Constructor {constructor} is no copy constructor");
 
-                LogInfo($"Injecting deep copy into {constructor}");
                 var constructorResolved = constructor.Resolve();
                 constructorResolved.Body.SimplifyMacros();
                 InsertCopyInstructions(target, constructorResolved.Body, 2);

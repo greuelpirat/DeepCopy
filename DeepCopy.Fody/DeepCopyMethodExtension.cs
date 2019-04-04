@@ -62,6 +62,8 @@ namespace DeepCopy.Fody
             processor.Emit(OpCodes.Br_S, loadObject);
             processor.Append(loadObject);
             processor.Emit(OpCodes.Ret);
+
+            LogInfo($"DeepCopy {method.FullName} -> {type.Name}");
         }
 
         private void BuildMultiTypeSwitchMethodBody(MethodDefinition method, TypeDefinition baseType, IEnumerable<TypeDefinition> types)
@@ -87,6 +89,8 @@ namespace DeepCopy.Fody
             processor.Emit(OpCodes.Stloc_1);
             processor.Emit(OpCodes.Ldloc_1);
             processor.Emit(OpCodes.Ret);
+
+            var copiedTypes = new List<TypeDefinition>();
 
             foreach (var type in types)
             {
@@ -122,6 +126,8 @@ namespace DeepCopy.Fody
 
                 processor.Append(endType);
 
+                copiedTypes.Add(type);
+
                 startType = Instruction.Create(OpCodes.Ldarg_0);
             }
 
@@ -138,7 +144,11 @@ namespace DeepCopy.Fody
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Newobj, constructor);
                 processor.Emit(OpCodes.Ret);
+
+                copiedTypes.Add(baseType);
             }
+
+            LogInfo($"DeepCopy {method.FullName} -> {string.Join(", ", copiedTypes.Select(t => t.Name))}");
 
             body.OptimizeMacros();
         }
