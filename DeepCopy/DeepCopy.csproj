@@ -8,7 +8,6 @@
     <Copyright>Copyright $([System.DateTime]::UtcNow.ToString(yyyy)).</Copyright>
     <Description>Injects deep copy constructors and methods for properties.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <!-- PackageTags are optional. Defaults to 'ILWeaving, Fody, Cecil, AOP' -->
     <PackageTags>Deep copy, ILWeaving, Fody, Cecil, AOP</PackageTags>
     <PackageOutputPath>$(SolutionDir)nugets</PackageOutputPath>
     <PackageProjectUrl>https://github.com/greuelpirat/DeepCopy</PackageProjectUrl>
