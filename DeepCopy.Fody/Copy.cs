@@ -35,6 +35,12 @@ namespace DeepCopy.Fody
                 return true;
             }
 
+            if (property.PropertyType.IsImplementing(typeof(ISet<>).FullName))
+            {
+                instructions = IfPropertyNotNull(property, CopySet(property));
+                return true;
+            }
+
             if (property.PropertyType.IsImplementing(typeof(IDictionary<,>).FullName))
             {
                 instructions = IfPropertyNotNull(property, CopyDictionary(property));
