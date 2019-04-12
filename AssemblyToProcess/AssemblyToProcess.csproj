@@ -5,6 +5,7 @@
     <DisableFody>true</DisableFody>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AnotherAssembly\AnotherAssembly.csproj" />
     <ProjectReference Include="..\DeepCopy\DeepCopy.csproj" />
   </ItemGroup>
 </Project>
