@@ -73,7 +73,7 @@ namespace DeepCopy.Fody
             var resolved = type.Resolve();
             if (resolved.HasCopyConstructor(out var existingConstructor))
             {
-                constructor = existingConstructor;
+                constructor = ModuleDefinition.ImportReference(existingConstructor);
                 return true;
             }
 
