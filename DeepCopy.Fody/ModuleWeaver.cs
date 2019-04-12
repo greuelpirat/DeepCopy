@@ -17,6 +17,7 @@ namespace DeepCopy.Fody
         private const string AddDeepCopyConstructorAttribute = "DeepCopy.AddDeepCopyConstructorAttribute";
         private const string InjectDeepCopyAttribute = "DeepCopy.InjectDeepCopyAttribute";
         private const string IgnoreDuringDeepCopyAttribute = "DeepCopy.IgnoreDuringDeepCopyAttribute";
+        private const string DeepCopyByReferenceAttribute = "DeepCopy.DeepCopyByReferenceAttribute";
 
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;

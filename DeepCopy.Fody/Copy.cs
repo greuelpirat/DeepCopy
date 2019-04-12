@@ -23,6 +23,19 @@ namespace DeepCopy.Fody
                 return false;
             }
 
+            if (property.AnyAttribute(DeepCopyByReferenceAttribute))
+            {
+                property.CustomAttributes.Remove(property.SingleAttribute(DeepCopyByReferenceAttribute));
+                instructions = new[]
+                {
+                    Instruction.Create(OpCodes.Ldarg_0),
+                    Instruction.Create(OpCodes.Ldarg_1),
+                    Instruction.Create(OpCodes.Callvirt, property.GetMethod),
+                    property.MakeSet()
+                };
+                return true;
+            }
+
             if (property.PropertyType.IsArray)
             {
                 instructions = IfPropertyNotNull(property, CopyArray(property));

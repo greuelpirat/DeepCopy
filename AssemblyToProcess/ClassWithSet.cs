@@ -8,8 +8,7 @@ namespace AssemblyToProcess
     {
         public ISet<int> Set { get; set; }
     }
-    
-    
+
     [AddDeepCopyConstructor]
     public class ClassWithSetString
     {
@@ -21,7 +20,7 @@ namespace AssemblyToProcess
     {
         public ISet<SomeObject> Set { get; set; }
     }
-    
+
     [AddDeepCopyConstructor]
     public class ClassWithSetInstance
     {
