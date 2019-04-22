@@ -60,7 +60,6 @@ public class SomeObject
 ```csharp
 public static class MyStaticClass
 {
-    [DeepCopyExtension]
     public static SomeObject DeepCopy(SomeObject source)
     {
         return source != null ? new SomeObject(source) : (SomeObject) null;
