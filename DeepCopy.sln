@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.572
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28721.148
+MinimumVisualStudioVersion = 16.0.28721.148
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeepCopy.Fody", "DeepCopy.Fody\DeepCopy.Fody.csproj", "{5119657D-E83E-410A-840D-3926E8A05C89}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeepCopy", "DeepCopy\DeepCopy.csproj", "{01544AA5-F19E-44F3-8D7C-3946EB9E6139}"
