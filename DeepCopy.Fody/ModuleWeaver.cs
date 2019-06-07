@@ -104,7 +104,7 @@ namespace DeepCopy.Fody
 
                 var constructorResolved = constructor.Resolve();
                 constructorResolved.Body.SimplifyMacros();
-                InsertCopyInstructions(target, constructorResolved.Body, 2);
+                InsertCopyInstructions(target, constructorResolved.Body);
                 constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
             }
         }
@@ -115,7 +115,6 @@ namespace DeepCopy.Fody
             constructor.Parameters.Add(new ParameterDefinition(type));
 
             var processor = constructor.Body.GetILProcessor();
-            var offset = 2;
 
             if (type.BaseType.Resolve().MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
             {
@@ -127,24 +126,24 @@ namespace DeepCopy.Fody
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Ldarg_1);
                 processor.Emit(OpCodes.Call, baseConstructor);
-                offset = 3;
             }
             else
                 throw new CopyConstructorRequiredException(type.BaseType);
 
-            InsertCopyInstructions(type, constructor.Body, offset);
+            InsertCopyInstructions(type, constructor.Body);
 
             processor.Emit(OpCodes.Ret);
             type.Methods.Add(constructor);
         }
 
-        private void InsertCopyInstructions(TypeDefinition type, MethodBody body, int offset)
+        private void InsertCopyInstructions(TypeDefinition type, MethodBody body)
         {
             _booleanVariable = null;
             _indexVariable = null;
             CurrentBody.Value = body;
 
-            var index = offset;
+            var baseConstructorCall = body.Instructions.Single(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference method && method.Name == ".ctor");
+            var index = body.Instructions.IndexOf(baseConstructorCall) + 1;
             var properties = new List<string>();
 
             foreach (var property in type.Properties)

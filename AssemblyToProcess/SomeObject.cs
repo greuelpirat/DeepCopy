@@ -56,4 +56,20 @@ namespace AssemblyToProcess
 
         #endregion
     }
+
+    [AddDeepCopyConstructor]
+    public class AutoPropertyInitializerObject
+    {
+        public Guid Guid { get; set; } = Guid.NewGuid();
+    }
+
+    public class AutoPropertyInitializerConstructorObject
+    {
+        public AutoPropertyInitializerConstructorObject() { }
+
+        [InjectDeepCopy]
+        public AutoPropertyInitializerConstructorObject(AutoPropertyInitializerConstructorObject source) { }
+
+        public Guid Guid { get; set; } = Guid.NewGuid();
+    }
 }

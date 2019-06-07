@@ -60,5 +60,29 @@ namespace Tests
             var copy = Activator.CreateInstance(type, instance);
             Assert.NotSame(instance, copy);
         }
+
+        [Fact]
+        public void TestAutoPropertyInitializer()
+        {
+            var type = GetTestType(typeof(AutoPropertyInitializerObject));
+            dynamic instance = Activator.CreateInstance(type);
+            var guid = Guid.NewGuid();
+            instance.Guid = guid;
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotSame(instance, copy);
+            Assert.Equal(instance.Guid, copy.Guid);
+        }
+
+        [Fact]
+        public void TestAutoPropertyConstructorInitializer()
+        {
+            var type = GetTestType(typeof(AutoPropertyInitializerConstructorObject));
+            dynamic instance = Activator.CreateInstance(type);
+            var guid = Guid.NewGuid();
+            instance.Guid = guid;
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotSame(instance, copy);
+            Assert.Equal(instance.Guid, copy.Guid);
+        }
     }
 }
