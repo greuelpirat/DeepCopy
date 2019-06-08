@@ -4,3 +4,4 @@ bin
 obj
 nugets
 *.DotSettings.user
+AssemblyToProcess/Demo.cs
