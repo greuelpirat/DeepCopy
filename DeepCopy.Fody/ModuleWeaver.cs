@@ -80,8 +80,18 @@ namespace DeepCopy.Fody
                 AddDeepConstructor(target);
             }
 
-            foreach (var target in ModuleDefinition.Types.Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)))
+            ExecuteAddDeepCopyConstructor(ModuleDefinition.Types);
+        }
+
+        private void ExecuteAddDeepCopyConstructor(ICollection<TypeDefinition> enumerable)
+        {
+            foreach (var target in enumerable)
             {
+                ExecuteAddDeepCopyConstructor(target.NestedTypes);
+
+                if (!target.AnyAttribute(AddDeepCopyConstructorAttribute))
+                    continue;
+
                 if (target.HasCopyConstructor(out _))
                     throw new WeavingException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
 
