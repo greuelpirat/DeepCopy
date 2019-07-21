@@ -42,7 +42,7 @@ namespace DeepCopy.Fody
             if (TryFindMethod(type, name, out var method))
                 return method;
 
-            throw new NullReferenceException($"No method {name} found for type {type.FullName}");
+            throw new MissingMethodException(type.FullName, name);
         }
 
         private static bool TryFindMethod(this TypeDefinition type, string name, out MethodReference method)
@@ -109,8 +109,6 @@ namespace DeepCopy.Fody
             if (!type.IsGenericInstance)
                 throw new ArgumentException();
             var arguments = ((GenericInstanceType) type).GenericArguments;
-            if (arguments.Count != 2)
-                throw new ArgumentException();
             return arguments.Select(a => a.GetElementType().Resolve()).ToArray();
         }
 

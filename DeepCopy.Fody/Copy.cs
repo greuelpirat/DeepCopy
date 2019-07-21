@@ -80,7 +80,8 @@ namespace DeepCopy.Fody
             return instructions;
         }
 
-        private IEnumerable<Instruction> CopyValue(TypeReference type, Func<IEnumerable<Instruction>> getterBuilder, Instruction followUp, bool nullableCheck = true)
+        private IEnumerable<Instruction> CopyValue(TypeReference type, Func<IEnumerable<Instruction>> getterBuilder, Instruction followUp,
+            bool nullableCheck = true)
         {
             var list = new List<Instruction>();
             list.AddRange(getterBuilder.Invoke());
@@ -107,8 +108,10 @@ namespace DeepCopy.Fody
                 list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
             else if (IsCopyConstructorAvailable(type, out var constructor))
                 list.Add(Instruction.Create(OpCodes.Newobj, constructor));
+            else if (type.Resolve().MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
+                throw new NotSupportedException(type);
             else
-                throw new CopyConstructorRequiredException(type);
+                throw new NoCopyConstructorFoundException(type);
 
             return list;
         }

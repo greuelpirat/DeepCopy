@@ -11,9 +11,14 @@ namespace DeepCopy.Fody
     {
         private IEnumerable<Instruction> CopyDictionary(PropertyDefinition property)
         {
-            var typeDictionary = property.PropertyType.Resolve();
+            return CopyDictionary(property.PropertyType, property);
+        }
+
+        private IEnumerable<Instruction> CopyDictionary(TypeReference type, PropertyDefinition property)
+        {
+            var typeDictionary = type.Resolve();
             var typeInstance = (TypeReference) typeDictionary;
-            var typesArguments = property.PropertyType.SolveGenericArguments().Cast<TypeReference>().ToArray();
+            var typesArguments = type.SolveGenericArguments().Cast<TypeReference>().ToArray();
             var typeKeyValuePair = ImportType(typeof(KeyValuePair<,>), typesArguments);
 
             var methodGetEnumerator = ImportMethod(ImportType(typeof(IEnumerable<>), typeKeyValuePair), nameof(IEnumerable.GetEnumerator), typeKeyValuePair);
@@ -30,19 +35,23 @@ namespace DeepCopy.Fody
                 if (IsType(typeDictionary, typeof(IDictionary<,>)))
                     typeInstance = ImportType(typeof(Dictionary<,>), typesArguments);
                 else
-                    throw new NotSupportedException(property.FullName);
+                    throw new NotSupportedException(type);
             }
             else if (!typeDictionary.HasDefaultConstructor())
-                throw new NotSupportedException(property.FullName);
+                throw new NotSupportedException(type);
 
             var constructor = ModuleDefinition.ImportReference(NewConstructor(typeInstance).MakeGeneric(typesArguments));
             var list = new List<Instruction>();
-            list.Add(Instruction.Create(OpCodes.Ldarg_0));
-            list.Add(Instruction.Create(OpCodes.Newobj, constructor));
-            list.Add(property.MakeSet());
+            if (property != null)
+            {
+                list.Add(Instruction.Create(OpCodes.Ldarg_0));
+                list.Add(Instruction.Create(OpCodes.Newobj, constructor));
+                list.Add(property.MakeSet());
+            }
 
             list.Add(Instruction.Create(OpCodes.Ldarg_1));
-            list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
+            if (property != null)
+                list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
             list.Add(Instruction.Create(OpCodes.Callvirt, methodGetEnumerator));
             list.Add(Instruction.Create(OpCodes.Stloc, varEnumerator));
 
@@ -57,7 +66,8 @@ namespace DeepCopy.Fody
             list.Add(Instruction.Create(OpCodes.Stloc, varKeyValuePair));
 
             list.Add(Instruction.Create(OpCodes.Ldarg_0));
-            list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
+            if (property != null)
+                list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
 
             IEnumerable<Instruction> GetterKey() => new[]
             {
@@ -74,7 +84,6 @@ namespace DeepCopy.Fody
             var setItem = Instruction.Create(OpCodes.Callvirt, ImportMethod(typeDictionary, "set_Item", typesArguments));
             var getValue = CopyValue(typesArguments[1], GetterValue, setItem).ToList();
             list.AddRange(CopyValue(typesArguments[0], GetterKey, getValue.First(), false));
-            //list.AddRange(GetterKey());
             list.AddRange(getValue);
             list.Add(setItem);
 

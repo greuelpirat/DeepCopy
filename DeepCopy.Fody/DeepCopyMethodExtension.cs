@@ -139,7 +139,7 @@ namespace DeepCopy.Fody
             else
             {
                 if (!IsCopyConstructorAvailable(baseType, out var constructor))
-                    throw new CopyConstructorRequiredException(baseType);
+                    throw new NoCopyConstructorFoundException(baseType);
 
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Newobj, constructor);
