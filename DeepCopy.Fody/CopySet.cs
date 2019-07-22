@@ -10,6 +10,9 @@ namespace DeepCopy.Fody
     {
         private IEnumerable<Instruction> CopySet(PropertyDefinition property)
         {
+            if (IsCopyConstructorAvailable(property.PropertyType, out _))
+                return CopyItem(property);
+
             return CopySet(property.PropertyType, property);
         }
 

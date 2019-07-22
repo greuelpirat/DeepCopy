@@ -8,6 +8,9 @@ namespace DeepCopy.Fody
     {
         private IEnumerable<Instruction> CopyList(PropertyDefinition property)
         {
+            if (IsCopyConstructorAvailable(property.PropertyType, out _))
+                return CopyItem(property);
+
             return CopyList(property.PropertyType, property);
         }
 

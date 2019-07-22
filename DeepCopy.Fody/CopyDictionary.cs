@@ -11,6 +11,9 @@ namespace DeepCopy.Fody
     {
         private IEnumerable<Instruction> CopyDictionary(PropertyDefinition property)
         {
+            if (IsCopyConstructorAvailable(property.PropertyType, out _))
+                return CopyItem(property);
+
             return CopyDictionary(property.PropertyType, property);
         }
 

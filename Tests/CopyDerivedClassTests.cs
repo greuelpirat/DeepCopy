@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AssemblyToProcess;
 using Xunit;
 
@@ -20,13 +21,58 @@ namespace Tests
         }
 
         [Fact]
-        public void TestDerivedDictionaryClass()
+        public void TestClassWithDerivedProperties()
         {
-            var type = GetTestType(typeof(DictionaryClass));
+            var type = GetTestType(typeof(ClassWithDerivedProperties));
+            dynamic instance = Activator.CreateInstance(type);
+            instance.Dictionary = Dictionary(out _);
+            instance.List = List(out _);
+            instance.Set = Set(out _);
+
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotSame(instance, copy);
+            AssertCopyOfSomeClass(instance.Dictionary.SomeProperty, copy.Dictionary.SomeProperty);
+            AssertCopyOfSomeClass(instance.Dictionary["foo"], copy.Dictionary["foo"]);
+            Assert.Equal(instance.List.Count, copy.List.Count);
+            AssertCopyOfSomeClass(instance.List.SomeProperty, copy.List.SomeProperty);
+            AssertCopyOfSomeClass(instance.List[0], copy.List[0]);
+            AssertCopyOfSomeClass(instance.Set.SomeProperty, copy.Set.SomeProperty);
+            var instanceArray = ToArray(instance.Set);
+            var copyArray = ToArray(copy.Set);
+            AssertCopyOfSomeClass(instanceArray[0], copyArray[0]);
+        }
+
+        private static dynamic Dictionary(out Type type)
+        {
+            type = GetTestType(typeof(DictionaryClass));
             dynamic instance = Activator.CreateInstance(type);
             instance.SomeProperty = CreateSomeObject();
             instance["foo"] = CreateSomeObject();
+            return instance;
+        }
 
+        private static dynamic List(out Type type)
+        {
+            type = GetTestType(typeof(ListClass));
+            dynamic instance = Activator.CreateInstance(type);
+            instance.SomeProperty = CreateSomeObject();
+            instance.Add(CreateSomeObject());
+            return instance;
+        }
+
+        private static dynamic Set(out Type type)
+        {
+            type = GetTestType(typeof(SetClass));
+            dynamic instance = Activator.CreateInstance(type);
+            instance.SomeProperty = CreateSomeObject();
+            instance.Add(CreateSomeObject());
+            return instance;
+        }
+
+        [Fact]
+        public void TestDerivedDictionaryClass()
+        {
+            var instance = Dictionary(out var type);
             var copy = Activator.CreateInstance(type, instance);
             AssertCopyOfSomeClass(instance.SomeProperty, copy.SomeProperty);
             AssertCopyOfSomeClass(instance["foo"], copy["foo"]);
@@ -35,11 +81,7 @@ namespace Tests
         [Fact]
         public void TestDerivedListClass()
         {
-            var type = GetTestType(typeof(ListClass));
-            dynamic instance = Activator.CreateInstance(type);
-            instance.SomeProperty = CreateSomeObject();
-            instance.Add(CreateSomeObject());
-
+            var instance = List(out var type);
             var copy = Activator.CreateInstance(type, instance);
             Assert.Equal(instance.Count, copy.Count);
             AssertCopyOfSomeClass(instance.SomeProperty, copy.SomeProperty);
@@ -49,11 +91,7 @@ namespace Tests
         [Fact]
         public void TestDerivedSetClass()
         {
-            var type = GetTestType(typeof(SetClass));
-            dynamic instance = Activator.CreateInstance(type);
-            instance.SomeProperty = CreateSomeObject();
-            instance.Add(CreateSomeObject());
-
+            var instance = Set(out var type);
             var copy = Activator.CreateInstance(type, instance);
             Assert.Equal(instance.Count, copy.Count);
             AssertCopyOfSomeClass(instance.SomeProperty, copy.SomeProperty);
