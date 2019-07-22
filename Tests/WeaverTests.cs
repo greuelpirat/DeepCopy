@@ -23,7 +23,7 @@ namespace Tests
 
         private static Type GetTestType(Type type)
         {
-            return TestResult.Assembly.GetType(type.FullName ?? throw new ArgumentException());
+            return TestResult.Assembly.GetType(type.FullName ?? throw new DeepCopyException($"{type} has no name"));
         }
 
         private static dynamic CreateTestInstance(Type type, params object[] args) => Activator.CreateInstance(GetTestType(type), args);

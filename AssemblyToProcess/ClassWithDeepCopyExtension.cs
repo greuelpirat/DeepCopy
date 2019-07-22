@@ -1,4 +1,3 @@
-using System;
 using DeepCopy;
 
 namespace AssemblyToProcess
@@ -18,6 +17,6 @@ namespace AssemblyToProcess
         public static AbstractBaseClass CopyAbstractBaseClass(AbstractBaseClass source) => source;
 
         [DeepCopyExtension]
-        public static OuterClassObject.InnerClassObject DeepCopyInnerClassObject(this OuterClassObject.InnerClassObject source) => throw new NotSupportedException();
+        public static OuterClassObject.InnerClassObject DeepCopyInnerClassObject(this OuterClassObject.InnerClassObject source) => source;
     }
 }

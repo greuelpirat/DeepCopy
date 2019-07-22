@@ -15,14 +15,14 @@ namespace DeepCopy.Fody
             var copyType = method.ReturnType.Resolve();
 
             if (!method.HasSingleParameter(copyType))
-                throw new WeavingException($"{method.FullName} must have one parameter with the same type of the return type");
+                throw new DeepCopyException($"{method.FullName} must have one parameter with the same type of the return type");
 
             var types = attribute.GetProperty("Inheritance", true)
                 ? FindDerivedTypes(copyType).ToList()
                 : new List<TypeDefinition> { copyType };
 
             if (types.Count == 0 || types.All(t => t.IsAbstract))
-                throw new WeavingException($"{method.FullName} has no types to copy (check abstraction)");
+                throw new DeepCopyException($"{method.FullName} has no types to copy (check abstraction)");
 
             DeepCopyExtensions[copyType.MetadataToken] = method;
 

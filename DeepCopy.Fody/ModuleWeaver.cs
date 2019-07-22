@@ -74,7 +74,7 @@ namespace DeepCopy.Fody
             foreach (var target in AddDeepCopyConstructorTargets.Values)
             {
                 if (target.HasCopyConstructor(out _))
-                    throw new WeavingException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                    throw new DeepCopyException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
 
                 AddDeepConstructor(target);
             }
@@ -85,7 +85,7 @@ namespace DeepCopy.Fody
                     continue;
 
                 if (target.HasCopyConstructor(out _))
-                    throw new WeavingException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                    throw new DeepCopyException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
 
                 AddDeepConstructor(target);
                 target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
@@ -98,11 +98,11 @@ namespace DeepCopy.Fody
             {
                 var constructors = target.GetConstructors().Where(c => c.AnyAttribute(InjectDeepCopyAttribute)).ToList();
                 if (constructors.Count > 1)
-                    throw new WeavingException($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
+                    throw new DeepCopyException($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
                 var constructor = constructors.Single();
                 if (constructor.Parameters.Count != 1
                     || constructor.Parameters.Single().ParameterType.Resolve().MetadataToken != target.Resolve().MetadataToken)
-                    throw new WeavingException($"Constructor {constructor} is no copy constructor");
+                    throw new DeepCopyException($"Constructor {constructor} is no copy constructor");
 
                 var constructorResolved = constructor.Resolve();
                 constructorResolved.Body.SimplifyMacros();

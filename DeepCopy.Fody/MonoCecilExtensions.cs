@@ -42,7 +42,7 @@ namespace DeepCopy.Fody
             if (TryFindMethod(type, name, out var method))
                 return method;
 
-            throw new MissingMethodException(type.FullName, name);
+            throw new DeepCopyException($"{type.FullName} has no method {name}");
         }
 
         private static bool TryFindMethod(this TypeDefinition type, string name, out MethodReference method)
@@ -100,14 +100,14 @@ namespace DeepCopy.Fody
         public static TypeDefinition SolveGenericArgument(this TypeReference type)
         {
             if (!type.IsGenericInstance)
-                throw new ArgumentException();
+                throw new DeepCopyException($"{type.FullName} is no generic instance");
             return ((GenericInstanceType) type).GenericArguments.Single().GetElementType().Resolve();
         }
 
         public static IEnumerable<TypeDefinition> SolveGenericArguments(this TypeReference type)
         {
             if (!type.IsGenericInstance)
-                throw new ArgumentException($"{type.FullName} is no generic instance");
+                throw new DeepCopyException($"{type.FullName} is no generic instance");
             var arguments = ((GenericInstanceType) type).GenericArguments;
             return arguments.Select(a => a.GetElementType().Resolve()).ToArray();
         }
@@ -116,7 +116,7 @@ namespace DeepCopy.Fody
         {
             var resolved = source.Resolve();
             if (resolved.GenericParameters.Count != arguments.Length)
-                throw new ArgumentException($"Expected {source.GenericParameters.Count} generic parameters, got {arguments.Length}");
+                throw new DeepCopyException($"Expected {source.GenericParameters.Count} generic parameters, got {arguments.Length}");
             var instance = new GenericInstanceType(resolved);
             foreach (var argument in arguments)
                 instance.GenericArguments.Add(argument);
