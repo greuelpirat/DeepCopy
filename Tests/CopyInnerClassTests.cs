@@ -9,14 +9,14 @@ namespace Tests
         [Fact]
         public void TestInnerClass()
         {
-            var type = GetTestType(typeof(InnerClassObject));
+            var type = GetTestType(typeof(OuterClassObject.InnerClassObject));
             dynamic instance = Activator.CreateInstance(type);
             
-            var one = CreateTestInstance(typeof(InnerClassObject.InnerClassOne));
+            var one = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassOne));
             one.ObjectOne = CreateSomeObject();
             instance.One = one;
 
-            var two = CreateTestInstance(typeof(InnerClassObject.InnerClassTwo));
+            var two = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassTwo));
             two.ObjectTwo = CreateSomeObject();
             instance.Two = two;
 

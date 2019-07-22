@@ -2,23 +2,25 @@ using DeepCopy;
 
 namespace AssemblyToProcess
 {
-    [AddDeepCopyConstructor]
-    public class InnerClassObject
+    public class OuterClassObject
     {
-        
         [AddDeepCopyConstructor]
-        public class InnerClassOne
+        public class InnerClassObject
         {
-            public SomeObject ObjectOne { get; set; }
-        }
+            [AddDeepCopyConstructor]
+            public class InnerClassOne
+            {
+                public SomeObject ObjectOne { get; set; }
+            }
 
-        [AddDeepCopyConstructor]
-        public class InnerClassTwo
-        {
-            public SomeObject ObjectTwo { get; set; }
-        }
+            [AddDeepCopyConstructor]
+            public class InnerClassTwo
+            {
+                public SomeObject ObjectTwo { get; set; }
+            }
 
-        public InnerClassOne One { get; set; }
-        public InnerClassTwo Two { get; set; }
+            public InnerClassOne One { get; set; }
+            public InnerClassTwo Two { get; set; }
+        }
     }
 }

@@ -54,14 +54,14 @@ namespace DeepCopy.Fody
 
         public override void Execute()
         {
-            ExecuteDeepCopyProvider();
+            ExecuteDeepCopyExtensions();
             ExecuteAddDeepCopyConstructor();
             ExecuteInjectDeepCopy();
         }
 
-        private void ExecuteDeepCopyProvider()
+        private void ExecuteDeepCopyExtensions()
         {
-            foreach (var method in ModuleDefinition.Types.SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
+            foreach (var method in ModuleDefinition.Types.WithNestedTypes().SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
             {
                 var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
                 InjectDeepCopyExtension(method, attribute);
@@ -79,15 +79,8 @@ namespace DeepCopy.Fody
                 AddDeepConstructor(target);
             }
 
-            ExecuteAddDeepCopyConstructor(ModuleDefinition.Types);
-        }
-
-        private void ExecuteAddDeepCopyConstructor(IEnumerable<TypeDefinition> enumerable)
-        {
-            foreach (var target in enumerable)
+            foreach (var target in ModuleDefinition.Types.WithNestedTypes())
             {
-                ExecuteAddDeepCopyConstructor(target.NestedTypes);
-
                 if (!target.AnyAttribute(AddDeepCopyConstructorAttribute))
                     continue;
 

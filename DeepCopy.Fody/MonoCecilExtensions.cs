@@ -148,5 +148,15 @@ namespace DeepCopy.Fody
                 return (bool) attribute.Properties.Single(p => p.Name == name).Argument.Value;
             return defaultValue;
         }
+
+        public static IEnumerable<TypeDefinition> WithNestedTypes(this IEnumerable<TypeDefinition> enumerable)
+        {
+            foreach (var type in enumerable)
+            {
+                yield return type;
+                foreach (var nestedType in type.NestedTypes.WithNestedTypes())
+                    yield return nestedType;
+            }
+        }
     }
 }

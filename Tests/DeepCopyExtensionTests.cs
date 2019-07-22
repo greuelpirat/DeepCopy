@@ -91,5 +91,26 @@ namespace Tests
             AssertCopyOfSomeClass(instance.BaseClasses[1].BaseObject, copy.BaseClasses[1].BaseObject);
             AssertCopyOfSomeClass(instance.BaseClasses[1].YetAnotherObject, copy.BaseClasses[1].YetAnotherObject);
         }
+
+        [Fact]
+        public void TestDeepCopyExtensionsForNestedTypes()
+        {
+            var method = GetTestType(typeof(ClassWithDeepCopyExtension))
+                .GetMethod(nameof(ClassWithDeepCopyExtension.DeepCopyInnerClassObject), BindingFlags.Public | BindingFlags.Static);
+            Assert.NotNull(method);
+
+            var instance = CreateTestInstance(typeof(OuterClassObject.InnerClassObject));
+            instance.One = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassOne));
+            instance.One.ObjectOne = CreateSomeObject();
+            instance.Two = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassTwo));
+            instance.Two.ObjectTwo = CreateSomeObject();
+
+            dynamic copy = method.Invoke(null, new object[] { instance });
+            Assert.NotNull(instance);
+            Assert.Same(instance.GetType(), copy.GetType());
+            Assert.NotSame(instance, copy);
+            AssertCopyOfSomeClass(instance.One.ObjectOne, copy.One.ObjectOne);
+            AssertCopyOfSomeClass(instance.Two.ObjectTwo, copy.Two.ObjectTwo);
+        }
     }
 }
