@@ -87,7 +87,7 @@ namespace DeepCopy.Fody
 
             if (resolved.AnyAttribute(AddDeepCopyConstructorAttribute))
             {
-                constructor = ModuleDefinition.ImportReference(NewConstructor(type, type));
+                constructor = NewConstructor(type, type);
                 return true;
             }
 

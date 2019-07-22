@@ -15,27 +15,5 @@ namespace Tests
             var copy = Activator.CreateInstance(type, instance);
             Assert.NotSame(instance, copy);
         }
-
-        [Fact]
-        public void TestClassUsingOtherDeepCopyAssembly()
-        {
-            var type = GetTestType(typeof(ClassUsingOtherDeepCopyAssembly));
-            var instance = Activator.CreateInstance(type);
-            try
-            {
-                Activator.CreateInstance(type, instance);
-                Assert.True(false);
-            }
-            catch (TargetInvocationException exception)
-            {
-                Assert.True(exception.InnerException is MissingMethodException);
-                Assert.Contains("Void AnotherAssembly.DeepCopyClassFromAnotherAssembly..ctor(AnotherAssembly.DeepCopyClassFromAnotherAssembly)", exception.InnerException.Message);
-                
-            }
-            catch
-            {
-                Assert.True(false);
-            }
-        }
     }
 }

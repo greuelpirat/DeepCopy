@@ -8,10 +8,4 @@ namespace AssemblyToProcess
     {
         public ClassFromAnotherAssembly Property { get; set; }
     }
-    
-    [AddDeepCopyConstructor]
-    public class ClassUsingOtherDeepCopyAssembly
-    {
-        public DeepCopyClassFromAnotherAssembly Property { get; set; }
-    }
 }
