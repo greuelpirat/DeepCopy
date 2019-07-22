@@ -21,7 +21,7 @@ namespace DeepCopy.Fody
                 ? FindDerivedTypes(copyType).ToList()
                 : new List<TypeDefinition> { copyType };
 
-            if (types.Count == 0)
+            if (types.Count == 0 || types.All(t => t.IsAbstract))
                 throw new WeavingException($"{method.FullName} has no types to copy (check abstraction)");
 
             DeepCopyExtensions[copyType.MetadataToken] = method;
@@ -63,7 +63,7 @@ namespace DeepCopy.Fody
             processor.Append(loadObject);
             processor.Emit(OpCodes.Ret);
 
-            LogInfo($"DeepCopy {method.FullName} -> {type.Name}");
+            LogInfo($"{method.FullName} -> {type.Name}");
         }
 
         private void BuildMultiTypeSwitchMethodBody(MethodDefinition method, TypeDefinition baseType, IEnumerable<TypeDefinition> types)
@@ -148,14 +148,14 @@ namespace DeepCopy.Fody
                 copiedTypes.Add(baseType);
             }
 
-            LogInfo($"DeepCopy {method.FullName} -> {string.Join(", ", copiedTypes.Select(t => t.Name))}");
+            LogInfo($"{method.FullName} -> {string.Join(", ", copiedTypes.Select(t => t.Name))}");
 
             body.OptimizeMacros();
         }
 
         private IEnumerable<TypeDefinition> FindDerivedTypes(TypeDefinition type)
         {
-            foreach (var derivedType in ModuleDefinition.Types.Where(t => t.Resolve().BaseType?.MetadataToken == type.MetadataToken))
+            foreach (var derivedType in ModuleDefinition.Types.WithNestedTypes().Where(t => t.Resolve().BaseType?.MetadataToken == type.MetadataToken))
             foreach (var derivedOfDerivedType in FindDerivedTypes(derivedType))
                 yield return derivedOfDerivedType;
 
