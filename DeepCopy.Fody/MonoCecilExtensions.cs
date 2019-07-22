@@ -107,7 +107,7 @@ namespace DeepCopy.Fody
         public static IEnumerable<TypeDefinition> SolveGenericArguments(this TypeReference type)
         {
             if (!type.IsGenericInstance)
-                throw new ArgumentException();
+                throw new ArgumentException($"{type.FullName} is no generic instance");
             var arguments = ((GenericInstanceType) type).GenericArguments;
             return arguments.Select(a => a.GetElementType().Resolve()).ToArray();
         }

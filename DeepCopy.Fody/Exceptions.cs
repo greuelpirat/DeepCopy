@@ -15,12 +15,12 @@ namespace DeepCopy.Fody
             : base($"No copy constructor for {type.FullName} found") { }
     }
 
-    public abstract class DeepCopyException : WeavingException
+    public class DeepCopyException : WeavingException
     {
-        protected DeepCopyException(string message) : base(message) { }
+        public DeepCopyException(string message) : base(message) { }
 
         public MemberReference ProcessingType { private get; set; }
 
-        public override string Message => (ProcessingType == null ? "" : $"{ProcessingType.FullName} -> ") + base.Message;
+        public override string Message => (ProcessingType == null ? "" : $"{ProcessingType.FullName} failed : ") + base.Message;
     }
 }

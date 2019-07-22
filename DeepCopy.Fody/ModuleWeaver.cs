@@ -82,7 +82,7 @@ namespace DeepCopy.Fody
             ExecuteAddDeepCopyConstructor(ModuleDefinition.Types);
         }
 
-        private void ExecuteAddDeepCopyConstructor(ICollection<TypeDefinition> enumerable)
+        private void ExecuteAddDeepCopyConstructor(IEnumerable<TypeDefinition> enumerable)
         {
             foreach (var target in enumerable)
             {
@@ -201,6 +201,10 @@ namespace DeepCopy.Fody
             {
                 exception.ProcessingType = type;
                 throw;
+            }
+            catch (Exception exception)
+            {
+                throw new DeepCopyException(exception.Message) { ProcessingType = type };
             }
             finally
             {
