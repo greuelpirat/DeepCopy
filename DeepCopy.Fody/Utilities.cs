@@ -29,6 +29,13 @@ namespace DeepCopy.Fody
             return ModuleDefinition.ImportReference(NewConstructor(typeOfInstance).MakeGeneric(typesOfArguments));
         }
 
+        private VariableDefinition NewVariable(TypeReference type)
+        {
+            var variable = new VariableDefinition(ModuleDefinition.ImportReference(type));
+            CurrentBody.Value.Variables.Add(variable);
+            return variable;
+        }
+
         private MethodReference NewConstructor(TypeReference type, TypeReference parameter = null)
         {
             var constructor = new MethodReference(ConstructorName, TypeSystem.VoidDefinition, type) { HasThis = true };
@@ -124,21 +131,22 @@ namespace DeepCopy.Fody
 
         private IEnumerable<Instruction> IfPropertyNotNull(PropertyDefinition property, IEnumerable<Instruction> payload)
         {
+            var last = Instruction.Create(OpCodes.Nop);
+            var nullCheck = NewVariable(TypeSystem.BooleanDefinition);
+
             var instructions = new List<Instruction>
             {
                 Instruction.Create(OpCodes.Ldarg_1),
                 Instruction.Create(OpCodes.Callvirt, property.GetMethod),
                 Instruction.Create(OpCodes.Ldnull),
                 Instruction.Create(OpCodes.Cgt_Un),
-                Instruction.Create(OpCodes.Stloc, BooleanVariable),
-                Instruction.Create(OpCodes.Ldloc, BooleanVariable)
+                Instruction.Create(OpCodes.Stloc, nullCheck),
+                Instruction.Create(OpCodes.Ldloc, nullCheck),
+                Instruction.Create(OpCodes.Brfalse_S, last)
             };
 
-            var afterIf = Instruction.Create(OpCodes.Nop);
-            instructions.Add(Instruction.Create(OpCodes.Brfalse_S, afterIf));
             instructions.AddRange(payload);
-            instructions.Add(afterIf);
-
+            instructions.Add(last);
             return instructions;
         }
     }

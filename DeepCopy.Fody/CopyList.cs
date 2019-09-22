@@ -19,7 +19,9 @@ namespace DeepCopy.Fody
         private IEnumerable<Instruction> CopyList(TypeReference type, PropertyDefinition property)
         {
             var loopStart = Instruction.Create(OpCodes.Nop);
-            var conditionStart = Instruction.Create(OpCodes.Ldloc, IndexVariable);
+            var index = NewVariable(TypeSystem.Int32Definition);
+            var loopCheck = NewVariable(TypeSystem.BooleanDefinition);
+            var conditionStart = Instruction.Create(OpCodes.Ldloc, index);
 
             var constructor = ConstructorOfSupportedType(type, typeof(IList<>), typeof(List<>), out var typesOfArguments);
 
@@ -35,17 +37,17 @@ namespace DeepCopy.Fody
             }
 
             list.Add(Instruction.Create(OpCodes.Ldc_I4_0));
-            list.Add(Instruction.Create(OpCodes.Stloc, IndexVariable));
+            list.Add(Instruction.Create(OpCodes.Stloc, index));
             list.Add(Instruction.Create(OpCodes.Br_S, conditionStart));
             list.Add(loopStart);
 
-            list.AddRange(CopyListItem(property, typeOfList, typeOfArgument));
+            list.AddRange(CopyListItem(property, typeOfList, typeOfArgument, index));
 
             // increment index
-            list.Add(Instruction.Create(OpCodes.Ldloc, IndexVariable));
+            list.Add(Instruction.Create(OpCodes.Ldloc, index));
             list.Add(Instruction.Create(OpCodes.Ldc_I4_1));
             list.Add(Instruction.Create(OpCodes.Add));
-            list.Add(Instruction.Create(OpCodes.Stloc, IndexVariable));
+            list.Add(Instruction.Create(OpCodes.Stloc, index));
 
             // condition
             list.Add(conditionStart);
@@ -54,26 +56,28 @@ namespace DeepCopy.Fody
                 list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
             list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeOfList, "get_Count", typeOfArgument)));
             list.Add(Instruction.Create(OpCodes.Clt));
-            list.Add(Instruction.Create(OpCodes.Stloc, BooleanVariable));
+            list.Add(Instruction.Create(OpCodes.Stloc, loopCheck));
 
             // loop end
-            list.Add(Instruction.Create(OpCodes.Ldloc, BooleanVariable));
+            list.Add(Instruction.Create(OpCodes.Ldloc, loopCheck));
             list.Add(Instruction.Create(OpCodes.Brtrue_S, loopStart));
 
             return list;
         }
 
-        private IEnumerable<Instruction> CopyListItem(PropertyDefinition property, TypeReference listType, TypeReference argumentType)
+        private IEnumerable<Instruction> CopyListItem(PropertyDefinition property, TypeReference listType, TypeReference argumentType, VariableDefinition index)
         {
-            var list = new List<Instruction>();
-            list.Add(Instruction.Create(OpCodes.Ldarg_0));
+            var list = new List<Instruction>
+            {
+                Instruction.Create(OpCodes.Ldarg_0)
+            };
             if (property != null)
                 list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
 
-            var listItemGetter = ValueSource.New().Property(property).Index(IndexVariable).Method(ImportMethod(listType, "get_Item", argumentType));
+            var listItemGetter = ValueSource.New().Property(property).Index(index).Method(ImportMethod(listType, "get_Item", argumentType));
 
             list.AddRange(CopyValue(argumentType, listItemGetter));
-            list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "Add", argumentType)));
+            list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, nameof(IList<object>.Add), argumentType)));
 
             return list;
         }

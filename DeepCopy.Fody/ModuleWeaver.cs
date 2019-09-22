@@ -23,34 +23,9 @@ namespace DeepCopy.Fody
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
 
-        private VariableDefinition _booleanVariable;
-        private VariableDefinition _indexVariable;
-
         internal ThreadLocal<MethodBody> CurrentBody { get; } = new ThreadLocal<MethodBody>();
         private IDictionary<MetadataToken, TypeDefinition> AddDeepCopyConstructorTargets { get; } = new Dictionary<MetadataToken, TypeDefinition>();
         private IDictionary<MetadataToken, MethodReference> DeepCopyExtensions { get; } = new Dictionary<MetadataToken, MethodReference>();
-
-        private VariableDefinition BooleanVariable
-        {
-            get
-            {
-                if (_booleanVariable != null) return _booleanVariable;
-                _booleanVariable = new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.BooleanDefinition));
-                CurrentBody.Value.Variables.Add(_booleanVariable);
-                return _booleanVariable;
-            }
-        }
-
-        private VariableDefinition IndexVariable
-        {
-            get
-            {
-                if (_indexVariable != null) return _indexVariable;
-                _indexVariable = new VariableDefinition(ModuleDefinition.ImportReference(TypeSystem.Int32Definition));
-                CurrentBody.Value.Variables.Add(_indexVariable);
-                return _indexVariable;
-            }
-        }
 
         public override void Execute()
         {
@@ -162,8 +137,6 @@ namespace DeepCopy.Fody
         {
             try
             {
-                _booleanVariable = null;
-                _indexVariable = null;
                 CurrentBody.Value = body;
 
                 var baseConstructorCall = body.Instructions.Single(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference method && method.Name == ConstructorName);
