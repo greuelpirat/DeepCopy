@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -17,6 +18,7 @@ namespace DeepCopy.Fody
         private IEnumerable<Instruction> CopySet(TypeReference type, PropertyDefinition property)
         {
             var constructor = ConstructorOfSupportedType(type, typeof(ISet<>), typeof(HashSet<>), out var typesOfArguments);
+            var typeOfArgument = typesOfArguments.Single();
 
             var list = new List<Instruction>();
             if (property != null)
@@ -36,10 +38,8 @@ namespace DeepCopy.Fody
                 if (property != null)
                     list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
 
-                var addItem = Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), nameof(ISet<object>.Add), typesOfArguments[0]));
-                var getter = new ValueSource { Variable = forEach.Current };
-                list.AddRange(CopyValue(typesOfArguments[0], getter, addItem));
-                list.Add(addItem);
+                list.AddRange(CopyValue(typeOfArgument, ValueSource.New().Variable(forEach.Current)));
+                list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), nameof(ISet<object>.Add), typeOfArgument)));
                 list.Add(Instruction.Create(OpCodes.Pop));
             }
 

@@ -56,7 +56,7 @@ namespace DeepCopy.Fody
             return list;
         }
 
-        private IEnumerable<Instruction> CopyArrayItem(PropertyDefinition property, TypeDefinition elementType)
+        private IEnumerable<Instruction> CopyArrayItem(PropertyDefinition property, TypeReference elementType)
         {
             var instructions = new List<Instruction>
             {
@@ -75,9 +75,8 @@ namespace DeepCopy.Fody
             }
             else
             {
-                var setElementReference = Instruction.Create(OpCodes.Stelem_Ref);
-                instructions.AddRange(CopyValue(elementType, new ValueSource { Property = property, Index = IndexVariable }, setElementReference));
-                instructions.Add(setElementReference);
+                instructions.AddRange(CopyValue(elementType, ValueSource.New().Property(property).Index(IndexVariable)));
+                instructions.Add(Instruction.Create(OpCodes.Stelem_Ref));
             }
 
             return instructions;

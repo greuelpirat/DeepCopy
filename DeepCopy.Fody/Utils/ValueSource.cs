@@ -6,37 +6,68 @@ namespace DeepCopy.Fody.Utils
 {
     public class ValueSource
     {
-        public PropertyDefinition Property { get; set; }
-        public VariableDefinition Variable { get; set; }
-        public VariableDefinition Index { get; set; }
-        public MethodReference Method { get; set; }
+        private PropertyDefinition _property;
+        private VariableDefinition _variable;
+        private VariableDefinition _index;
+        private MethodReference _method;
+
+        public static ValueSource New()
+        {
+            return new ValueSource();
+        }
+
+        private ValueSource() { }
+
+        public ValueSource Property(PropertyDefinition property)
+        {
+            _property = property;
+            return this;
+        }
+
+        public ValueSource Variable(VariableDefinition variable)
+        {
+            _variable = variable;
+            return this;
+        }
+
+        public ValueSource Index(VariableDefinition index)
+        {
+            _index = index;
+            return this;
+        }
+
+        public ValueSource Method(MethodReference method)
+        {
+            _method = method;
+            return this;
+        }
 
         public IEnumerable<Instruction> Build()
         {
-            if (Variable != null)
+            if (_variable != null)
             {
-                var loadVariable = Variable.VariableType.IsPrimitive
-                                   || Property == null && Method == null && Index == null;
-                yield return Instruction.Create(loadVariable ? OpCodes.Ldloc : OpCodes.Ldloca, Variable);
+                var loadVariable = _variable.VariableType.IsPrimitive
+                                   || _property == null && _method == null && _index == null;
+                yield return Instruction.Create(loadVariable ? OpCodes.Ldloc : OpCodes.Ldloca, _variable);
             }
             else
                 yield return Instruction.Create(OpCodes.Ldarg_1);
 
-            if (Property != null)
+            if (_property != null)
             {
-                yield return Instruction.Create(OpCodes.Callvirt, Property.GetMethod);
+                yield return Instruction.Create(OpCodes.Callvirt, _property.GetMethod);
             }
 
-            if (Index != null)
+            if (_index != null)
             {
-                yield return Instruction.Create(OpCodes.Ldloc, Index);
-                if (Method != null)
-                    yield return Instruction.Create(OpCodes.Callvirt, Method);
+                yield return Instruction.Create(OpCodes.Ldloc, _index);
+                if (_method != null)
+                    yield return Instruction.Create(OpCodes.Callvirt, _method);
                 else
                     yield return Instruction.Create(OpCodes.Ldelem_Ref);
             }
-            else if (Method != null)
-                yield return Instruction.Create(OpCodes.Call, Method);
+            else if (_method != null)
+                yield return Instruction.Create(OpCodes.Call, _method);
         }
     }
 }

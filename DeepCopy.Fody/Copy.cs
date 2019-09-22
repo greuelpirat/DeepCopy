@@ -68,15 +68,14 @@ namespace DeepCopy.Fody
         {
             var instructions = new List<Instruction> { Instruction.Create(OpCodes.Ldarg_0) };
 
-            var setter = property.MakeSet();
-            instructions.AddRange(CopyValue(property.PropertyType.Resolve(), new ValueSource { Property = property }, setter));
-            instructions.Add(setter);
+            instructions.AddRange(CopyValue(property.PropertyType.Resolve(), ValueSource.New().Property(property)));
+            instructions.Add(property.MakeSet());
             return instructions;
         }
 
-        private IEnumerable<Instruction> CopyValue(TypeReference type, ValueSource valueSource, Instruction followUp,
-            bool nullableCheck = true)
+        private IEnumerable<Instruction> CopyValue(TypeReference type, ValueSource valueSource, bool nullableCheck = true)
         {
+            var last = Instruction.Create(OpCodes.Nop);
             var list = new List<Instruction>();
             list.AddRange(valueSource.Build());
 
@@ -94,7 +93,7 @@ namespace DeepCopy.Fody
                 var getterNotNull = valueSource.Build().ToList();
                 list.Add(Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First()));
                 list.Add(Instruction.Create(OpCodes.Ldnull));
-                list.Add(Instruction.Create(OpCodes.Br_S, followUp));
+                list.Add(Instruction.Create(OpCodes.Br_S, last));
                 list.AddRange(getterNotNull);
             }
 
@@ -107,6 +106,7 @@ namespace DeepCopy.Fody
             else
                 throw new NoCopyConstructorFoundException(type);
 
+            list.Add(last);
             return list;
         }
     }

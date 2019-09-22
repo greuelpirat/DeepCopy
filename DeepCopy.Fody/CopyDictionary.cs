@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -40,21 +39,12 @@ namespace DeepCopy.Fody
                 if (property != null)
                     list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
 
-                var keySource = new ValueSource
-                {
-                    Variable = forEach.Current,
-                    Method = ImportMethod(typeKeyValuePair, "get_Key", typesOfArguments)
-                };
-                var valueSource = new ValueSource
-                {
-                    Variable = forEach.Current,
-                    Method = ImportMethod(typeKeyValuePair, "get_Value", typesOfArguments)
-                };
-                var setItem = Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), "set_Item", typesOfArguments));
-                var getValue = CopyValue(typesOfArguments[1], valueSource, setItem).ToList();
-                list.AddRange(CopyValue(typesOfArguments[0], keySource, getValue.First(), false));
-                list.AddRange(getValue);
-                list.Add(setItem);
+                var keySource = ValueSource.New().Variable(forEach.Current).Method(ImportMethod(typeKeyValuePair, "get_Key", typesOfArguments));
+                var valueSource = ValueSource.New().Variable(forEach.Current).Method(ImportMethod(typeKeyValuePair, "get_Value", typesOfArguments));
+
+                list.AddRange(CopyValue(typesOfArguments[0], keySource, false));
+                list.AddRange(CopyValue(typesOfArguments[1], valueSource));
+                list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), "set_Item", typesOfArguments)));
             }
 
             return list;
