@@ -14,7 +14,7 @@ namespace DeepCopy.Fody
         {
             var typeResolved = type.Resolve();
             TypeReference typeOfInstance = typeResolved;
-            typesOfArguments = type.SolveGenericArguments().Cast<TypeReference>().ToArray();
+            typesOfArguments = type.SolveGenericArguments();
 
             if (typeResolved.IsInterface)
             {
@@ -53,7 +53,7 @@ namespace DeepCopy.Fody
         {
             var constructor = type.Resolve().GetConstructors().Single(c => !c.HasParameters && !c.IsStatic);
             return ModuleDefinition.ImportReference(type.IsGenericInstance
-                ? constructor.MakeGeneric(type.SolveGenericArguments().Cast<TypeReference>().ToArray())
+                ? constructor.MakeGeneric(type.SolveGenericArguments())
                 : constructor);
         }
 

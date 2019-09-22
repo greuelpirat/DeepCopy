@@ -69,19 +69,12 @@ namespace DeepCopy.Fody.Utils
             }
         }
 
-        public static TypeDefinition SolveGenericArgument(this TypeReference type)
-        {
-            if (!type.IsGenericInstance)
-                throw new DeepCopyException($"{type.FullName} is no generic instance");
-            return ((GenericInstanceType) type).GenericArguments.Single().GetElementType().Resolve();
-        }
-
-        public static IEnumerable<TypeDefinition> SolveGenericArguments(this TypeReference type)
+        public static TypeReference[] SolveGenericArguments(this TypeReference type)
         {
             if (!type.IsGenericInstance)
                 throw new DeepCopyException($"{type.FullName} is no generic instance");
             var arguments = ((GenericInstanceType) type).GenericArguments;
-            return arguments.Select(a => a.GetElementType().Resolve()).ToArray();
+            return arguments.Select(a => a.GetElementType().Resolve()).Cast<TypeReference>().ToArray();
         }
 
         public static TypeReference MakeGeneric(this TypeReference source, params TypeReference[] arguments)
