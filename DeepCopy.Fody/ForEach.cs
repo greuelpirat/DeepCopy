@@ -1,0 +1,91 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using DeepCopy.Fody.Utils;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+
+namespace DeepCopy.Fody
+{
+    public class ForEach : IDisposable
+    {
+        private const string CurrentGetter = "get_Current";
+
+        private readonly ModuleWeaver _moduleWeaver;
+        private readonly List<Instruction> _instructions;
+        private readonly VariableDefinition _enumerator;
+        private readonly TypeReference _typeEnumerator;
+
+        private readonly Instruction _startCondition;
+        private readonly Instruction _startTry;
+        private readonly Instruction _startLoop;
+
+        public VariableDefinition Current { get; }
+
+        public ForEach(ModuleWeaver moduleWeaver, TypeReference typeOfEnumerable, List<Instruction> instructions)
+        {
+            _moduleWeaver = moduleWeaver;
+            _instructions = instructions;
+
+            if (!typeOfEnumerable.TryFindImplementation(typeof(IEnumerable<>), out var typeOfEnumerableImpl))
+                throw new DeepCopyException($"{typeOfEnumerable.FullName} is no IEnumerable");
+
+            var typeOfCurrent = moduleWeaver.ImportType(((GenericInstanceType) typeOfEnumerableImpl).GenericArguments.Single());
+
+            var methodGetEnumerator = moduleWeaver.ImportMethod(moduleWeaver.ImportType(typeof(IEnumerable<>), typeOfCurrent), nameof(IEnumerable.GetEnumerator), typeOfCurrent);
+            _typeEnumerator = moduleWeaver.ImportType(methodGetEnumerator.ReturnType, typeOfCurrent);
+
+            Current = new VariableDefinition(typeOfCurrent);
+            _enumerator = new VariableDefinition(_typeEnumerator);
+
+            var variables = moduleWeaver.CurrentBody.Value.Variables;
+            variables.Add(Current);
+            variables.Add(_enumerator);
+
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, methodGetEnumerator));
+            _instructions.Add(Instruction.Create(OpCodes.Stloc, _enumerator));
+
+            // try
+            _startCondition = Instruction.Create(OpCodes.Ldloc, _enumerator);
+            _startTry = Instruction.Create(OpCodes.Br_S, _startCondition);
+            _instructions.Add(_startTry);
+
+            _startLoop = Instruction.Create(OpCodes.Ldloc, _enumerator);
+            _instructions.Add(_startLoop);
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, moduleWeaver.ImportMethod(_typeEnumerator, CurrentGetter, typeOfCurrent)));
+            _instructions.Add(Instruction.Create(OpCodes.Stloc, Current));
+        }
+
+        public void Dispose()
+        {
+            _instructions.Add(_startCondition);
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod(_typeEnumerator, nameof(IEnumerator.MoveNext))));
+            _instructions.Add(Instruction.Create(OpCodes.Brtrue_S, _startLoop));
+
+            // end try
+            var end = Instruction.Create(OpCodes.Nop);
+            _instructions.Add(Instruction.Create(OpCodes.Leave_S, end));
+
+            // finally
+            var startFinally = Instruction.Create(OpCodes.Ldloc, _enumerator);
+            _instructions.Add(startFinally);
+            var endFinally = Instruction.Create(OpCodes.Endfinally);
+            _instructions.Add(Instruction.Create(OpCodes.Brfalse_S, endFinally));
+            _instructions.Add(Instruction.Create(OpCodes.Ldloc, _enumerator));
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod(typeof(IDisposable), nameof(IDisposable.Dispose))));
+            _instructions.Add(Instruction.Create(OpCodes.Nop));
+            _instructions.Add(endFinally);
+
+            _instructions.Add(end);
+
+            _moduleWeaver.CurrentBody.Value.ExceptionHandlers.Add(new ExceptionHandler(ExceptionHandlerType.Finally)
+            {
+                TryStart = _startTry,
+                TryEnd = startFinally,
+                HandlerStart = startFinally,
+                HandlerEnd = end
+            });
+        }
+    }
+}

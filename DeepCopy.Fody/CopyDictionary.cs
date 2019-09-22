@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
@@ -19,31 +17,10 @@ namespace DeepCopy.Fody
 
         private IEnumerable<Instruction> CopyDictionary(TypeReference type, PropertyDefinition property)
         {
-            var typeDictionary = type.Resolve();
-            var typeInstance = (TypeReference) typeDictionary;
-            var typesArguments = type.SolveGenericArguments().Cast<TypeReference>().ToArray();
-            var typeKeyValuePair = ImportType(typeof(KeyValuePair<,>), typesArguments);
+            var constructor = ConstructorOfSupportedType(type, typeof(IDictionary<,>), typeof(Dictionary<,>), out var typesOfArguments);
 
-            var methodGetEnumerator = ImportMethod(ImportType(typeof(IEnumerable<>), typeKeyValuePair), nameof(IEnumerable.GetEnumerator), typeKeyValuePair);
-            var typeEnumerator = ImportType(methodGetEnumerator.ReturnType, typeKeyValuePair);
+            var typeKeyValuePair = ImportType(typeof(KeyValuePair<,>), typesOfArguments);
 
-            var varKeyValuePair = new VariableDefinition(typeKeyValuePair);
-            var varEnumerator = new VariableDefinition(typeEnumerator);
-
-            CurrentBody.Value.Variables.Add(varKeyValuePair);
-            CurrentBody.Value.Variables.Add(varEnumerator);
-
-            if (typeDictionary.IsInterface)
-            {
-                if (IsType(typeDictionary, typeof(IDictionary<,>)))
-                    typeInstance = ImportType(typeof(Dictionary<,>), typesArguments);
-                else
-                    throw new NotSupportedException(type);
-            }
-            else if (!typeDictionary.HasDefaultConstructor())
-                throw new NotSupportedException(type);
-
-            var constructor = ModuleDefinition.ImportReference(NewConstructor(typeInstance).MakeGeneric(typesArguments));
             var list = new List<Instruction>();
             if (property != null)
             {
@@ -55,68 +32,31 @@ namespace DeepCopy.Fody
             list.Add(Instruction.Create(OpCodes.Ldarg_1));
             if (property != null)
                 list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
-            list.Add(Instruction.Create(OpCodes.Callvirt, methodGetEnumerator));
-            list.Add(Instruction.Create(OpCodes.Stloc, varEnumerator));
 
-            // try
-            var startCondition = Instruction.Create(OpCodes.Ldloc, varEnumerator);
-            var startTry = Instruction.Create(OpCodes.Br_S, startCondition);
-            list.Add(startTry);
-
-            var startLoop = Instruction.Create(OpCodes.Ldloc, varEnumerator);
-            list.Add(startLoop);
-            list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeEnumerator, "get_Current", typeKeyValuePair)));
-            list.Add(Instruction.Create(OpCodes.Stloc, varKeyValuePair));
-
-            list.Add(Instruction.Create(OpCodes.Ldarg_0));
-            if (property != null)
-                list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
-
-            IEnumerable<Instruction> GetterKey() => new[]
+            using (var forEach = new ForEach(this, type, list))
             {
-                Instruction.Create(OpCodes.Ldloca_S, varKeyValuePair),
-                Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Key", typesArguments))
-            };
+                list.Add(Instruction.Create(OpCodes.Ldarg_0));
+                if (property != null)
+                    list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
 
-            IEnumerable<Instruction> GetterValue() => new[]
-            {
-                Instruction.Create(OpCodes.Ldloca_S, varKeyValuePair),
-                Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Value", typesArguments))
-            };
+                IEnumerable<Instruction> GetterKey() => new[]
+                {
+                    Instruction.Create(OpCodes.Ldloca_S, forEach.Current),
+                    Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Key", typesOfArguments))
+                };
 
-            var setItem = Instruction.Create(OpCodes.Callvirt, ImportMethod(typeDictionary, "set_Item", typesArguments));
-            var getValue = CopyValue(typesArguments[1], GetterValue, setItem).ToList();
-            list.AddRange(CopyValue(typesArguments[0], GetterKey, getValue.First(), false));
-            list.AddRange(getValue);
-            list.Add(setItem);
+                IEnumerable<Instruction> GetterValue() => new[]
+                {
+                    Instruction.Create(OpCodes.Ldloca_S, forEach.Current),
+                    Instruction.Create(OpCodes.Call, ImportMethod(typeKeyValuePair, "get_Value", typesOfArguments))
+                };
 
-            list.Add(startCondition);
-            list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeEnumerator, nameof(IEnumerator.MoveNext))));
-            list.Add(Instruction.Create(OpCodes.Brtrue_S, startLoop));
-
-            // end try
-            var end = Instruction.Create(OpCodes.Nop);
-            list.Add(Instruction.Create(OpCodes.Leave_S, end));
-
-            // finally
-            var startFinally = Instruction.Create(OpCodes.Ldloc, varEnumerator);
-            list.Add(startFinally);
-            var endFinally = Instruction.Create(OpCodes.Endfinally);
-            list.Add(Instruction.Create(OpCodes.Brfalse_S, endFinally));
-            list.Add(Instruction.Create(OpCodes.Ldloc, varEnumerator));
-            list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeof(IDisposable), nameof(IDisposable.Dispose))));
-            list.Add(Instruction.Create(OpCodes.Nop));
-            list.Add(endFinally);
-
-            list.Add(end);
-
-            CurrentBody.Value.ExceptionHandlers.Add(new ExceptionHandler(ExceptionHandlerType.Finally)
-            {
-                TryStart = startTry,
-                TryEnd = startFinally,
-                HandlerStart = startFinally,
-                HandlerEnd = end
-            });
+                var setItem = Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), "set_Item", typesOfArguments));
+                var getValue = CopyValue(typesOfArguments[1], GetterValue, setItem).ToList();
+                list.AddRange(CopyValue(typesOfArguments[0], GetterKey, getValue.First(), false));
+                list.AddRange(getValue);
+                list.Add(setItem);
+            }
 
             return list;
         }

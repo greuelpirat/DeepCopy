@@ -26,7 +26,7 @@ namespace DeepCopy.Fody
         private VariableDefinition _booleanVariable;
         private VariableDefinition _indexVariable;
 
-        private ThreadLocal<MethodBody> CurrentBody { get; } = new ThreadLocal<MethodBody>();
+        internal ThreadLocal<MethodBody> CurrentBody { get; } = new ThreadLocal<MethodBody>();
         private IDictionary<MetadataToken, TypeDefinition> AddDeepCopyConstructorTargets { get; } = new Dictionary<MetadataToken, TypeDefinition>();
         private IDictionary<MetadataToken, MethodReference> DeepCopyExtensions { get; } = new Dictionary<MetadataToken, MethodReference>();
 

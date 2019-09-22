@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -20,51 +20,12 @@ namespace DeepCopy.Fody
             return constructor != null;
         }
 
-        public static bool IsImplementing(this TypeReference type, string typeFullName)
-        {
-            while (type != null)
-            {
-                if (type.GetElementType().FullName == typeFullName)
-                    return true;
-
-                var def = type.Resolve();
-                if (def.Interfaces.Any(i => i.InterfaceType.IsImplementing(typeFullName)))
-                    return true;
-
-                type = def.BaseType;
-            }
-
-            return false;
-        }
-
         public static MethodReference GetMethod(this TypeDefinition type, string name)
         {
-            if (TryFindMethod(type, name, out var method))
+            if (type.TryFindMethod(name, out var method))
                 return method;
 
             throw new DeepCopyException($"{type.FullName} has no method {name}");
-        }
-
-        private static bool TryFindMethod(this TypeDefinition type, string name, out MethodReference method)
-        {
-            var current = type;
-            do
-            {
-                method = current.Methods.SingleOrDefault(m => m.Name == name);
-                if (method != null)
-                    return true;
-                foreach (var @interface in current.Interfaces)
-                    if (TryFindMethod(@interface.InterfaceType.Resolve(), name, out var interfaceMethod))
-                    {
-                        method = interfaceMethod;
-                        return true;
-                    }
-
-                current = current.BaseType?.Resolve();
-            } while (current != null);
-
-            method = null;
-            return false;
         }
 
         public static Instruction MakeSet(this PropertyDefinition property)
@@ -95,32 +56,6 @@ namespace DeepCopy.Fody
         {
             return method.Parameters.Count == 1
                    && method.Parameters.Single().ParameterType.Resolve().MetadataToken == parameterType.MetadataToken;
-        }
-
-        public static TypeDefinition SolveGenericArgument(this TypeReference type)
-        {
-            if (!type.IsGenericInstance)
-                throw new DeepCopyException($"{type.FullName} is no generic instance");
-            return ((GenericInstanceType) type).GenericArguments.Single().GetElementType().Resolve();
-        }
-
-        public static IEnumerable<TypeDefinition> SolveGenericArguments(this TypeReference type)
-        {
-            if (!type.IsGenericInstance)
-                throw new DeepCopyException($"{type.FullName} is no generic instance");
-            var arguments = ((GenericInstanceType) type).GenericArguments;
-            return arguments.Select(a => a.GetElementType().Resolve()).ToArray();
-        }
-
-        public static TypeReference MakeGeneric(this TypeReference source, params TypeReference[] arguments)
-        {
-            var resolved = source.Resolve();
-            if (resolved.GenericParameters.Count != arguments.Length)
-                throw new DeepCopyException($"Expected {source.GenericParameters.Count} generic parameters, got {arguments.Length}");
-            var instance = new GenericInstanceType(resolved);
-            foreach (var argument in arguments)
-                instance.GenericArguments.Add(argument);
-            return instance;
         }
 
         public static MethodReference MakeGeneric(this MethodReference source, params TypeReference[] arguments)

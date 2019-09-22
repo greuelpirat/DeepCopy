@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -42,19 +43,19 @@ namespace DeepCopy.Fody
                 return true;
             }
 
-            if (property.PropertyType.IsImplementing(typeof(IList<>).FullName))
+            if (property.PropertyType.IsImplementing(typeof(IList<>)))
             {
                 instructions = IfPropertyNotNull(property, CopyList(property));
                 return true;
             }
 
-            if (property.PropertyType.IsImplementing(typeof(ISet<>).FullName))
+            if (property.PropertyType.IsImplementing(typeof(ISet<>)))
             {
                 instructions = IfPropertyNotNull(property, CopySet(property));
                 return true;
             }
 
-            if (property.PropertyType.IsImplementing(typeof(IDictionary<,>).FullName))
+            if (property.PropertyType.IsImplementing(typeof(IDictionary<,>)))
             {
                 instructions = IfPropertyNotNull(property, CopyDictionary(property));
                 return true;
