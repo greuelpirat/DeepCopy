@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -74,16 +75,8 @@ namespace DeepCopy.Fody
             }
             else
             {
-                IEnumerable<Instruction> Getter() => new[]
-                {
-                    Instruction.Create(OpCodes.Ldarg_1),
-                    Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                    Instruction.Create(OpCodes.Ldloc, IndexVariable),
-                    Instruction.Create(OpCodes.Ldelem_Ref)
-                };
-
                 var setElementReference = Instruction.Create(OpCodes.Stelem_Ref);
-                instructions.AddRange(CopyValue(elementType, Getter, setElementReference));
+                instructions.AddRange(CopyValue(elementType, new ValueSource { Property = property, Index = IndexVariable }, setElementReference));
                 instructions.Add(setElementReference);
             }
 

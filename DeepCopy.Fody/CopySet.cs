@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -35,13 +36,9 @@ namespace DeepCopy.Fody
                 if (property != null)
                     list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
 
-                IEnumerable<Instruction> Getter() => new[]
-                {
-                    Instruction.Create(OpCodes.Ldloc, forEach.Current)
-                };
-
                 var addItem = Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), nameof(ISet<object>.Add), typesOfArguments[0]));
-                list.AddRange(CopyValue(typesOfArguments[0], Getter, addItem));
+                var getter = new ValueSource { Variable = forEach.Current };
+                list.AddRange(CopyValue(typesOfArguments[0], getter, addItem));
                 list.Add(addItem);
                 list.Add(Instruction.Create(OpCodes.Pop));
             }

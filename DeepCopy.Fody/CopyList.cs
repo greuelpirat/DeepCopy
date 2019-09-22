@@ -80,19 +80,15 @@ namespace DeepCopy.Fody
             if (property != null)
                 list.Add(Instruction.Create(OpCodes.Call, property.GetMethod));
 
-            IEnumerable<Instruction> Getter()
+            var listItemGetter = new ValueSource
             {
-                var getter = new List<Instruction>();
-                getter.Add(Instruction.Create(OpCodes.Ldarg_1));
-                if (property != null)
-                    getter.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
-                getter.Add(Instruction.Create(OpCodes.Ldloc, IndexVariable));
-                getter.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "get_Item", argumentType)));
-                return getter;
-            }
+                Property = property,
+                Index = IndexVariable,
+                Method = ImportMethod(listType, "get_Item", argumentType)
+            };
 
             var add = Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "Add", argumentType));
-            list.AddRange(CopyValue(argumentType, Getter, add));
+            list.AddRange(CopyValue(argumentType, listItemGetter, add));
             list.Add(add);
 
             return list;
