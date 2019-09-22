@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -20,27 +21,16 @@ namespace DeepCopy.Fody
             var loopStart = Instruction.Create(OpCodes.Nop);
             var conditionStart = Instruction.Create(OpCodes.Ldloc, IndexVariable);
 
-            var listType = type.Resolve();
-            var instanceType = (TypeReference) listType;
-            var argumentType = type.SolveGenericArgument();
+            var constructor = ConstructorOfSupportedType(type, typeof(IList<>), typeof(List<>), out var typesOfArguments);
 
-            if (listType.IsInterface)
-            {
-                if (IsType(listType, typeof(IList<>)))
-                    instanceType = ModuleDefinition.ImportReference(typeof(List<>)).MakeGeneric(argumentType);
-                else
-                    throw new NotSupportedException(property);
-            }
-            else if (!listType.HasDefaultConstructor())
-                throw new NotSupportedException(property);
-
-            var listConstructor = ModuleDefinition.ImportReference(NewConstructor(instanceType).MakeGeneric(argumentType));
+            var typeOfList = type.Resolve();
+            var typeOfArgument = typesOfArguments.Single();
 
             var list = new List<Instruction>();
             if (property != null)
             {
                 list.Add(Instruction.Create(OpCodes.Ldarg_0));
-                list.Add(Instruction.Create(OpCodes.Newobj, listConstructor));
+                list.Add(Instruction.Create(OpCodes.Newobj, constructor));
                 list.Add(property.MakeSet());
             }
 
@@ -49,7 +39,7 @@ namespace DeepCopy.Fody
             list.Add(Instruction.Create(OpCodes.Br_S, conditionStart));
             list.Add(loopStart);
 
-            list.AddRange(CopyListItem(property, listType, argumentType));
+            list.AddRange(CopyListItem(property, typeOfList, typeOfArgument));
 
             // increment index
             list.Add(Instruction.Create(OpCodes.Ldloc, IndexVariable));
@@ -62,7 +52,7 @@ namespace DeepCopy.Fody
             list.Add(Instruction.Create(OpCodes.Ldarg_1));
             if (property != null)
                 list.Add(Instruction.Create(OpCodes.Callvirt, property.GetMethod));
-            list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(listType, "get_Count", argumentType)));
+            list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(typeOfList, "get_Count", typeOfArgument)));
             list.Add(Instruction.Create(OpCodes.Clt));
             list.Add(Instruction.Create(OpCodes.Stloc, BooleanVariable));
 
@@ -73,7 +63,7 @@ namespace DeepCopy.Fody
             return list;
         }
 
-        private IEnumerable<Instruction> CopyListItem(PropertyDefinition property, TypeDefinition listType, TypeDefinition argumentType)
+        private IEnumerable<Instruction> CopyListItem(PropertyDefinition property, TypeReference listType, TypeReference argumentType)
         {
             var list = new List<Instruction>();
             list.Add(Instruction.Create(OpCodes.Ldarg_0));
