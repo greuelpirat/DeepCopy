@@ -26,4 +26,10 @@ namespace AssemblyToProcess
     {
         public List<SomeObject> List { get; set; }
     }
+
+    [AddDeepCopyConstructor]
+    public class ClassWithListOfDictionary
+    {
+        public List<Dictionary<string, SomeObject>> List { get; set; }
+    }
 }

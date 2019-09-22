@@ -36,7 +36,7 @@ namespace DeepCopy.Fody
             return field != null ? Instruction.Create(OpCodes.Stfld, field) : null;
         }
 
-        private static FieldDefinition GetBackingField(this PropertyDefinition property)
+        public static FieldDefinition GetBackingField(this PropertyDefinition property)
         {
             var backingFieldName = $"<{property.Name}>k__BackingField";
             return property.DeclaringType.Fields.SingleOrDefault(f => f.Name == backingFieldName);

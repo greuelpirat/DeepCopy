@@ -17,7 +17,8 @@ namespace DeepCopy.Fody
                 return false;
             }
 
-            if (property.GetMethod == null || property.MakeSet() == null)
+            if (property.GetMethod == null
+                || property.SetMethod == null && property.GetBackingField() == null)
             {
                 instructions = null;
                 return false;
@@ -73,11 +74,11 @@ namespace DeepCopy.Fody
             return instructions;
         }
 
-        private IEnumerable<Instruction> CopyValue(TypeReference type, ValueSource valueSource, bool nullableCheck = true)
+        private IEnumerable<Instruction> CopyValue(TypeReference type, ValueSource source, bool withNullableCheck = true)
         {
             var last = Instruction.Create(OpCodes.Nop);
             var list = new List<Instruction>();
-            list.AddRange(valueSource.Build());
+            list.AddRange(source);
 
             if (type.IsPrimitive || type.IsValueType)
                 return list;
@@ -88,21 +89,49 @@ namespace DeepCopy.Fody
                 return list;
             }
 
-            if (nullableCheck)
+            if (type.FullName == typeof(string).FullName)
             {
-                var getterNotNull = valueSource.Build().ToList();
-                list.Add(Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First()));
-                list.Add(Instruction.Create(OpCodes.Ldnull));
-                list.Add(Instruction.Create(OpCodes.Br_S, last));
-                list.AddRange(getterNotNull);
+                if (withNullableCheck)
+                {
+                    var getterNotNull = source.ToList();
+                    list.Add(Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First()));
+                    list.Add(Instruction.Create(OpCodes.Ldnull));
+                    list.Add(Instruction.Create(OpCodes.Br_S, last));
+                    list.AddRange(getterNotNull);
+                }
+
+                list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
             }
 
-            if (type.FullName == typeof(string).FullName)
-                list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
             else if (IsCopyConstructorAvailable(type, out var constructor))
+            {
+                if (withNullableCheck)
+                {
+                    var getterNotNull = source.ToList();
+                    list.Add(Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First()));
+                    list.Add(Instruction.Create(OpCodes.Ldnull));
+                    list.Add(Instruction.Create(OpCodes.Br_S, last));
+                    list.AddRange(getterNotNull);
+                }
+
                 list.Add(Instruction.Create(OpCodes.Newobj, constructor));
+            }
+
+            else if (type.IsImplementing(typeof(IDictionary<,>)))
+            {
+                using (new IfNotNull(this, list, source))
+                {
+                    var variable = NewVariable(type);
+                    var target = ValueTarget.New().Variable(variable);
+                    list.AddRange(CopyDictionary(type, source, target));
+                    list.AddRange(target.AsGetter());
+                    list.Add(Instruction.Create(OpCodes.Ldloc, variable));
+                }
+            }
+
             else if (type.Resolve().MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
                 throw new NotSupportedException(type);
+
             else
                 throw new NoCopyConstructorFoundException(type);
 

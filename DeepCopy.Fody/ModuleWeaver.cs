@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DeepCopy.Fody.Utils;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -110,19 +111,19 @@ namespace DeepCopy.Fody
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
-                baseCopyFunc = reference => CopyDictionary(reference, null);
+                baseCopyFunc = reference => CopyDictionary(reference, ValueSource.New(), ValueTarget.New().Loaded());
             }
             else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(List<>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
-                baseCopyFunc = reference => CopyList(reference, null);
+                baseCopyFunc = reference => CopyList(reference, ValueSource.New(), ValueTarget.New().Loaded());
             }
             else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(HashSet<>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
-                baseCopyFunc = reference => CopySet(reference, null);
+                baseCopyFunc = reference => CopySet(reference, ValueSource.New(), ValueTarget.New().Loaded());
             }
             else
                 throw new NoCopyConstructorFoundException(type.BaseType);

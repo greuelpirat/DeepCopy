@@ -1,20 +1,21 @@
+using System.Collections;
 using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace DeepCopy.Fody.Utils
 {
-    public class ValueSource
+    public class ValueSource : IEnumerable<Instruction>
     {
-        private PropertyDefinition _property;
-        private VariableDefinition _variable;
-        private VariableDefinition _index;
-        private MethodReference _method;
-
         public static ValueSource New()
         {
             return new ValueSource();
         }
+
+        private PropertyDefinition _property;
+        private VariableDefinition _variable;
+        private VariableDefinition _index;
+        private MethodReference _method;
 
         private ValueSource() { }
 
@@ -42,7 +43,7 @@ namespace DeepCopy.Fody.Utils
             return this;
         }
 
-        public IEnumerable<Instruction> Build()
+        private IEnumerable<Instruction> Build()
         {
             if (_variable != null)
             {
@@ -69,5 +70,8 @@ namespace DeepCopy.Fody.Utils
             else if (_method != null)
                 yield return Instruction.Create(OpCodes.Call, _method);
         }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public IEnumerator<Instruction> GetEnumerator() => Build().GetEnumerator();
     }
 }

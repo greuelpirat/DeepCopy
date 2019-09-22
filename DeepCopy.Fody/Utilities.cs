@@ -10,11 +10,11 @@ namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {
-        private MethodReference ConstructorOfSupportedType(TypeReference type, Type supportedType, Type defaultType, out TypeReference[] typesOfArguments)
+        private MethodReference ConstructorOfSupportedType(TypeReference type, Type supportedType, Type defaultType)
         {
             var typeResolved = type.Resolve();
+            var typesOfArguments = type.GetGenericArguments();
             TypeReference typeOfInstance = typeResolved;
-            typesOfArguments = type.SolveGenericArguments();
 
             if (typeResolved.IsInterface)
             {
@@ -29,7 +29,7 @@ namespace DeepCopy.Fody
             return ModuleDefinition.ImportReference(NewConstructor(typeOfInstance).MakeGeneric(typesOfArguments));
         }
 
-        private VariableDefinition NewVariable(TypeReference type)
+        public VariableDefinition NewVariable(TypeReference type)
         {
             var variable = new VariableDefinition(ModuleDefinition.ImportReference(type));
             CurrentBody.Value.Variables.Add(variable);
@@ -53,7 +53,7 @@ namespace DeepCopy.Fody
         {
             var constructor = type.Resolve().GetConstructors().Single(c => !c.HasParameters && !c.IsStatic);
             return ModuleDefinition.ImportReference(type.IsGenericInstance
-                ? constructor.MakeGeneric(type.SolveGenericArguments())
+                ? constructor.MakeGeneric(type.GetGenericArguments())
                 : constructor);
         }
 
@@ -89,11 +89,10 @@ namespace DeepCopy.Fody
 
         private MethodReference StringCopy()
         {
-            var typeString = TypeSystem.StringDefinition;
             return ModuleDefinition.ImportReference(
-                new MethodReference(nameof(string.Copy), typeString, typeString)
+                new MethodReference(nameof(string.Copy), TypeSystem.StringDefinition, TypeSystem.StringDefinition)
                 {
-                    Parameters = { new ParameterDefinition(typeString) }
+                    Parameters = { new ParameterDefinition(TypeSystem.StringDefinition) }
                 });
         }
 
@@ -142,7 +141,7 @@ namespace DeepCopy.Fody
                 Instruction.Create(OpCodes.Cgt_Un),
                 Instruction.Create(OpCodes.Stloc, nullCheck),
                 Instruction.Create(OpCodes.Ldloc, nullCheck),
-                Instruction.Create(OpCodes.Brfalse_S, last)
+                Instruction.Create(OpCodes.Brfalse, last)
             };
 
             instructions.AddRange(payload);
