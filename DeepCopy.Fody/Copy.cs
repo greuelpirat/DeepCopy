@@ -37,27 +37,35 @@ namespace DeepCopy.Fody
                 return true;
             }
 
+            var source = ValueSource.New().Property(property);
+            var list = new List<Instruction>();
+            instructions = list;
+
             if (property.PropertyType.IsArray)
             {
-                instructions = IfPropertyNotNull(property, CopyArray(property));
+                using (new IfNotNull(this, list, source))
+                    list.AddRange(CopyArray(property));
                 return true;
             }
 
             if (property.PropertyType.IsImplementing(typeof(IList<>)))
             {
-                instructions = IfPropertyNotNull(property, CopyList(property));
+                using (new IfNotNull(this, list, source))
+                    list.AddRange(CopyList(property));
                 return true;
             }
 
             if (property.PropertyType.IsImplementing(typeof(ISet<>)))
             {
-                instructions = IfPropertyNotNull(property, CopySet(property));
+                using (new IfNotNull(this, list, source))
+                    list.AddRange(CopySet(property));
                 return true;
             }
 
             if (property.PropertyType.IsImplementing(typeof(IDictionary<,>)))
             {
-                instructions = IfPropertyNotNull(property, CopyDictionary(property));
+                using (new IfNotNull(this, list, source))
+                    list.AddRange(CopyDictionary(property));
                 return true;
             }
 

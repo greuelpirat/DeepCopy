@@ -127,26 +127,5 @@ namespace DeepCopy.Fody
             constructor = null;
             return false;
         }
-
-        private IEnumerable<Instruction> IfPropertyNotNull(PropertyDefinition property, IEnumerable<Instruction> payload)
-        {
-            var last = Instruction.Create(OpCodes.Nop);
-            var nullCheck = NewVariable(TypeSystem.BooleanDefinition);
-
-            var instructions = new List<Instruction>
-            {
-                Instruction.Create(OpCodes.Ldarg_1),
-                Instruction.Create(OpCodes.Callvirt, property.GetMethod),
-                Instruction.Create(OpCodes.Ldnull),
-                Instruction.Create(OpCodes.Cgt_Un),
-                Instruction.Create(OpCodes.Stloc, nullCheck),
-                Instruction.Create(OpCodes.Ldloc, nullCheck),
-                Instruction.Create(OpCodes.Brfalse, last)
-            };
-
-            instructions.AddRange(payload);
-            instructions.Add(last);
-            return instructions;
-        }
     }
 }
