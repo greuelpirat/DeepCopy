@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -69,6 +70,16 @@ namespace DeepCopy.Fody.Utils
             }
             else if (_method != null)
                 yield return Instruction.Create(OpCodes.Call, _method);
+        }
+
+        public IEnumerable<Instruction> BuildNullCheck(Instruction followUp)
+        {
+            var getterNotNull = this.ToList();
+            yield return Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First());
+            yield return Instruction.Create(OpCodes.Ldnull);
+            yield return Instruction.Create(OpCodes.Br_S, followUp);
+            foreach (var instruction in getterNotNull)
+                yield return instruction;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

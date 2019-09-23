@@ -100,28 +100,14 @@ namespace DeepCopy.Fody
             if (type.FullName == typeof(string).FullName)
             {
                 if (withNullableCheck)
-                {
-                    var getterNotNull = source.ToList();
-                    list.Add(Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First()));
-                    list.Add(Instruction.Create(OpCodes.Ldnull));
-                    list.Add(Instruction.Create(OpCodes.Br_S, last));
-                    list.AddRange(getterNotNull);
-                }
-
+                    list.AddRange(source.BuildNullCheck(last));
                 list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
             }
 
             else if (IsCopyConstructorAvailable(type, out var constructor))
             {
                 if (withNullableCheck)
-                {
-                    var getterNotNull = source.ToList();
-                    list.Add(Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First()));
-                    list.Add(Instruction.Create(OpCodes.Ldnull));
-                    list.Add(Instruction.Create(OpCodes.Br_S, last));
-                    list.AddRange(getterNotNull);
-                }
-
+                    list.AddRange(source.BuildNullCheck(last));
                 list.Add(Instruction.Create(OpCodes.Newobj, constructor));
             }
 
