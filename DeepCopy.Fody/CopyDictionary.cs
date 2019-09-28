@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;

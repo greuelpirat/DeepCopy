@@ -21,7 +21,7 @@ namespace DeepCopy.Fody
                 {
                     list.AddRange(Copy(typeOfArgument,
                         ValueSource.New().Variable(forEach.Current),
-                        ValueTarget.New().Variable(variable).Callvirt(ImportMethod(type.Resolve(), nameof(ISet<object>.Add), typeOfArgument)).Add(OpCodes.Pop)));
+                        ValueTarget.New().Instance(variable).Callvirt(ImportMethod(type.Resolve(), nameof(ISet<object>.Add), typeOfArgument)).Add(OpCodes.Pop)));
                 }
 
                 list.AddRange(target.Build(variable));

@@ -13,6 +13,7 @@ namespace DeepCopy.Fody.Utils
         }
 
         private PropertyDefinition _property;
+        private VariableDefinition _instance;
         private VariableDefinition _variable;
         private MethodReference _call;
         private MethodReference _callvirt;
@@ -28,6 +29,12 @@ namespace DeepCopy.Fody.Utils
         public ValueTarget Property(PropertyDefinition property)
         {
             _property = property;
+            return this;
+        }
+
+        public ValueTarget Instance(VariableDefinition instance)
+        {
+            _instance = instance;
             return this;
         }
 
@@ -66,20 +73,27 @@ namespace DeepCopy.Fody.Utils
         public IEnumerable<Instruction> Build(ValueSource source)
         {
             var instructions = new List<Instruction>();
-            using (Build(instructions, out _))
+            using (Build(instructions))
                 instructions.AddRange(source);
             return instructions;
         }
 
-        public IDisposable Build(ICollection<Instruction> instructions, out Instruction next)
+        public IDisposable Build(ICollection<Instruction> instructions)
         {
             _instructions = instructions;
             if (_loaded)
                 _loaded = false;
-            else if (_variable != null)
-                instructions.Add(Instruction.Create(_variable.VariableType.IsPrimitive || _property == null ? OpCodes.Ldloc : OpCodes.Ldloca, _variable));
-            else
-                instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            else if (_variable == null)
+                instructions.Add(_instance != null
+                    ? Instruction.Create(OpCodes.Ldloc, _instance)
+                    : Instruction.Create(OpCodes.Ldarg_0));
+            return this;
+        }
+
+        public IDisposable Build(ICollection<Instruction> instructions, out Instruction next)
+        {
+            Build(instructions);
+
             _next = Instruction.Create(OpCodes.Nop);
             next = _next;
             return this;
@@ -90,7 +104,8 @@ namespace DeepCopy.Fody.Utils
             if (_instructions == null)
                 throw new InvalidOperationException();
 
-            _instructions.Add(_next);
+            if (_next != null)
+                _instructions.Add(_next);
 
             if (_property != null)
                 _instructions.Add(_property.MakeSet());
@@ -99,10 +114,14 @@ namespace DeepCopy.Fody.Utils
             else if (_callvirt != null)
                 _instructions.Add(Instruction.Create(OpCodes.Callvirt, _callvirt));
 
+            else if (_variable != null)
+                _instructions.Add(Instruction.Create(OpCodes.Stloc, _variable));
+
             foreach (var code in _added)
                 _instructions.Add(Instruction.Create(code));
 
             _instructions = null;
+            _next = null;
         }
     }
 }

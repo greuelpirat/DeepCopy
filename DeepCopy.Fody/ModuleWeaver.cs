@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using DeepCopy.Fody.Utils;
@@ -171,6 +172,7 @@ namespace DeepCopy.Fody
             }
             catch (Exception exception)
             {
+                Debug.WriteLine(exception);
                 throw new DeepCopyException(exception.Message) { ProcessingType = type };
             }
             finally

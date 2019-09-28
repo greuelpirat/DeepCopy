@@ -67,7 +67,7 @@ namespace DeepCopy.Fody
 
             if (DeepCopyExtensions.TryGetValue(typeToken, out var extensionMethod))
             {
-                using (target.Build(list, out _))
+                using (target.Build(list))
                 {
                     list.AddRange(source);
                     list.Add(Instruction.Create(OpCodes.Call, extensionMethod));
