@@ -22,7 +22,7 @@ namespace DeepCopy.Fody.Utils
 
         public VariableDefinition Current { get; }
 
-        public ForEach(ModuleWeaver moduleWeaver, TypeReference typeOfEnumerable, List<Instruction> instructions)
+        public ForEach(ModuleWeaver moduleWeaver, List<Instruction> instructions, TypeReference typeOfEnumerable, ValueSource source)
         {
             _moduleWeaver = moduleWeaver;
             _instructions = instructions;
@@ -35,13 +35,10 @@ namespace DeepCopy.Fody.Utils
             var methodGetEnumerator = moduleWeaver.ImportMethod(moduleWeaver.ImportType(typeof(IEnumerable<>), typeOfCurrent), nameof(IEnumerable.GetEnumerator), typeOfCurrent);
             _typeEnumerator = moduleWeaver.ImportType(methodGetEnumerator.ReturnType, typeOfCurrent);
 
-            Current = new VariableDefinition(typeOfCurrent);
-            _enumerator = new VariableDefinition(_typeEnumerator);
+            _enumerator = moduleWeaver.NewVariable(_typeEnumerator);
+            Current = moduleWeaver.NewVariable(typeOfCurrent);
 
-            var variables = moduleWeaver.CurrentBody.Value.Variables;
-            variables.Add(Current);
-            variables.Add(_enumerator);
-
+            _instructions.AddRange(source);
             _instructions.Add(Instruction.Create(OpCodes.Callvirt, methodGetEnumerator));
             _instructions.Add(Instruction.Create(OpCodes.Stloc, _enumerator));
 

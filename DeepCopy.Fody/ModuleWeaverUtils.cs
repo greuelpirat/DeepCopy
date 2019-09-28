@@ -10,32 +10,6 @@ namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {
-        private MethodReference ConstructorOfSupportedType(TypeReference type, Type supportedType, Type defaultType)
-        {
-            var typeResolved = type.Resolve();
-            var typesOfArguments = type.GetGenericArguments();
-            TypeReference typeOfInstance = typeResolved;
-
-            if (typeResolved.IsInterface)
-            {
-                if (IsType(typeResolved, supportedType))
-                    typeOfInstance = ImportType(defaultType, typesOfArguments);
-                else
-                    throw new NotSupportedException(type);
-            }
-            else if (!typeResolved.HasDefaultConstructor())
-                throw new NotSupportedException(type);
-
-            return ModuleDefinition.ImportReference(NewConstructor(typeOfInstance).MakeGeneric(typesOfArguments));
-        }
-
-        public VariableDefinition NewVariable(TypeReference type)
-        {
-            var variable = new VariableDefinition(ModuleDefinition.ImportReference(type));
-            CurrentBody.Value.Variables.Add(variable);
-            return variable;
-        }
-
         private MethodReference NewConstructor(TypeReference type, TypeReference parameter = null)
         {
             var constructor = new MethodReference(ConstructorName, TypeSystem.VoidDefinition, type) { HasThis = true };
@@ -126,6 +100,39 @@ namespace DeepCopy.Fody
 
             constructor = null;
             return false;
+        }
+
+        private IEnumerable<Instruction> NewInstance(TypeReference type, Type supportedInterface, Type defaultType, out VariableDefinition variable)
+        {
+            var typeResolved = type.Resolve();
+            var typesOfArguments = type.GetGenericArguments();
+            TypeReference typeOfInstance = typeResolved;
+
+            if (typeResolved.IsInterface)
+            {
+                if (IsType(typeResolved, supportedInterface))
+                    typeOfInstance = ImportType(defaultType, typesOfArguments);
+                else
+                    throw new NotSupportedException(type);
+            }
+            else if (!typeResolved.HasDefaultConstructor())
+                throw new NotSupportedException(type);
+
+            var constructor = ModuleDefinition.ImportReference(NewConstructor(typeOfInstance).MakeGeneric(typesOfArguments));
+
+            variable = NewVariable(type);
+            return new[]
+            {
+                Instruction.Create(OpCodes.Newobj, constructor),
+                Instruction.Create(OpCodes.Stloc, variable)
+            };
+        }
+
+        public VariableDefinition NewVariable(TypeReference type)
+        {
+            var variable = new VariableDefinition(ModuleDefinition.ImportReference(type));
+            CurrentBody.Value.Variables.Add(variable);
+            return variable;
         }
     }
 }

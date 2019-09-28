@@ -56,9 +56,7 @@ namespace DeepCopy.Fody.Utils
                 yield return Instruction.Create(OpCodes.Ldarg_1);
 
             if (_property != null)
-            {
                 yield return Instruction.Create(OpCodes.Callvirt, _property.GetMethod);
-            }
 
             if (_index != null)
             {
@@ -72,8 +70,10 @@ namespace DeepCopy.Fody.Utils
                 yield return Instruction.Create(OpCodes.Call, _method);
         }
 
-        public IEnumerable<Instruction> BuildNullCheck(Instruction followUp)
+        public IEnumerable<Instruction> BuildNullSafe(Instruction followUp)
         {
+            foreach (var instruction in this)
+                yield return instruction;
             var getterNotNull = this.ToList();
             yield return Instruction.Create(OpCodes.Brtrue_S, getterNotNull.First());
             yield return Instruction.Create(OpCodes.Ldnull);

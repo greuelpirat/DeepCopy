@@ -1,12 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace DeepCopy.Fody.Utils
 {
-    public class ValueTarget : IEnumerable<Instruction>
+    public class ValueTarget : IDisposable
     {
         public static ValueTarget New()
         {
@@ -15,10 +14,14 @@ namespace DeepCopy.Fody.Utils
 
         private PropertyDefinition _property;
         private VariableDefinition _variable;
-        private VariableDefinition _index;
-        private MethodReference _method;
-        private MethodReference _constructor;
+        private MethodReference _call;
+        private MethodReference _callvirt;
         private bool _loaded;
+
+        private ICollection<Instruction> _instructions;
+        private Instruction _next;
+
+        private readonly IList<OpCode> _added = new List<OpCode>();
 
         private ValueTarget() { }
 
@@ -34,21 +37,21 @@ namespace DeepCopy.Fody.Utils
             return this;
         }
 
-        public ValueTarget Index(VariableDefinition index)
+        public ValueTarget Call(MethodReference method)
         {
-            _index = index;
+            _call = method;
             return this;
         }
 
-        public ValueTarget Method(MethodReference method)
+        public ValueTarget Callvirt(MethodReference method)
         {
-            _method = method;
+            _callvirt = method;
             return this;
         }
 
-        public ValueTarget Constructor(MethodReference constructor)
+        public ValueTarget Add(OpCode code)
         {
-            _constructor = constructor;
+            _added.Add(code);
             return this;
         }
 
@@ -58,52 +61,48 @@ namespace DeepCopy.Fody.Utils
             return this;
         }
 
-        private IEnumerable<Instruction> Build()
+        public IEnumerable<Instruction> Build(VariableDefinition variable) => Build(ValueSource.New().Variable(variable));
+
+        public IEnumerable<Instruction> Build(ValueSource source)
         {
+            var instructions = new List<Instruction>();
+            using (Build(instructions, out _))
+                instructions.AddRange(source);
+            return instructions;
+        }
+
+        public IDisposable Build(ICollection<Instruction> instructions, out Instruction next)
+        {
+            _instructions = instructions;
             if (_loaded)
-            {
                 _loaded = false;
-                yield break;
-            }
-
-            if (_variable != null)
-            {
-                var loadVariable = _variable.VariableType.IsPrimitive
-                                   || _property == null && _method == null && _index == null;
-                yield return Instruction.Create(loadVariable ? OpCodes.Ldloc : OpCodes.Ldloca, _variable);
-            }
+            else if (_variable != null)
+                instructions.Add(Instruction.Create(_variable.VariableType.IsPrimitive || _property == null ? OpCodes.Ldloc : OpCodes.Ldloca, _variable));
             else
-                yield return Instruction.Create(OpCodes.Ldarg_0);
-
-            if (_constructor != null)
-                yield return Instruction.Create(OpCodes.Newobj, _constructor);
-
-            if (_property != null)
-            {
-                if (_property.SetMethod != null)
-                    yield return Instruction.Create(OpCodes.Call, _property.SetMethod);
-                else
-                    yield return Instruction.Create(OpCodes.Stfld, _property.GetBackingField() ?? throw new InvalidOperationException());
-            }
+                instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            _next = Instruction.Create(OpCodes.Nop);
+            next = _next;
+            return this;
         }
 
-        public IEnumerable<Instruction> AsGetter()
+        public void Dispose()
         {
-            if (_variable != null)
-            {
-                var loadVariable = _variable.VariableType.IsPrimitive
-                                   || _property == null && _method == null && _index == null;
-                yield return Instruction.Create(loadVariable ? OpCodes.Ldloc : OpCodes.Ldloca, _variable);
-            }
-            else
-                yield return Instruction.Create(OpCodes.Ldarg_0);
+            if (_instructions == null)
+                throw new InvalidOperationException();
+
+            _instructions.Add(_next);
 
             if (_property != null)
-                yield return Instruction.Create(OpCodes.Call, _property.GetMethod);
+                _instructions.Add(_property.MakeSet());
+            else if (_call != null)
+                _instructions.Add(Instruction.Create(OpCodes.Call, _call));
+            else if (_callvirt != null)
+                _instructions.Add(Instruction.Create(OpCodes.Callvirt, _callvirt));
+
+            foreach (var code in _added)
+                _instructions.Add(Instruction.Create(code));
+
+            _instructions = null;
         }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IEnumerator<Instruction> GetEnumerator() => Build().GetEnumerator();
     }
 }
