@@ -27,14 +27,6 @@ namespace DeepCopy.Fody.Utils
             throw new DeepCopyException($"{type.FullName} has no method {name}");
         }
 
-        public static Instruction MakeSet(this PropertyDefinition property)
-        {
-            if (property.SetMethod != null)
-                return Instruction.Create(OpCodes.Call, property.SetMethod);
-            var field = property.GetBackingField();
-            return field != null ? Instruction.Create(OpCodes.Stfld, field) : null;
-        }
-
         public static FieldDefinition GetBackingField(this PropertyDefinition property)
         {
             var backingFieldName = $"<{property.Name}>k__BackingField";
@@ -91,6 +83,24 @@ namespace DeepCopy.Fody.Utils
                 foreach (var nestedType in type.NestedTypes.WithNestedTypes())
                     yield return nestedType;
             }
+        }
+
+        public static Instruction CreateSetInstruction(this PropertyDefinition property)
+        {
+            if (property.SetMethod != null)
+                return Instruction.Create(OpCodes.Call, property.SetMethod);
+            var field = property.GetBackingField();
+            return field != null ? Instruction.Create(OpCodes.Stfld, field) : null;
+        }
+
+        public static Instruction CreateGetInstruction(this PropertyDefinition property)
+        {
+            return Instruction.Create(OpCodes.Call, property.GetMethod);
+        }
+
+        public static Instruction CreateLoadInstruction(this VariableDefinition variable)
+        {
+            return Instruction.Create(variable.VariableType.IsPrimitive ? OpCodes.Ldloc : OpCodes.Ldloca, variable);
         }
     }
 }

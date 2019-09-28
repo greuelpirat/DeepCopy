@@ -15,6 +15,7 @@ namespace DeepCopy.Fody.Utils
         private PropertyDefinition _property;
         private VariableDefinition _instance;
         private VariableDefinition _variable;
+        private VariableDefinition _index;
         private MethodReference _call;
         private MethodReference _callvirt;
         private bool _loaded;
@@ -41,6 +42,12 @@ namespace DeepCopy.Fody.Utils
         public ValueTarget Variable(VariableDefinition variable)
         {
             _variable = variable;
+            return this;
+        }
+
+        public ValueTarget Index(VariableDefinition index)
+        {
+            _index = index;
             return this;
         }
 
@@ -87,6 +94,18 @@ namespace DeepCopy.Fody.Utils
                 instructions.Add(_instance != null
                     ? Instruction.Create(OpCodes.Ldloc, _instance)
                     : Instruction.Create(OpCodes.Ldarg_0));
+
+            if (_index != null)
+            {
+                if (_variable != null)
+                    _instructions.Add(_variable.CreateLoadInstruction());
+                else if (_property != null)
+                    instructions.Add(_property.CreateGetInstruction());
+                _instructions.Add(Instruction.Create(OpCodes.Ldloc, _index));
+
+                return this;
+            }
+
             return this;
         }
 
@@ -107,13 +126,14 @@ namespace DeepCopy.Fody.Utils
             if (_next != null)
                 _instructions.Add(_next);
 
-            if (_property != null)
-                _instructions.Add(_property.MakeSet());
+            if (_index != null)
+                _instructions.Add(Instruction.Create(OpCodes.Stelem_Ref));
+            else if (_property != null)
+                _instructions.Add(_property.CreateSetInstruction());
             else if (_call != null)
                 _instructions.Add(Instruction.Create(OpCodes.Call, _call));
             else if (_callvirt != null)
                 _instructions.Add(Instruction.Create(OpCodes.Callvirt, _callvirt));
-
             else if (_variable != null)
                 _instructions.Add(Instruction.Create(OpCodes.Stloc, _variable));
 
