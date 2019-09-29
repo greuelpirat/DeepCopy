@@ -41,18 +41,18 @@ Add `<DeepCopy/>` to [FodyWeavers.xml](https://github.com/Fody/Home/blob/master/
 ```csharp
 public static class MyStaticClass
 {
-    [DeepCopyExtension]
-    public static SomeObject DeepCopy(SomeObject source) => source;
+  [DeepCopyExtension]
+  public static SomeObject DeepCopy(SomeObject source) => source;
 }
 
 public class SomeObject
 {
-    public int Integer { get; set; }
-    public SomeEnum Enum { get; set; }
-    public DateTime DateTime { get; set; }
-    public string String { get; set; }
-    public IList<SomeObject> List { get; set; }
-    public IDictionary<SomeKey, SomeObject> Dictionary { get; set; }
+  public int Integer { get; set; }
+  public SomeEnum Enum { get; set; }
+  public DateTime DateTime { get; set; }
+  public string String { get; set; }
+  public IList<SomeObject> List { get; set; }
+  public IDictionary<SomeKey, SomeObject> Dictionary { get; set; }
 }
 ```
 
@@ -60,39 +60,45 @@ public class SomeObject
 ```csharp
 public static class MyStaticClass
 {
-    public static SomeObject DeepCopy(SomeObject source)
-    {
-        return source != null ? new SomeObject(source) : (SomeObject) null;
-    }
+  public static SomeObject DeepCopy(SomeObject source)
+  {
+    return source != null ? new SomeObject(source) : (SomeObject) null;
+  }
 }
 
 public class SomeObject
 {
-    public SomeObject() { }
-  
-    public SomeObject(SomeObject obj)
-    {
-        this.Integer = obj.Integer;
-        this.Enum = obj.Enum;
-        this.DateTime = obj.DateTime;
-        this.String = obj.String != null ? string.Copy(obj.String) : (string) null;
-        if (obj.List != null) {
-            this.List = (IList<SomeObject>) new System.Collections.Generic.List<SomeObject>();
-            for (int index = 0; index < obj.List.Count; ++index)
-                this.List.Add(obj.List[index] != null ? new SomeObject(obj0.List[index]) : (SomeObject) null);
-        }
-        if (obj.Dictionary != null) {
-            this.Dictionary = (IDictionary<SomeKey, SomeObject>) new System.Collections.Generic.Dictionary<SomeKey, SomeObject>();
-            foreach (KeyValuePair<SomeKey, SomeObject> keyValuePair in (IEnumerable<KeyValuePair<SomeKey, SomeObject>>) obj.Dictionary)
-                this.Dictionary[new SomeKey(keyValuePair.Key)] = keyValuePair.Value != null ? new SomeObject(keyValuePair.Value) : (SomeObject) null;
-        }
+  public SomeObject() { }
+
+  public SomeObject(SomeObject obj)
+  {
+    this.Integer = obj.Integer;
+    this.Enum = obj.Enum;
+    this.DateTime = obj.DateTime;
+    this.String = obj.String != null ? string.Copy(obj.String) : (string) null;
+    if (obj.List != null) {
+      var list = new System.Collections.Generic.List<int>();
+      foreach (var num in obj.List)
+        list.Add(num);
+      this.List = list;
     }
+    if (obj.Dictionary != null) {
+      var dictionary = new System.Collections.Generic.Dictionary<SomeKey, SomeObject>();
+      foreach (var keyValuePair in obj0.Dictionary)
+      {
+        SomeObject someObject = ClassWithDeepCopyExtension.CopySomeObject(keyValuePair.Value);
+        dictionary[keyValuePair.Key] = someObject;
+      }
+      this.Dictionary = dictionary;
+    }
+  }
   
-    public int Integer { get; set; }
-    public SomeEnum Enum { get; set; }
-    public DateTime DateTime { get; set; }
-    public string String { get; set; }
-    public IList<SomeObject> List { get; set; }
+  public int Integer { get; set; }
+  public SomeEnum Enum { get; set; }
+  public DateTime DateTime { get; set; }
+  public string String { get; set; }
+  public IList<SomeObject> List { get; set; }
+  public IDictionary<SomeKey, SomeObject> Dictionary { get; set; }
 }
 ```
 
