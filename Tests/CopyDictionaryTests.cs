@@ -79,6 +79,11 @@ namespace Tests
             Assert.NotSame(instance.Dictionary, copy.Dictionary);
             Assert.NotSame(instance.Dictionary[someKey1], copy.Dictionary[someKey1]);
             Assert.NotSame(instance.Dictionary[someKey2], copy.Dictionary[someKey2]);
+
+            var instanceKey1 = System.Linq.Enumerable.First(instance.Dictionary.Keys);
+            var copyKey1 = System.Linq.Enumerable.First(copy.Dictionary.Keys);
+            Assert.Equal(instanceKey1, copyKey1);
+            Assert.NotSame(instanceKey1, copyKey1);
         }
 
         [Fact]

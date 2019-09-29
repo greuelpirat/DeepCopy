@@ -24,12 +24,14 @@ namespace DeepCopy.Fody
                     var sourceKey = ValueSource.New().Variable(forEach.Current).Method(ImportMethod(typeKeyValuePair, "get_Key", typesOfArguments));
                     var sourceValue = ValueSource.New().Variable(forEach.Current).Method(ImportMethod(typeKeyValuePair, "get_Value", typesOfArguments));
 
-                    var valueTarget = NewVariable(typesOfArguments[1]);
-                    list.AddRange(Copy(typesOfArguments[1], sourceValue, ValueTarget.New().Variable(valueTarget)));
+                    var targetKey = NewVariable(typesOfArguments[0]);
+                    list.AddRange(Copy(typesOfArguments[0], sourceKey, ValueTarget.New().Variable(targetKey)));
+                    var targetValue = NewVariable(typesOfArguments[1]);
+                    list.AddRange(Copy(typesOfArguments[1], sourceValue, ValueTarget.New().Variable(targetValue)));
 
                     list.Add(variable?.CreateLoadInstruction() ?? Instruction.Create(OpCodes.Ldarg_0));
-                    list.AddRange(sourceKey);
-                    list.Add(valueTarget.CreateLoadInstruction());
+                    list.Add(targetKey.CreateLoadInstruction());
+                    list.Add(targetValue.CreateLoadInstruction());
                     list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), "set_Item", typesOfArguments)));
                 }
 

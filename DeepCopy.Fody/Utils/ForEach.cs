@@ -44,7 +44,7 @@ namespace DeepCopy.Fody.Utils
 
             // try
             _startCondition = Instruction.Create(OpCodes.Ldloc, _enumerator);
-            _startTry = Instruction.Create(OpCodes.Br_S, _startCondition);
+            _startTry = Instruction.Create(OpCodes.Br, _startCondition);
             _instructions.Add(_startTry);
 
             _startLoop = Instruction.Create(OpCodes.Ldloc, _enumerator);
@@ -57,7 +57,7 @@ namespace DeepCopy.Fody.Utils
         {
             _instructions.Add(_startCondition);
             _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod(_typeEnumerator, nameof(IEnumerator.MoveNext))));
-            _instructions.Add(Instruction.Create(OpCodes.Brtrue_S, _startLoop));
+            _instructions.Add(Instruction.Create(OpCodes.Brtrue, _startLoop));
 
             // end try
             var end = Instruction.Create(OpCodes.Nop);
