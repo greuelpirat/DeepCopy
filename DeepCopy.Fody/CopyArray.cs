@@ -13,7 +13,6 @@ namespace DeepCopy.Fody
 
             var loopStart = Instruction.Create(OpCodes.Nop);
             var index = NewVariable(TypeSystem.Int32Definition);
-            var valueCheck = NewVariable(TypeSystem.BooleanDefinition);
             var conditionStart = Instruction.Create(OpCodes.Ldloc, index);
 
             var list = new List<Instruction>
@@ -49,10 +48,8 @@ namespace DeepCopy.Fody
             list.Add(Instruction.Create(OpCodes.Ldlen));
             list.Add(Instruction.Create(OpCodes.Conv_I4));
             list.Add(Instruction.Create(OpCodes.Clt));
-            list.Add(Instruction.Create(OpCodes.Stloc, valueCheck));
 
             // loop end
-            list.Add(Instruction.Create(OpCodes.Ldloc, valueCheck));
             list.Add(Instruction.Create(OpCodes.Brtrue_S, loopStart));
 
             return list;

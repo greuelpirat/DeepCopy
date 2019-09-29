@@ -13,7 +13,7 @@ namespace DeepCopy.Fody
             var typeKeyValuePair = ImportType(typeof(KeyValuePair<,>), typesOfArguments);
 
             var list = new List<Instruction>();
-            using (new IfNotNull(this, list, source, target.IsTargetingBase))
+            using (new IfNotNull(list, source, target.IsTargetingBase))
             {
                 VariableDefinition variable = null;
                 if (!target.IsTargetingBase)

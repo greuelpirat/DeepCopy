@@ -44,7 +44,7 @@ namespace DeepCopy.Fody
 
             if (property.PropertyType.IsArray)
             {
-                using (new IfNotNull(this, list, source))
+                using (new IfNotNull(list, source))
                     list.AddRange(CopyArray(property));
                 return true;
             }

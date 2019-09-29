@@ -70,8 +70,6 @@ namespace DeepCopy.Fody
         {
             var body = method.Body;
             body.InitLocals = true;
-            body.Variables.Add(new VariableDefinition(TypeSystem.BooleanDefinition));
-            body.Variables.Add(new VariableDefinition(baseType));
             body.Instructions.Clear();
 
             var processor = body.GetILProcessor();
@@ -82,12 +80,8 @@ namespace DeepCopy.Fody
             processor.Emit(OpCodes.Ldarg_0);
             processor.Emit(OpCodes.Ldnull);
             processor.Emit(OpCodes.Ceq);
-            processor.Emit(OpCodes.Stloc_0);
-            processor.Emit(OpCodes.Ldloc_0);
             processor.Emit(OpCodes.Brfalse_S, startType);
             processor.Emit(OpCodes.Ldnull);
-            processor.Emit(OpCodes.Stloc_1);
-            processor.Emit(OpCodes.Ldloc_1);
             processor.Emit(OpCodes.Ret);
 
             var copiedTypes = new List<TypeDefinition>();
@@ -120,8 +114,6 @@ namespace DeepCopy.Fody
                 processor.Emit(OpCodes.Ldloc, variable);
 
                 processor.Emit(OpCodes.Newobj, constructor);
-                processor.Emit(OpCodes.Stloc_1);
-                processor.Emit(OpCodes.Ldloc_1);
                 processor.Emit(OpCodes.Ret);
 
                 processor.Append(endType);
