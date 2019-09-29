@@ -104,42 +104,5 @@ namespace DeepCopy.Fody
 
             return list;
         }
-
-        private IEnumerable<Instruction> CopyValue(TypeReference type, ValueSource source)
-        {
-            var last = Instruction.Create(OpCodes.Nop);
-            var list = new List<Instruction>();
-            list.AddRange(source);
-
-            if (type.IsPrimitive || type.IsValueType)
-                return list;
-
-            if (DeepCopyExtensions.TryGetValue(type.Resolve().MetadataToken, out var extensionMethod))
-            {
-                list.Add(Instruction.Create(OpCodes.Call, extensionMethod));
-                return list;
-            }
-
-            if (type.FullName == typeof(string).FullName)
-            {
-                list.AddRange(source.BuildNullSafe(last));
-                list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
-            }
-
-            else if (IsCopyConstructorAvailable(type, out var constructor))
-            {
-                list.AddRange(source.BuildNullSafe(last));
-                list.Add(Instruction.Create(OpCodes.Newobj, constructor));
-            }
-
-            else if (type.Resolve().MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
-                throw new NotSupportedException(type);
-
-            else
-                throw new NoCopyConstructorFoundException(type);
-
-            list.Add(last);
-            return list;
-        }
     }
 }
