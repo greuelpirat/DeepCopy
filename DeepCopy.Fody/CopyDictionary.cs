@@ -25,6 +25,7 @@ namespace DeepCopy.Fody
                     var valueTarget = NewVariable(typesOfArguments[1]);
                     list.AddRange(Copy(typesOfArguments[1], sourceValue, ValueTarget.New().Variable(valueTarget)));
 
+                    list.Add(variable.CreateLoadInstruction());
                     list.AddRange(sourceKey);
                     list.Add(valueTarget.CreateLoadInstruction());
                     list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), "set_Item", typesOfArguments)));

@@ -93,14 +93,8 @@ namespace DeepCopy.Fody.Utils
             return field != null ? Instruction.Create(OpCodes.Stfld, field) : null;
         }
 
-        public static Instruction CreateGetInstruction(this PropertyDefinition property)
-        {
-            return Instruction.Create(OpCodes.Call, property.GetMethod);
-        }
+        public static Instruction CreateGetInstruction(this PropertyDefinition property) => Instruction.Create(OpCodes.Call, property.GetMethod);
 
-        public static Instruction CreateLoadInstruction(this VariableDefinition variable)
-        {
-            return Instruction.Create(variable.VariableType.IsPrimitive ? OpCodes.Ldloc : OpCodes.Ldloca, variable);
-        }
+        public static Instruction CreateLoadInstruction(this VariableDefinition variable) => Instruction.Create(OpCodes.Ldloc, variable);
     }
 }
