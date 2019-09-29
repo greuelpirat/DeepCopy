@@ -13,9 +13,11 @@ namespace DeepCopy.Fody
             var typeKeyValuePair = ImportType(typeof(KeyValuePair<,>), typesOfArguments);
 
             var list = new List<Instruction>();
-            using (new IfNotNull(this, list, source))
+            using (new IfNotNull(this, list, source, target.IsTargetingBase))
             {
-                list.AddRange(NewInstance(type, typeof(IDictionary<,>), typeof(Dictionary<,>), out var variable));
+                VariableDefinition variable = null;
+                if (!target.IsTargetingBase)
+                    list.AddRange(NewInstance(type, typeof(IDictionary<,>), typeof(Dictionary<,>), out variable));
 
                 using (var forEach = new ForEach(this, list, type, source))
                 {
@@ -25,13 +27,14 @@ namespace DeepCopy.Fody
                     var valueTarget = NewVariable(typesOfArguments[1]);
                     list.AddRange(Copy(typesOfArguments[1], sourceValue, ValueTarget.New().Variable(valueTarget)));
 
-                    list.Add(variable.CreateLoadInstruction());
+                    list.Add(variable?.CreateLoadInstruction() ?? Instruction.Create(OpCodes.Ldarg_0));
                     list.AddRange(sourceKey);
                     list.Add(valueTarget.CreateLoadInstruction());
                     list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), "set_Item", typesOfArguments)));
                 }
 
-                list.AddRange(target.Build(ValueSource.New().Variable(variable)));
+                if (!target.IsTargetingBase)
+                    list.AddRange(target.Build(ValueSource.New().Variable(variable)));
             }
 
             return list;

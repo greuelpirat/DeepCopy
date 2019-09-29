@@ -112,19 +112,19 @@ namespace DeepCopy.Fody
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
-                baseCopyFunc = reference => CopyDictionary(reference, ValueSource.New(), ValueTarget.New().Loaded());
+                baseCopyFunc = reference => CopyDictionary(reference, ValueSource.New(), ValueTarget.New());
             }
             else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(List<>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
-                baseCopyFunc = reference => CopyList(reference, ValueSource.New(), ValueTarget.New().Loaded());
+                baseCopyFunc = reference => CopyList(reference, ValueSource.New(), ValueTarget.New());
             }
             else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(HashSet<>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
-                baseCopyFunc = reference => CopySet(reference, ValueSource.New(), ValueTarget.New().Loaded());
+                baseCopyFunc = reference => CopySet(reference, ValueSource.New(), ValueTarget.New());
             }
             else
                 throw new NoCopyConstructorFoundException(type.BaseType);

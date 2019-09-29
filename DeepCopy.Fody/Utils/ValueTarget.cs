@@ -18,10 +18,11 @@ namespace DeepCopy.Fody.Utils
         private VariableDefinition _index;
         private MethodReference _call;
         private MethodReference _callvirt;
-        private bool _loaded;
 
         private ICollection<Instruction> _instructions;
         private Instruction _next;
+
+        public bool IsTargetingBase => _property == null && _instance == null && _variable == null;
 
         private readonly IList<OpCode> _added = new List<OpCode>();
 
@@ -69,12 +70,6 @@ namespace DeepCopy.Fody.Utils
             return this;
         }
 
-        public ValueTarget Loaded()
-        {
-            _loaded = true;
-            return this;
-        }
-
         public IEnumerable<Instruction> Build(VariableDefinition variable) => Build(ValueSource.New().Variable(variable));
 
         public IEnumerable<Instruction> Build(ValueSource source)
@@ -88,9 +83,7 @@ namespace DeepCopy.Fody.Utils
         public IDisposable Build(ICollection<Instruction> instructions)
         {
             _instructions = instructions;
-            if (_loaded)
-                _loaded = false;
-            else if (_variable == null)
+            if (_variable == null)
                 instructions.Add(_instance != null
                     ? Instruction.Create(OpCodes.Ldloc, _instance)
                     : Instruction.Create(OpCodes.Ldarg_0));

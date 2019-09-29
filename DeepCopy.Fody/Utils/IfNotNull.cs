@@ -9,7 +9,7 @@ namespace DeepCopy.Fody.Utils
         private readonly Instruction _last;
         private readonly IList<Instruction> _instructions;
 
-        public IfNotNull(ModuleWeaver moduleWeaver, List<Instruction> instructions, ValueSource source)
+        public IfNotNull(ModuleWeaver moduleWeaver, List<Instruction> instructions, ValueSource source, bool skip = false)
         {
             _instructions = instructions;
             _last = Instruction.Create(OpCodes.Nop);

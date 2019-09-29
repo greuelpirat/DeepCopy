@@ -13,9 +13,11 @@ namespace DeepCopy.Fody
             var typeOfArgument = type.GetGenericArguments().Single();
 
             var list = new List<Instruction>();
-            using (new IfNotNull(this, list, source))
+            using (new IfNotNull(this, list, source, target.IsTargetingBase))
             {
-                list.AddRange(NewInstance(type, typeof(ISet<>), typeof(HashSet<>), out var variable));
+                VariableDefinition variable = null;
+                if (!target.IsTargetingBase)
+                    list.AddRange(NewInstance(type, typeof(ISet<>), typeof(HashSet<>), out variable));
 
                 using (var forEach = new ForEach(this, list, type, source))
                 {
@@ -24,7 +26,8 @@ namespace DeepCopy.Fody
                         ValueTarget.New().Instance(variable).Callvirt(ImportMethod(type.Resolve(), nameof(ISet<object>.Add), typeOfArgument)).Add(OpCodes.Pop)));
                 }
 
-                list.AddRange(target.Build(variable));
+                if (!target.IsTargetingBase)
+                    list.AddRange(target.Build(variable));
             }
 
             return list;
