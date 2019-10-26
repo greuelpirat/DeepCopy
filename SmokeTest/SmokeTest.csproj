@@ -12,13 +12,8 @@
     </PackageReference>
   </ItemGroup>
 
-  <PropertyGroup>
-    <WeaverTargetFolder Condition="$(MSBuildRuntimeType) != 'Core'">net472</WeaverTargetFolder>
-    <WeaverTargetFolder Condition="$(MSBuildRuntimeType) == 'Core'">netstandard2.0</WeaverTargetFolder>
-  </PropertyGroup>
-
   <ItemGroup>
-    <WeaverFiles Include="$(SolutionDir)DeepCopy.Fody\bin\$(Configuration)\$(WeaverTargetFolder)\DeepCopy.Fody.dll" />
+    <WeaverFiles Include="$(SolutionDir)DeepCopy.Fody\bin\$(Configuration)\netstandard2.0\DeepCopy.Fody.dll" />
   </ItemGroup>
 
   <ItemGroup>
