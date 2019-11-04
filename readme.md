@@ -77,9 +77,12 @@ public class SomeObject
     this.DateTime = obj.DateTime;
     this.String = obj.String != null ? string.Copy(obj.String) : (string) null;
     if (obj.List != null) {
-      var list = new System.Collections.Generic.List<int>();
-      foreach (var num in obj.List)
-        list.Add(num);
+      var list = new System.Collections.Generic.List<SomeObject>();
+      foreach (var item in obj.List)
+      {
+        SomeObject someObject = ClassWithDeepCopyExtension.CopySomeObject(item);
+        list.Add(someObject);
+      }
       this.List = list;
     }
     if (obj.Dictionary != null) {
