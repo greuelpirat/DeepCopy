@@ -67,6 +67,7 @@ namespace AssemblyToProcess
     {
         public AutoPropertyInitializerConstructorObject() { }
 
+        // ReSharper disable once UnusedParameter.Local
         [InjectDeepCopy]
         public AutoPropertyInitializerConstructorObject(AutoPropertyInitializerConstructorObject source) { }
 

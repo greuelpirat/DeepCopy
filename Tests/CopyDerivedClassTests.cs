@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using AssemblyToProcess;
+using System;
 using Xunit;
 
 namespace Tests
