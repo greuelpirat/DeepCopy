@@ -10,9 +10,6 @@ build_script:
     -p:Configuration=Release
     -p:PackageVersion=%PACKAGE_VERSION%
     -p:AssemblyVersion=%ASSEMBLY_VERSION%
-test:
-  assemblies:
-    - 'Tests\bin\Release\net472\Tests.dll'
-    - 'Tests\bin\Release\netcoreapp2.2\Tests.dll'
+- cmd: dotnet test
 artifacts:
 - path: nugets\*.nupkg
