@@ -1,11 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFrameworks>net46;netstandard2.0</TargetFrameworks>
     <DebugType>portable</DebugType>
-    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FodyHelpers" Version="4.2.1" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" Condition="'$(TargetFramework)' == 'net46'">
+      <HintPath>..\..\..\..\.nuget\packages\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0\System.ValueTuple.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
