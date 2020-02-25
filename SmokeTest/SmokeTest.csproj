@@ -1,19 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net452;net472;netstandard2.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fody" Version="6.0.5">
+    <PackageReference Include="Fody" Version="4.2.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
+  <PropertyGroup>
+    <WeaverTargetFolder Condition="$(MSBuildRuntimeType) != 'Core'">Net46</WeaverTargetFolder>
+    <WeaverTargetFolder Condition="$(MSBuildRuntimeType) == 'Core'">netstandard2.0</WeaverTargetFolder>
+  </PropertyGroup>
+
   <ItemGroup>
-    <WeaverFiles Include="$(SolutionDir)DeepCopy.Fody\bin\$(Configuration)\netstandard2.0\DeepCopy.Fody.dll" />
+    <WeaverFiles Include="$(SolutionDir)DeepCopy.Fody\bin\$(Configuration)\$(WeaverTargetFolder)\DeepCopy.Fody.dll" />
   </ItemGroup>
 
   <ItemGroup>
