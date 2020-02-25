@@ -158,7 +158,7 @@ namespace DeepCopy.Fody
                         body.Instructions.Insert(index++, instruction);
                 }
 
-                LogInfo.Invoke($"{type.FullName} -> {(properties.Count == 0 ? "no properties" : string.Join(", ", properties))}");
+                WriteInfo($"{type.FullName} -> {(properties.Count == 0 ? "no properties" : string.Join(", ", properties))}");
 
                 if (body.HasVariables)
                     body.InitLocals = true;
