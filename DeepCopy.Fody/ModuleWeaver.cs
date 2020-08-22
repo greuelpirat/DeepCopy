@@ -40,9 +40,17 @@ namespace DeepCopy.Fody
         {
             foreach (var method in ModuleDefinition.Types.WithNestedTypes().SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
             {
-                var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
-                InjectDeepCopyExtension(method, attribute);
-                method.CustomAttributes.Remove(attribute);
+                try
+                {
+                    var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
+                    InjectDeepCopyExtension(method, attribute);
+                    method.CustomAttributes.Remove(attribute);
+                }
+                catch (DeepCopyException exception)
+                {
+                    exception.ProcessingType = method;
+                    WriteError(exception.Message);
+                }
             }
         }
 
@@ -51,21 +59,40 @@ namespace DeepCopy.Fody
             foreach (var target in AddDeepCopyConstructorTargets.Values)
             {
                 if (target.HasCopyConstructor(out _))
-                    throw new DeepCopyException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                {
+                    WriteError($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                    continue;
+                }
 
-                AddDeepConstructor(target);
+                try
+                {
+                    AddDeepConstructor(target);
+                }
+                catch (DeepCopyException exception)
+                {
+                    exception.ProcessingType = target;
+                    WriteError(exception.Message);
+                }
             }
 
-            foreach (var target in ModuleDefinition.Types.WithNestedTypes())
+            foreach (var target in ModuleDefinition.Types.WithNestedTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)))
             {
-                if (!target.AnyAttribute(AddDeepCopyConstructorAttribute))
-                    continue;
-
                 if (target.HasCopyConstructor(out _))
-                    throw new DeepCopyException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                {
+                    WriteError($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                    continue;
+                }
 
-                AddDeepConstructor(target);
-                target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
+                try
+                {
+                    AddDeepConstructor(target);
+                    target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
+                }
+                catch (DeepCopyException exception)
+                {
+                    exception.ProcessingType = target;
+                    WriteError(exception.Message);
+                }
             }
         }
 
@@ -75,16 +102,30 @@ namespace DeepCopy.Fody
             {
                 var constructors = target.GetConstructors().Where(c => c.AnyAttribute(InjectDeepCopyAttribute)).ToList();
                 if (constructors.Count > 1)
-                    throw new DeepCopyException($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
+                {
+                    WriteError($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
+                    continue;
+                }
                 var constructor = constructors.Single();
                 if (constructor.Parameters.Count != 1
                     || constructor.Parameters.Single().ParameterType.Resolve().MetadataToken != target.Resolve().MetadataToken)
-                    throw new DeepCopyException($"Constructor {constructor} is no copy constructor");
+                {
+                    WriteError($"Constructor {constructor} is no copy constructor");
+                    continue;
+                }
 
-                var constructorResolved = constructor.Resolve();
-                constructorResolved.Body.SimplifyMacros();
-                InsertCopyInstructions(target, constructorResolved, null);
-                constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
+                try
+                {
+                    var constructorResolved = constructor.Resolve();
+                    constructorResolved.Body.SimplifyMacros();
+                    InsertCopyInstructions(target, constructorResolved, null);
+                    constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
+                }
+                catch (DeepCopyException exception)
+                {
+                    exception.ProcessingType = target;
+                    WriteError(exception.Message);
+                }
             }
         }
 
