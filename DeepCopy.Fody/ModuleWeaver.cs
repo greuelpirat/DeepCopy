@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using DeepCopy.Fody.Utils;
+﻿using DeepCopy.Fody.Utils;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 
 #region ModuleWeaver
 
@@ -102,6 +102,10 @@ namespace DeepCopy.Fody
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(TypeSystem.ObjectDefinition));
             }
+            else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(ValueType)))
+            {
+                // nothing to do here
+            }
             else if (IsCopyConstructorAvailable(type.BaseType, out var baseConstructor))
             {
                 processor.Emit(OpCodes.Ldarg_0);
@@ -141,8 +145,7 @@ namespace DeepCopy.Fody
             {
                 CurrentBody.Value = body;
 
-                var baseConstructorCall = body.Instructions.Single(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference method && method.Name == ConstructorName);
-                var index = body.Instructions.IndexOf(baseConstructorCall) + 1;
+                var index = FindCopyInsertionIndex(type, body);
                 var properties = new List<string>();
 
                 if (baseCopyInstruction != null)
@@ -179,6 +182,17 @@ namespace DeepCopy.Fody
             {
                 CurrentBody.Value = null;
             }
+        }
+
+        private static int FindCopyInsertionIndex(TypeReference type, MethodBody body)
+        {
+            if (type.IsValueType)
+                return 0;
+            
+            var baseConstructorCall = body.Instructions.SingleOrDefault(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference method && method.Name == ConstructorName);
+            if (baseConstructorCall == null)
+                throw new DeepCopyException("Call of base constructor not found");
+            return body.Instructions.IndexOf(baseConstructorCall) + 1;
         }
 
         #region Setup

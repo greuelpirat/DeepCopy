@@ -37,6 +37,17 @@ namespace Tests
             instance.String = "Hello " + Random.Next();
             return instance;
         }
+        
+        private static dynamic CreateSomeStruct()
+        {
+            var instance = CreateTestInstance(typeof(SomeStruct));
+            instance.Integer = Random.Next();
+            instance.Enum = (int) SomeEnum.Value1;
+            instance.DateTime = DateTime.Now;
+            instance.String = "Hello " + Random.Next();
+            instance.Object = CreateSomeObject();
+            return instance;
+        }
 
         private static dynamic CreateSomeKey()
         {
