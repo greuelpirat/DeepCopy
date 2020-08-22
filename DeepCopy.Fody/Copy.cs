@@ -30,7 +30,7 @@ namespace DeepCopy.Fody
                 {
                     Instruction.Create(OpCodes.Ldarg_0),
                     Instruction.Create(OpCodes.Ldarg_1),
-                    Instruction.Create(OpCodes.Callvirt, property.GetMethod),
+                    property.CreateGetInstruction(),
                     property.CreateSetInstruction()
                 };
                 return true;

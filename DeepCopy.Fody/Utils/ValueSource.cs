@@ -56,7 +56,7 @@ namespace DeepCopy.Fody.Utils
                 yield return Instruction.Create(OpCodes.Ldarg_1);
 
             if (_property != null)
-                yield return Instruction.Create(OpCodes.Callvirt, _property.GetMethod);
+                yield return _property.CreateGetInstruction();
 
             if (_index != null)
             {

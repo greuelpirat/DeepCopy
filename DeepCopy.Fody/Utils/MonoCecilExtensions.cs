@@ -71,7 +71,7 @@ namespace DeepCopy.Fody.Utils
         public static bool GetProperty(this CustomAttribute attribute, string name, bool defaultValue)
         {
             if (attribute.Properties.Any(p => p.Name == name))
-                return (bool) attribute.Properties.Single(p => p.Name == name).Argument.Value;
+                return (bool)attribute.Properties.Single(p => p.Name == name).Argument.Value;
             return defaultValue;
         }
 
@@ -87,13 +87,18 @@ namespace DeepCopy.Fody.Utils
 
         public static Instruction CreateSetInstruction(this PropertyDefinition property)
         {
-            if (property.SetMethod != null)
-                return Instruction.Create(OpCodes.Call, property.SetMethod);
+            var setter = property.SetMethod;
+            if (setter != null)
+                return Instruction.Create(setter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, setter);
             var field = property.GetBackingField();
             return field != null ? Instruction.Create(OpCodes.Stfld, field) : null;
         }
 
-        public static Instruction CreateGetInstruction(this PropertyDefinition property) => Instruction.Create(OpCodes.Call, property.GetMethod);
+        public static Instruction CreateGetInstruction(this PropertyDefinition property)
+        {
+            var getter = property.GetMethod;
+            return Instruction.Create(getter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getter);
+        }
 
         public static Instruction CreateLoadInstruction(this VariableDefinition variable) => Instruction.Create(OpCodes.Ldloc, variable);
     }
