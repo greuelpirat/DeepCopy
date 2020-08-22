@@ -83,7 +83,7 @@ namespace DeepCopy.Fody
 
                 var constructorResolved = constructor.Resolve();
                 constructorResolved.Body.SimplifyMacros();
-                InsertCopyInstructions(target, constructorResolved.Body, null);
+                InsertCopyInstructions(target, constructorResolved, null);
                 constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
             }
         }
@@ -133,16 +133,18 @@ namespace DeepCopy.Fody
             else
                 throw new NoCopyConstructorFoundException(type.BaseType);
 
-            InsertCopyInstructions(type, constructor.Body, baseCopyFunc);
+            InsertCopyInstructions(type, constructor, baseCopyFunc);
 
             processor.Emit(OpCodes.Ret);
             type.Methods.Add(constructor);
         }
 
-        private void InsertCopyInstructions(TypeDefinition type, MethodBody body, Func<TypeReference, IEnumerable<Instruction>> baseCopyInstruction)
+        private void InsertCopyInstructions(TypeDefinition type, MethodDefinition constructor, Func<TypeReference, IEnumerable<Instruction>> baseCopyInstruction)
         {
             try
             {
+                var body = constructor.Body;
+                var parameter = type.IsValueType ? constructor.Parameters.Single() : null;
                 CurrentBody.Value = body;
 
                 var index = FindCopyInsertionIndex(type, body);
@@ -154,7 +156,7 @@ namespace DeepCopy.Fody
 
                 foreach (var property in type.Properties)
                 {
-                    if (!TryCopy(property, out var instructions))
+                    if (!TryCopy(parameter, property, out var instructions))
                         continue;
                     properties.Add(property.Name);
                     foreach (var instruction in instructions)
@@ -188,7 +190,7 @@ namespace DeepCopy.Fody
         {
             if (type.IsValueType)
                 return 0;
-            
+
             var baseConstructorCall = body.Instructions.SingleOrDefault(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference method && method.Name == ConstructorName);
             if (baseConstructorCall == null)
                 throw new DeepCopyException("Call of base constructor not found");

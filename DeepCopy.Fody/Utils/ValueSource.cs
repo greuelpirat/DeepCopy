@@ -13,6 +13,7 @@ namespace DeepCopy.Fody.Utils
             return new ValueSource();
         }
 
+        private ParameterDefinition _parameter;
         private PropertyDefinition _property;
         private VariableDefinition _variable;
         private VariableDefinition _index;
@@ -44,6 +45,12 @@ namespace DeepCopy.Fody.Utils
             return this;
         }
 
+        public ValueSource SourceParameter(ParameterDefinition parameter)
+        {
+            _parameter = parameter;
+            return this;
+        }
+
         private IEnumerable<Instruction> Build()
         {
             if (_variable != null)
@@ -52,6 +59,8 @@ namespace DeepCopy.Fody.Utils
                                    || _property == null && _method == null && _index == null;
                 yield return Instruction.Create(loadVariable ? OpCodes.Ldloc : OpCodes.Ldloca, _variable);
             }
+            else if (_parameter != null)
+                yield return Instruction.Create(OpCodes.Ldarga, _parameter);
             else
                 yield return Instruction.Create(OpCodes.Ldarg_1);
 

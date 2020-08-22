@@ -7,7 +7,7 @@ namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {
-        private bool TryCopy(PropertyDefinition property, out IEnumerable<Instruction> instructions)
+        private bool TryCopy(ParameterDefinition sourceParameter, PropertyDefinition property, out IEnumerable<Instruction> instructions)
         {
             if (property.AnyAttribute(IgnoreDuringDeepCopyAttribute))
             {
@@ -36,7 +36,7 @@ namespace DeepCopy.Fody
                 return true;
             }
 
-            var source = ValueSource.New().Property(property);
+            var source = ValueSource.New().Property(property).SourceParameter(sourceParameter);
             var target = ValueTarget.New().Property(property);
 
             var list = new List<Instruction>();
