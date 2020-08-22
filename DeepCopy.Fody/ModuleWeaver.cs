@@ -5,7 +5,6 @@ using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -46,10 +45,9 @@ namespace DeepCopy.Fody
                     InjectDeepCopyExtension(method, attribute);
                     method.CustomAttributes.Remove(attribute);
                 }
-                catch (DeepCopyException exception)
+                catch (Exception exception)
                 {
-                    exception.ProcessingType = method;
-                    WriteError(exception.Message);
+                    throw WrapException(exception, method);
                 }
             }
         }
@@ -68,10 +66,9 @@ namespace DeepCopy.Fody
                 {
                     AddDeepConstructor(target);
                 }
-                catch (DeepCopyException exception)
+                catch (Exception exception)
                 {
-                    exception.ProcessingType = target;
-                    WriteError(exception.Message);
+                    throw WrapException(exception, target);
                 }
             }
 
@@ -88,10 +85,9 @@ namespace DeepCopy.Fody
                     AddDeepConstructor(target);
                     target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
                 }
-                catch (DeepCopyException exception)
+                catch (Exception exception)
                 {
-                    exception.ProcessingType = target;
-                    WriteError(exception.Message);
+                    throw WrapException(exception, target);
                 }
             }
         }
@@ -121,10 +117,9 @@ namespace DeepCopy.Fody
                     InsertCopyInstructions(target, constructorResolved, null);
                     constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
                 }
-                catch (DeepCopyException exception)
+                catch (Exception exception)
                 {
-                    exception.ProcessingType = target;
-                    WriteError(exception.Message);
+                    throw WrapException(exception, target);
                 }
             }
         }
@@ -211,16 +206,6 @@ namespace DeepCopy.Fody
 
                 body.OptimizeMacros();
             }
-            catch (DeepCopyException exception)
-            {
-                exception.ProcessingType = type;
-                throw;
-            }
-            catch (Exception exception)
-            {
-                Debug.WriteLine(exception);
-                throw new DeepCopyException(exception.Message) { ProcessingType = type };
-            }
             finally
             {
                 CurrentBody.Value = null;
@@ -246,6 +231,14 @@ namespace DeepCopy.Fody
         {
             yield return "netstandard";
             yield return "mscorlib";
+        }
+
+        private static Exception WrapException(Exception exception, MemberReference processingType)
+        {
+            if (!(exception is DeepCopyException deepCopyException))
+                deepCopyException = new DeepCopyException(exception.Message);
+            deepCopyException.ProcessingType = processingType;
+            return deepCopyException;
         }
 
         #endregion
