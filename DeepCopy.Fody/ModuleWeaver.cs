@@ -90,12 +90,13 @@ namespace DeepCopy.Fody
 
             Func<TypeReference, IEnumerable<Instruction>> baseCopyFunc = null;
 
-            if (type.BaseType.Resolve().MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
+            var baseElementType = type.BaseType.GetElementType().Resolve();
+            if (IsType(baseElementType, typeof(object)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
-                processor.Emit(OpCodes.Call, ImportDefaultConstructor(TypeSystem.ObjectDefinition));
+                processor.Emit(OpCodes.Call, ImportDefaultConstructor(ImportType(typeof(object))));
             }
-            else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(ValueType)))
+            else if (IsType(baseElementType, typeof(ValueType)))
             {
                 // nothing to do here
             }
@@ -105,19 +106,19 @@ namespace DeepCopy.Fody
                 processor.Emit(OpCodes.Ldarg_1);
                 processor.Emit(OpCodes.Call, baseConstructor);
             }
-            else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(Dictionary<,>)))
+            else if (IsType(baseElementType, typeof(Dictionary<,>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
                 baseCopyFunc = reference => CopyDictionary(reference, ValueSource.New(), ValueTarget.New());
             }
-            else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(List<>)))
+            else if (IsType(baseElementType, typeof(List<>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
                 baseCopyFunc = reference => CopyList(reference, ValueSource.New(), ValueTarget.New());
             }
-            else if (IsType(type.BaseType.GetElementType().Resolve(), typeof(HashSet<>)))
+            else if (IsType(baseElementType, typeof(HashSet<>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
