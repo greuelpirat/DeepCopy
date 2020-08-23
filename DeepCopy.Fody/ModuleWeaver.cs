@@ -90,7 +90,7 @@ namespace DeepCopy.Fody
 
             Func<TypeReference, IEnumerable<Instruction>> baseCopyFunc = null;
 
-            if (type.BaseType.Resolve().MetadataToken.Equals(TypeSystem.ObjectDefinition.MetadataToken))
+            if (type.BaseType.Resolve().MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(TypeSystem.ObjectDefinition));
@@ -124,7 +124,9 @@ namespace DeepCopy.Fody
                 baseCopyFunc = reference => CopySet(reference, ValueSource.New(), ValueTarget.New());
             }
             else
-                throw new WeavingException(Message.NoCopyConstructorFound(type.BaseType));
+                throw new WeavingException(Message.NoCopyConstructorFound(type.BaseType)
+                                           + Environment.NewLine
+                                           + $"AddDeepConstructor to {type} : {type.BaseType}={type.BaseType.Resolve().MetadataToken} ({TypeSystem.ObjectDefinition.MetadataToken})");
 
             InsertCopyInstructions(type, constructor, baseCopyFunc);
 
