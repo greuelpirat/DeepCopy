@@ -7,7 +7,7 @@ namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {
-        private bool TryCopy(ParameterDefinition sourceParameter, PropertyDefinition property, out IEnumerable<Instruction> instructions)
+        private bool TryCopy(ParameterDefinition sourceValueType, PropertyDefinition property, out IEnumerable<Instruction> instructions)
         {
             if (property.AnyAttribute(IgnoreDuringDeepCopyAttribute))
             {
@@ -29,14 +29,16 @@ namespace DeepCopy.Fody
                 instructions = new[]
                 {
                     Instruction.Create(OpCodes.Ldarg_0),
-                    Instruction.Create(OpCodes.Ldarg_1),
+                    sourceValueType != null
+                        ? Instruction.Create(OpCodes.Ldarga, sourceValueType)
+                        : Instruction.Create(OpCodes.Ldarg_1),
                     property.CreateGetInstruction(),
                     property.CreateSetInstruction()
                 };
                 return true;
             }
 
-            var source = ValueSource.New().Property(property).SourceParameter(sourceParameter);
+            var source = ValueSource.New().Property(property).SourceParameter(sourceValueType);
             var target = ValueTarget.New().Property(property);
 
             var list = new List<Instruction>();

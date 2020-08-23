@@ -24,5 +24,17 @@ namespace Tests
 
             AssertCopyOfSomeClass(instance.Object, copy.Object);
         }
+
+        [Fact]
+        public void TestStructWithReference()
+        {
+            var instance = CreateTestInstance(typeof(StructWithReference));
+            instance.Object = CreateSomeObject();
+            var copy = Activator.CreateInstance(GetTestType(typeof(StructWithReference)), instance);
+
+            Assert.NotNull(copy);
+            Assert.NotSame(instance, copy);
+            Assert.Same(instance.Object, copy.Object);
+        }
     }
 }

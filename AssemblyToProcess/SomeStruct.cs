@@ -12,4 +12,11 @@ namespace AssemblyToProcess
         public string String { get; set; }
         public SomeObject Object { get; set; }
     }
+    
+    [AddDeepCopyConstructor]
+    public struct StructWithReference
+    {
+        [DeepCopyByReference]
+        public SomeObject Object { get; set; }
+    }
 }

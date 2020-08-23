@@ -180,7 +180,7 @@ namespace DeepCopy.Fody
             try
             {
                 var body = constructor.Body;
-                var parameter = type.IsValueType ? constructor.Parameters.Single() : null;
+                var sourceValueType = type.IsValueType ? constructor.Parameters.Single() : null;
                 CurrentBody.Value = body;
 
                 var index = FindCopyInsertionIndex(type, body);
@@ -192,7 +192,7 @@ namespace DeepCopy.Fody
 
                 foreach (var property in type.Properties)
                 {
-                    if (!TryCopy(parameter, property, out var instructions))
+                    if (!TryCopy(sourceValueType, property, out var instructions))
                         continue;
                     properties.Add(property.Name);
                     foreach (var instruction in instructions)
