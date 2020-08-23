@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DeepCopy.Fody.Utils;
+using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -113,10 +114,10 @@ namespace DeepCopy.Fody
                 if (IsType(typeResolved, supportedInterface))
                     typeOfInstance = ImportType(defaultType, typesOfArguments);
                 else
-                    throw new NotSupportedException(type);
+                    throw new WeavingException(Message.NotSupported(type));
             }
             else if (!typeResolved.HasDefaultConstructor())
-                throw new NotSupportedException(type);
+                throw new WeavingException(Message.NotSupported(type));
 
             var constructor = ModuleDefinition.ImportReference(NewConstructor(typeOfInstance).MakeGeneric(typesOfArguments));
 

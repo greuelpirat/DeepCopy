@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DeepCopy.Fody.Utils;
+using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -99,10 +100,10 @@ namespace DeepCopy.Fody
                 list.AddRange(CopySet(type, source, target));
 
             else if (typeToken == TypeSystem.ObjectDefinition.MetadataToken)
-                throw new NotSupportedException(type);
+                throw new WeavingException(Message.NotSupported(type));
 
             else
-                throw new NoCopyConstructorFoundException(type);
+                throw new WeavingException(Message.NoCopyConstructorFound(type));
 
             return list;
         }

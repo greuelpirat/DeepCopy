@@ -1,3 +1,4 @@
+using Fody;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace DeepCopy.Fody.Utils
             _instructions = instructions;
 
             if (!typeOfEnumerable.TryFindImplementation(typeof(IEnumerable<>), out var typeOfEnumerableImpl))
-                throw new DeepCopyException($"{typeOfEnumerable.FullName} is no IEnumerable");
+                throw new WeavingException($"{typeOfEnumerable.FullName} is no IEnumerable");
 
             var typeOfCurrent = moduleWeaver.ImportType(((GenericInstanceType) typeOfEnumerableImpl).GenericArguments.Single());
 

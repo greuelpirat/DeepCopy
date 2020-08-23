@@ -1,3 +1,4 @@
+using Fody;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,7 +84,7 @@ namespace DeepCopy.Fody.Utils
         {
             var resolved = source.Resolve();
             if (resolved.GenericParameters.Count != arguments.Count)
-                throw new DeepCopyException($"Expected {source.GenericParameters.Count} generic parameters, got {arguments.Count}");
+                throw new WeavingException($"Expected {source.GenericParameters.Count} generic parameters, got {arguments.Count}");
             var instance = new GenericInstanceType(resolved);
             foreach (var argument in arguments)
                 instance.GenericArguments.Add(argument);

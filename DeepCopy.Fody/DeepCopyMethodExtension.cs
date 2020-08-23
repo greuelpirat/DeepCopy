@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DeepCopy.Fody.Utils;
+using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -15,14 +16,14 @@ namespace DeepCopy.Fody
             var copyType = method.ReturnType.Resolve();
 
             if (!method.HasSingleParameter(copyType))
-                throw new DeepCopyException($"{method.FullName} must have one parameter with the same type of the return type");
+                throw new WeavingException($"{method.FullName} must have one parameter with the same type of the return type");
 
             var types = attribute.GetProperty("Inheritance", true)
                 ? FindDerivedTypes(copyType).ToList()
                 : new List<TypeDefinition> { copyType };
 
             if (types.Count == 0 || types.All(t => t.IsAbstract))
-                throw new DeepCopyException($"{method.FullName} has no types to copy (check abstraction)");
+                throw new WeavingException($"{method.FullName} has no types to copy (check abstraction)");
 
             DeepCopyExtensions[copyType.MetadataToken] = method;
 
@@ -131,7 +132,7 @@ namespace DeepCopy.Fody
             else
             {
                 if (!IsCopyConstructorAvailable(baseType, out var constructor))
-                    throw new NoCopyConstructorFoundException(baseType);
+                    throw new WeavingException(Message.NoCopyConstructorFound(baseType));
 
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Newobj, constructor);

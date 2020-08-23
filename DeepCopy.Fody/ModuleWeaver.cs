@@ -39,56 +39,26 @@ namespace DeepCopy.Fody
         {
             foreach (var method in ModuleDefinition.Types.WithNestedTypes().SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
             {
-                try
-                {
-                    var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
-                    InjectDeepCopyExtension(method, attribute);
-                    method.CustomAttributes.Remove(attribute);
-                }
-                catch (Exception exception)
-                {
-                    throw WrapException(exception, method);
-                }
+                var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
+                InjectDeepCopyExtension(method, attribute);
+                method.CustomAttributes.Remove(attribute);
             }
         }
 
         private void ExecuteAddDeepCopyConstructor()
         {
-            foreach (var target in AddDeepCopyConstructorTargets.Values)
+            var targets = AddDeepCopyConstructorTargets.Values.Select(t => (t, false))
+                .Concat(ModuleDefinition.Types.WithNestedTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)).Select(t => (t, true)));
+
+            foreach (var (target, removeAttribute) in targets)
             {
                 if (target.HasCopyConstructor(out _))
-                {
-                    WriteError($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
-                    continue;
-                }
+                    throw new WeavingException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
 
-                try
-                {
-                    AddDeepConstructor(target);
-                }
-                catch (Exception exception)
-                {
-                    throw WrapException(exception, target);
-                }
-            }
+                AddDeepConstructor(target);
 
-            foreach (var target in ModuleDefinition.Types.WithNestedTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)))
-            {
-                if (target.HasCopyConstructor(out _))
-                {
-                    WriteError($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
-                    continue;
-                }
-
-                try
-                {
-                    AddDeepConstructor(target);
+                if (removeAttribute)
                     target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
-                }
-                catch (Exception exception)
-                {
-                    throw WrapException(exception, target);
-                }
             }
         }
 
@@ -98,29 +68,16 @@ namespace DeepCopy.Fody
             {
                 var constructors = target.GetConstructors().Where(c => c.AnyAttribute(InjectDeepCopyAttribute)).ToList();
                 if (constructors.Count > 1)
-                {
-                    WriteError($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
-                    continue;
-                }
+                    throw new WeavingException($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
                 var constructor = constructors.Single();
                 if (constructor.Parameters.Count != 1
                     || constructor.Parameters.Single().ParameterType.Resolve().MetadataToken != target.Resolve().MetadataToken)
-                {
-                    WriteError($"Constructor {constructor} is no copy constructor");
-                    continue;
-                }
+                    throw new WeavingException($"Constructor {constructor} is no copy constructor");
 
-                try
-                {
-                    var constructorResolved = constructor.Resolve();
-                    constructorResolved.Body.SimplifyMacros();
-                    InsertCopyInstructions(target, constructorResolved, null);
-                    constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
-                }
-                catch (Exception exception)
-                {
-                    throw WrapException(exception, target);
-                }
+                var constructorResolved = constructor.Resolve();
+                constructorResolved.Body.SimplifyMacros();
+                InsertCopyInstructions(target, constructorResolved, null);
+                constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
             }
         }
 
@@ -167,7 +124,7 @@ namespace DeepCopy.Fody
                 baseCopyFunc = reference => CopySet(reference, ValueSource.New(), ValueTarget.New());
             }
             else
-                throw new NoCopyConstructorFoundException(type.BaseType);
+                throw new WeavingException(Message.NoCopyConstructorFound(type.BaseType));
 
             InsertCopyInstructions(type, constructor, baseCopyFunc);
 
@@ -219,7 +176,7 @@ namespace DeepCopy.Fody
 
             var baseConstructorCall = body.Instructions.SingleOrDefault(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference method && method.Name == ConstructorName);
             if (baseConstructorCall == null)
-                throw new DeepCopyException("Call of base constructor not found");
+                throw new WeavingException("Call of base constructor not found");
             return body.Instructions.IndexOf(baseConstructorCall) + 1;
         }
 
@@ -231,14 +188,6 @@ namespace DeepCopy.Fody
         {
             yield return "netstandard";
             yield return "mscorlib";
-        }
-
-        private static Exception WrapException(Exception exception, MemberReference processingType)
-        {
-            if (!(exception is DeepCopyException deepCopyException))
-                deepCopyException = new DeepCopyException(exception.Message);
-            deepCopyException.ProcessingType = processingType;
-            return deepCopyException;
         }
 
         #endregion

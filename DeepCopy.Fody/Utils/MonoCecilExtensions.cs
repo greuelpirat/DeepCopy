@@ -1,3 +1,4 @@
+using Fody;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
@@ -24,7 +25,7 @@ namespace DeepCopy.Fody.Utils
             if (type.TryFindMethod(name, out var method))
                 return method;
 
-            throw new DeepCopyException($"{type.FullName} has no method {name}");
+            throw new WeavingException($"{type.FullName} has no method {name}");
         }
 
         public static FieldDefinition GetBackingField(this PropertyDefinition property)
