@@ -11,9 +11,22 @@ namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {
+        #region TypeSystem-Replacements
+
+        private TypeDefinition _stringDefinition;
+        private TypeDefinition _objectDefinition;
+        private TypeDefinition _voidDefinition;
+        private TypeDefinition _int32Definition;
+        private TypeDefinition StringDefinition => _stringDefinition ??= ImportType(typeof(string)).Resolve();
+        private TypeDefinition ObjectDefinition => _objectDefinition ??= ImportType(typeof(object)).Resolve();
+        private TypeDefinition VoidDefinition => _voidDefinition ??= ImportType(typeof(void)).Resolve();
+        private TypeDefinition Int32Definition => _int32Definition ??= ImportType(typeof(int)).Resolve();
+
+        #endregion
+
         private MethodReference NewConstructor(TypeReference type, TypeReference parameter = null)
         {
-            var constructor = new MethodReference(ConstructorName, TypeSystem.VoidDefinition, type) { HasThis = true };
+            var constructor = new MethodReference(ConstructorName, VoidDefinition, type) { HasThis = true };
             if (parameter != null)
                 constructor.Parameters.Add(new ParameterDefinition(parameter));
             return constructor;
@@ -65,9 +78,9 @@ namespace DeepCopy.Fody
         private MethodReference StringCopy()
         {
             return ModuleDefinition.ImportReference(
-                new MethodReference(nameof(string.Copy), TypeSystem.StringDefinition, TypeSystem.StringDefinition)
+                new MethodReference(nameof(string.Copy), StringDefinition, StringDefinition)
                 {
-                    Parameters = { new ParameterDefinition(TypeSystem.StringDefinition) }
+                    Parameters = { new ParameterDefinition(StringDefinition) }
                 });
         }
 

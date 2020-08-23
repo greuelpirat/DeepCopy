@@ -12,7 +12,7 @@ namespace DeepCopy.Fody
             var type = ((ArrayType) property.PropertyType).GetElementType();
 
             var loopStart = Instruction.Create(OpCodes.Nop);
-            var index = NewVariable(TypeSystem.Int32Definition);
+            var index = NewVariable(Int32Definition);
             var conditionStart = Instruction.Create(OpCodes.Ldloc, index);
 
             var list = new List<Instruction>
