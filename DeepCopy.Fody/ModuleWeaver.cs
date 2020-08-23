@@ -90,7 +90,7 @@ namespace DeepCopy.Fody
 
             Func<TypeReference, IEnumerable<Instruction>> baseCopyFunc = null;
 
-            if (type.BaseType.Resolve().MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
+            if (type.BaseType.Resolve().MetadataToken.Equals(TypeSystem.ObjectDefinition.MetadataToken))
             {
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Call, ImportDefaultConstructor(TypeSystem.ObjectDefinition));
