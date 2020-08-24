@@ -8,8 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-#region ModuleWeaver
-
 namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver : BaseModuleWeaver
@@ -30,12 +28,13 @@ namespace DeepCopy.Fody
 
         public override void Execute()
         {
-            ExecuteDeepCopyExtensions();
-            ExecuteAddDeepCopyConstructor();
-            ExecuteInjectDeepCopy();
+            CreateDeepCopyExtensions();
+            AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values, false);
+            AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)), true);
+            InjectDeepCopyConstructors();
         }
 
-        private void ExecuteDeepCopyExtensions()
+        private void CreateDeepCopyExtensions()
         {
             foreach (var method in ModuleDefinition.GetTypes().SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
             {
@@ -45,12 +44,9 @@ namespace DeepCopy.Fody
             }
         }
 
-        private void ExecuteAddDeepCopyConstructor()
+        private void AddDeepCopyConstructors(IEnumerable<TypeDefinition> targets, bool removeAttribute)
         {
-            var targets = AddDeepCopyConstructorTargets.Values.Select(t => (t, false))
-                .Concat(ModuleDefinition.GetTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)).Select(t => (t, true)));
-
-            foreach (var (target, removeAttribute) in targets)
+            foreach (var target in targets)
             {
                 if (target.HasCopyConstructor(out _))
                     throw new WeavingException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
@@ -62,7 +58,7 @@ namespace DeepCopy.Fody
             }
         }
 
-        private void ExecuteInjectDeepCopy()
+        private void InjectDeepCopyConstructors()
         {
             foreach (var target in ModuleDefinition.Types.Where(t => t.GetConstructors().Any(c => c.AnyAttribute(InjectDeepCopyAttribute))))
             {
@@ -194,5 +190,3 @@ namespace DeepCopy.Fody
         #endregion
     }
 }
-
-#endregion
