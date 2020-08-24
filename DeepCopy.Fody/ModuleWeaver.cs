@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using TypeSystem = Fody.TypeSystem;
 
 namespace DeepCopy.Fody
 {
@@ -28,6 +29,8 @@ namespace DeepCopy.Fody
 
         public override void Execute()
         {
+            TypeSystem = new TypeSystem(name => ImportType(Type.GetType(name)).Resolve(), ModuleDefinition);
+            
             CreateDeepCopyExtensions();
             AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values, false);
             AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)), true);
