@@ -6,6 +6,5 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FodyHelpers" Version="6.2.4" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 </Project>
