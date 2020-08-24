@@ -76,7 +76,7 @@ namespace DeepCopy.Fody
                     list.Add(Instruction.Create(OpCodes.Call, extensionMethod));
                 }
             }
-            else if (typeToken == StringDefinition.MetadataToken)
+            else if (typeToken == TypeSystem.StringDefinition.MetadataToken)
             {
                 using (target.Build(list, out var next))
                 {
@@ -99,7 +99,7 @@ namespace DeepCopy.Fody
             else if (type.IsImplementing(typeof(ISet<>)))
                 list.AddRange(CopySet(type, source, target));
 
-            else if (typeToken == ObjectDefinition.MetadataToken)
+            else if (typeToken == TypeSystem.ObjectDefinition.MetadataToken)
                 throw new WeavingException(Message.NotSupported(type));
 
             else

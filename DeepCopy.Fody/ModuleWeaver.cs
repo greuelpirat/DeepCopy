@@ -83,7 +83,7 @@ namespace DeepCopy.Fody
 
         private void AddDeepConstructor(TypeDefinition type)
         {
-            var constructor = new MethodDefinition(ConstructorName, ConstructorAttributes, VoidDefinition);
+            var constructor = new MethodDefinition(ConstructorName, ConstructorAttributes, TypeSystem.VoidReference);
             constructor.Parameters.Add(new ParameterDefinition(type));
 
             var processor = constructor.Body.GetILProcessor();
@@ -91,10 +91,10 @@ namespace DeepCopy.Fody
             Func<TypeReference, IEnumerable<Instruction>> baseCopyFunc = null;
 
             var baseElementType = type.BaseType.GetElementType().Resolve();
-            if (baseElementType.MetadataToken == ObjectDefinition.MetadataToken)
+            if (baseElementType.MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
             {
                 processor.Emit(OpCodes.Ldarg_0);
-                processor.Emit(OpCodes.Call, ImportDefaultConstructor(ImportType(typeof(object))));
+                processor.Emit(OpCodes.Call, ImportDefaultConstructor(TypeSystem.ObjectDefinition));
             }
             else if (IsType(baseElementType, typeof(ValueType)))
             {
