@@ -148,7 +148,7 @@ namespace DeepCopy.Fody
 
         private IEnumerable<TypeDefinition> FindDerivedTypes(TypeDefinition type)
         {
-            foreach (var derivedType in ModuleDefinition.Types.WithNestedTypes().Where(t => t.Resolve().BaseType?.MetadataToken == type.MetadataToken))
+            foreach (var derivedType in ModuleDefinition.GetTypes().Where(t => t.Resolve().BaseType?.MetadataToken == type.MetadataToken))
             foreach (var derivedOfDerivedType in FindDerivedTypes(derivedType))
                 yield return derivedOfDerivedType;
 

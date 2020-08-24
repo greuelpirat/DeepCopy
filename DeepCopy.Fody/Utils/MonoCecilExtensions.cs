@@ -76,16 +76,6 @@ namespace DeepCopy.Fody.Utils
             return defaultValue;
         }
 
-        public static IEnumerable<TypeDefinition> WithNestedTypes(this IEnumerable<TypeDefinition> enumerable)
-        {
-            foreach (var type in enumerable)
-            {
-                yield return type;
-                foreach (var nestedType in type.NestedTypes.WithNestedTypes())
-                    yield return nestedType;
-            }
-        }
-
         public static Instruction CreateSetInstruction(this PropertyDefinition property)
         {
             var setter = property.SetMethod;
