@@ -10,7 +10,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: 'DeepCopy/DeepCopy.sln'
+  solution: 'DeepCopy.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
