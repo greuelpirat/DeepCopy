@@ -29,6 +29,7 @@ namespace DeepCopy.Fody
 
         public override void Execute()
         {
+            TypeReferenceExt.ModuleWeaver = this;
             CreateDeepCopyExtensions();
             AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values, false);
             AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)), true);

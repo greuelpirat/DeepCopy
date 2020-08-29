@@ -1,13 +1,15 @@
 using Fody;
+using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Mono.Cecil;
 
 namespace DeepCopy.Fody.Utils
 {
     public static class TypeReferenceExt
     {
+        internal static ModuleWeaver ModuleWeaver;
+
         public static bool IsImplementing(this TypeReference type, Type target) => type.TryFindImplementation(target, out _);
 
         public static bool TryFindImplementation(this TypeReference type, Type target, out TypeReference interfaceType)
@@ -42,8 +44,8 @@ namespace DeepCopy.Fody.Utils
         {
             if (!source.IsGenericInstance || !type.IsGenericInstance)
                 return type;
-            var sourceGeneric = (GenericInstanceType) source;
-            var genericTarget = (GenericInstanceType) type;
+            var sourceGeneric = (GenericInstanceType)source;
+            var genericTarget = (GenericInstanceType)type;
 
             var parametersMap = source.ResolveExt().GenericParameters
                 .Zip(sourceGeneric.GenericArguments, (p, a) => new Tuple<GenericParameter, TypeReference>(p, a))
@@ -73,7 +75,7 @@ namespace DeepCopy.Fody.Utils
         public static TypeReference[] GetGenericArguments(this TypeReference type)
         {
             return type.IsGenericInstance
-                ? ((GenericInstanceType) type).GenericArguments.ToArray()
+                ? ((GenericInstanceType)type).GenericArguments.ToArray()
                 : new TypeReference[0];
         }
 
@@ -91,6 +93,14 @@ namespace DeepCopy.Fody.Utils
             return instance;
         }
 
-        public static TypeDefinition ResolveExt(this TypeReference reference) => reference.Resolve() ?? throw new WeavingException($"{reference} not resolved");
+        public static TypeDefinition ResolveExt(this TypeReference reference)
+        {
+            var definition = reference.Resolve();
+            if (definition != null)
+                return definition;
+            if (ModuleWeaver.TryFindTypeDefinition(reference.FullName, out definition))
+                return definition;
+            throw new WeavingException($"{reference.FullName} not found");
+        }
     }
 }
