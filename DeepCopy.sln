@@ -8,14 +8,20 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeepCopy", "DeepCopy\DeepCopy.csproj", "{01544AA5-F19E-44F3-8D7C-3946EB9E6139}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmokeTest", "SmokeTest\SmokeTest.csproj", "{13DB5B6F-2A3F-4E8A-9510-10C16EFB48AD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5119657D-E83E-410A-840D-3926E8A05C89} = {5119657D-E83E-410A-840D-3926E8A05C89}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssemblyToProcess", "AssemblyToProcess\AssemblyToProcess.csproj", "{B7DB25B8-B204-4DF7-9873-C50CA3D768A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{90BB679E-E1A0-4575-8733-696324755E79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnotherAssembly", "AnotherAssembly\AnotherAssembly.csproj", "{D7FF809D-FA0F-4183-87FE-E154B2B6ABD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnotherAssembly", "AnotherAssembly\AnotherAssembly.csproj", "{D7FF809D-FA0F-4183-87FE-E154B2B6ABD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmokeTest472", "SmokeTest472\SmokeTest472.csproj", "{9547A4B0-4796-4D72-8D42-363A3B18C337}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmokeTest472", "SmokeTest472\SmokeTest472.csproj", "{9547A4B0-4796-4D72-8D42-363A3B18C337}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5119657D-E83E-410A-840D-3926E8A05C89} = {5119657D-E83E-410A-840D-3926E8A05C89}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
