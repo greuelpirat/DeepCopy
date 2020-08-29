@@ -68,7 +68,7 @@ namespace DeepCopy.Fody
                     throw new WeavingException($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
                 var constructor = constructors.Single();
                 if (constructor.Parameters.Count != 1
-                    || constructor.Parameters.Single().ParameterType.Resolve().MetadataToken != target.Resolve().MetadataToken)
+                    || constructor.Parameters.Single().ParameterType.ResolveExt().MetadataToken != target.ResolveExt().MetadataToken)
                     throw new WeavingException($"Constructor {constructor} is no copy constructor");
 
                 var constructorResolved = constructor.Resolve();
@@ -87,7 +87,7 @@ namespace DeepCopy.Fody
 
             Func<TypeReference, IEnumerable<Instruction>> baseCopyFunc = null;
 
-            var baseElementType = type.BaseType.GetElementType().Resolve();
+            var baseElementType = type.BaseType.GetElementType().ResolveExt();
             if (baseElementType.MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
             {
                 processor.Emit(OpCodes.Ldarg_0);

@@ -26,7 +26,7 @@ namespace DeepCopy.Fody
 
         private MethodReference ImportDefaultConstructor(TypeReference type)
         {
-            var constructor = type.Resolve().GetConstructors().Single(c => !c.HasParameters && !c.IsStatic);
+            var constructor = type.ResolveExt().GetConstructors().Single(c => !c.HasParameters && !c.IsStatic);
             return ModuleDefinition.ImportReference(type.IsGenericInstance
                 ? constructor.MakeGeneric(type.GetGenericArguments())
                 : constructor);
@@ -34,7 +34,7 @@ namespace DeepCopy.Fody
 
         private bool IsType(IMetadataTokenProvider typeDefinition, Type type)
         {
-            return typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).Resolve().MetadataToken;
+            return typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).ResolveExt().MetadataToken;
         }
 
         internal TypeReference ImportType(Type type, params TypeReference[] genericArguments)
@@ -51,12 +51,12 @@ namespace DeepCopy.Fody
 
         internal MethodReference ImportMethod(Type type, string name, params TypeReference[] genericArguments)
         {
-            return ImportMethod(ModuleDefinition.ImportReference(type).Resolve(), name, genericArguments);
+            return ImportMethod(ModuleDefinition.ImportReference(type).ResolveExt(), name, genericArguments);
         }
 
         internal MethodReference ImportMethod(TypeReference type, string name, params TypeReference[] genericArguments)
         {
-            var method = type.Resolve().GetMethod(name);
+            var method = type.ResolveExt().GetMethod(name);
             if (genericArguments.Length > 0)
                 method = method.MakeGeneric(genericArguments);
             return ModuleDefinition.ImportReference(method);
@@ -79,7 +79,7 @@ namespace DeepCopy.Fody
                 return false;
             }
 
-            var resolved = type.Resolve();
+            var resolved = type.ResolveExt();
             if (resolved.HasCopyConstructor(out var existingConstructor))
             {
                 constructor = ModuleDefinition.ImportReference(existingConstructor);
@@ -105,7 +105,7 @@ namespace DeepCopy.Fody
 
         private IEnumerable<Instruction> NewInstance(TypeReference type, Type supportedInterface, Type defaultType, out VariableDefinition variable)
         {
-            var typeResolved = type.Resolve();
+            var typeResolved = type.ResolveExt();
             var typesOfArguments = type.GetGenericArguments();
             TypeReference typeOfInstance = typeResolved;
 

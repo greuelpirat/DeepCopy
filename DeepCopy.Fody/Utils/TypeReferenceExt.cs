@@ -18,7 +18,7 @@ namespace DeepCopy.Fody.Utils
 
         public static bool TryFindMethod(this TypeReference type, string name, out MethodReference method)
         {
-            method = type.TraverseHierarchy().SelectMany(t => t.Resolve().Methods).FirstOrDefault(m => m.Name == name);
+            method = type.TraverseHierarchy().SelectMany(t => t.ResolveExt().Methods).FirstOrDefault(m => m.Name == name);
             return method != null;
         }
 
@@ -28,7 +28,7 @@ namespace DeepCopy.Fody.Utils
             do
             {
                 yield return current;
-                var resolved = current.Resolve();
+                var resolved = current.ResolveExt();
 
                 foreach (var @interface in resolved.Interfaces)
                 foreach (var reference in @interface.InterfaceType.ApplyGenericsFrom(current).TraverseHierarchy())
@@ -45,7 +45,7 @@ namespace DeepCopy.Fody.Utils
             var sourceGeneric = (GenericInstanceType) source;
             var genericTarget = (GenericInstanceType) type;
 
-            var parametersMap = source.Resolve().GenericParameters
+            var parametersMap = source.ResolveExt().GenericParameters
                 .Zip(sourceGeneric.GenericArguments, (p, a) => new Tuple<GenericParameter, TypeReference>(p, a))
                 .ToDictionary(t => t.Item1.Name, t => t.Item2);
 
@@ -82,7 +82,7 @@ namespace DeepCopy.Fody.Utils
 
         public static TypeReference MakeGeneric(this TypeReference source, ICollection<TypeReference> arguments)
         {
-            var resolved = source.Resolve();
+            var resolved = source.ResolveExt();
             if (resolved.GenericParameters.Count != arguments.Count)
                 throw new WeavingException($"Expected {source.GenericParameters.Count} generic parameters, got {arguments.Count}");
             var instance = new GenericInstanceType(resolved);
@@ -90,5 +90,7 @@ namespace DeepCopy.Fody.Utils
                 instance.GenericArguments.Add(argument);
             return instance;
         }
+
+        public static TypeDefinition ResolveExt(this TypeReference reference) => reference.Resolve() ?? throw new WeavingException($"{reference} not resolved");
     }
 }

@@ -33,7 +33,7 @@ namespace DeepCopy.Fody
                 loopStart
             };
 
-            list.AddRange(CopyArrayItem(property, type.Resolve(), index));
+            list.AddRange(CopyArrayItem(property, type.ResolveExt(), index));
 
             // increment index
             list.Add(Instruction.Create(OpCodes.Ldloc, index));

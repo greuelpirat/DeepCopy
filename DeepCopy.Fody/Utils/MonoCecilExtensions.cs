@@ -46,7 +46,7 @@ namespace DeepCopy.Fody.Utils
         public static bool HasSingleParameter(this MethodDefinition method, TypeDefinition parameterType)
         {
             return method.Parameters.Count == 1
-                   && method.Parameters.Single().ParameterType.Resolve().MetadataToken == parameterType.MetadataToken;
+                   && method.Parameters.Single().ParameterType.ResolveExt().MetadataToken == parameterType.MetadataToken;
         }
 
         public static MethodReference MakeGeneric(this MethodReference source, params TypeReference[] arguments)

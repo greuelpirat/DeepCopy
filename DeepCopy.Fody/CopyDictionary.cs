@@ -32,7 +32,7 @@ namespace DeepCopy.Fody
                     list.Add(variable?.CreateLoadInstruction() ?? Instruction.Create(OpCodes.Ldarg_0));
                     list.Add(targetKey.CreateLoadInstruction());
                     list.Add(targetValue.CreateLoadInstruction());
-                    list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(type.Resolve(), "set_Item", typesOfArguments)));
+                    list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(type.ResolveExt(), "set_Item", typesOfArguments)));
                 }
 
                 if (!target.IsTargetingBase)

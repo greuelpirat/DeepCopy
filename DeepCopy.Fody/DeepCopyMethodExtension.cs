@@ -13,7 +13,7 @@ namespace DeepCopy.Fody
     {
         private void InjectDeepCopyExtension(MethodDefinition method, CustomAttribute attribute)
         {
-            var copyType = method.ReturnType.Resolve();
+            var copyType = method.ReturnType.ResolveExt();
 
             if (!method.HasSingleParameter(copyType))
                 throw new WeavingException($"{method.FullName} must have one parameter with the same type of the return type");
@@ -95,7 +95,7 @@ namespace DeepCopy.Fody
                     constructor = NewConstructor(type, type);
                 }
 
-                if (type.Resolve().MetadataToken == baseType.MetadataToken)
+                if (type.ResolveExt().MetadataToken == baseType.MetadataToken)
                     break;
 
                 if (type.IsAbstract)
@@ -126,7 +126,7 @@ namespace DeepCopy.Fody
 
             if (baseType.IsAbstract)
             {
-                processor.Emit(OpCodes.Newobj, ImportDefaultConstructor(ImportType(typeof(InvalidOperationException)).Resolve()));
+                processor.Emit(OpCodes.Newobj, ImportDefaultConstructor(ImportType(typeof(InvalidOperationException)).ResolveExt()));
                 processor.Emit(OpCodes.Throw);
             }
             else
@@ -148,7 +148,7 @@ namespace DeepCopy.Fody
 
         private IEnumerable<TypeDefinition> FindDerivedTypes(TypeDefinition type)
         {
-            foreach (var derivedType in ModuleDefinition.GetTypes().Where(t => t.Resolve().BaseType?.MetadataToken == type.MetadataToken))
+            foreach (var derivedType in ModuleDefinition.GetTypes().Where(t => t.ResolveExt().BaseType?.MetadataToken == type.MetadataToken))
             foreach (var derivedOfDerivedType in FindDerivedTypes(derivedType))
                 yield return derivedOfDerivedType;
 
