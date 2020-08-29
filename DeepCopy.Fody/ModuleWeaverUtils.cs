@@ -135,5 +135,25 @@ namespace DeepCopy.Fody
             CurrentBody.Value.Variables.Add(variable);
             return variable;
         }
+
+        private int _fails;
+
+        private void Run(MemberReference reference, Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (WeavingException exception)
+            {
+                WriteError($"{reference.FullName}: {exception.Message}");
+                _fails++;
+            }
+            catch (Exception exception)
+            {
+                WriteError($"{reference.FullName}{Environment.NewLine}{exception}");
+                _fails++;
+            }
+        }
     }
 }

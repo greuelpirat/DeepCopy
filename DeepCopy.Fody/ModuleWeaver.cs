@@ -34,15 +34,20 @@ namespace DeepCopy.Fody
             AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values, false);
             AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)), true);
             InjectDeepCopyConstructors();
+            if (_fails > 0)
+                Cancel();
         }
 
         private void CreateDeepCopyExtensions()
         {
             foreach (var method in ModuleDefinition.GetTypes().SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
             {
-                var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
-                InjectDeepCopyExtension(method, attribute);
-                method.CustomAttributes.Remove(attribute);
+                Run(method, () =>
+                {
+                    var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
+                    InjectDeepCopyExtension(method, attribute);
+                    method.CustomAttributes.Remove(attribute);
+                });
             }
         }
 
@@ -50,13 +55,16 @@ namespace DeepCopy.Fody
         {
             foreach (var target in targets)
             {
-                if (target.HasCopyConstructor(out _))
-                    throw new WeavingException($"{target.FullName} has own copy constructor. Use [InjectDeepCopy] on constructor if needed");
+                Run(target, () =>
+                {
+                    if (target.HasCopyConstructor(out _))
+                        throw new WeavingException("Constructor exists already. Use [InjectDeepCopy] on constructor if needed");
 
-                AddDeepConstructor(target);
+                    AddDeepConstructor(target);
 
-                if (removeAttribute)
-                    target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
+                    if (removeAttribute)
+                        target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
+                });
             }
         }
 
@@ -64,18 +72,21 @@ namespace DeepCopy.Fody
         {
             foreach (var target in ModuleDefinition.Types.Where(t => t.GetConstructors().Any(c => c.AnyAttribute(InjectDeepCopyAttribute))))
             {
-                var constructors = target.GetConstructors().Where(c => c.AnyAttribute(InjectDeepCopyAttribute)).ToList();
-                if (constructors.Count > 1)
-                    throw new WeavingException($"{target.FullName} multiple constructors marked with [InjectDeepCopy]");
-                var constructor = constructors.Single();
-                if (constructor.Parameters.Count != 1
-                    || constructor.Parameters.Single().ParameterType.ResolveExt().MetadataToken != target.ResolveExt().MetadataToken)
-                    throw new WeavingException($"Constructor {constructor} is no copy constructor");
+                Run(target, () =>
+                {
+                    var constructors = target.GetConstructors().Where(c => c.AnyAttribute(InjectDeepCopyAttribute)).ToList();
+                    if (constructors.Count > 1)
+                        throw new WeavingException("Multiple constructors marked with [InjectDeepCopy]");
+                    var constructor = constructors.Single();
+                    if (constructor.Parameters.Count != 1
+                        || constructor.Parameters.Single().ParameterType.ResolveExt().MetadataToken != target.ResolveExt().MetadataToken)
+                        throw new WeavingException($"Constructor {constructor} is no copy constructor");
 
-                var constructorResolved = constructor.Resolve();
-                constructorResolved.Body.SimplifyMacros();
-                InsertCopyInstructions(target, constructorResolved, null);
-                constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
+                    var constructorResolved = constructor.Resolve();
+                    constructorResolved.Body.SimplifyMacros();
+                    InsertCopyInstructions(target, constructorResolved, null);
+                    constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
+                });
             }
         }
 
