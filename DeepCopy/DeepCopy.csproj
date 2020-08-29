@@ -12,7 +12,7 @@
     <PackageOutputPath>$(SolutionDir)nugets</PackageOutputPath>
     <PackageProjectUrl>https://github.com/greuelpirat/DeepCopy</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/greuelpirat/DeepCopy/master/package_icon.png</PackageIconUrl>
-    <PackageVersion>1.0.13</PackageVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Fody" Version="6.2.4" PrivateAssets="None" />
