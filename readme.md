@@ -36,74 +36,74 @@ Add `<DeepCopy/>` to [FodyWeavers.xml](https://github.com/Fody/Home/blob/master/
 ```
 
 ## Sample
+Source at `SmokeTest\ReadMeSample.cs`
 
 #### Your Code
 ```csharp
-public static class MyStaticClass
+public static class StaticReadMeSample
 {
   [DeepCopyExtension]
-  public static SomeObject DeepCopy(SomeObject source) => source;
+  public static ReadMeSample DeepCopy(ReadMeSample source) => source;
 }
 
-public class SomeObject
+public enum ReadMeEnum { Value1, Value2, Value3 }
+
+public class ReadMeSample
 {
   public int Integer { get; set; }
-  public SomeEnum Enum { get; set; }
+  public ReadMeEnum Enum { get; set; }
   public DateTime DateTime { get; set; }
   public string String { get; set; }
-  public IList<SomeObject> List { get; set; }
-  public IDictionary<SomeKey, SomeObject> Dictionary { get; set; }
+  public IList<ReadMeSample> List { get; set; }
+  public IDictionary<ReadMeEnum, ReadMeSample> Dictionary { get; set; }
 }
 ```
 
 #### What gets compiled
 ```csharp
-public static class MyStaticClass
+public static class StaticReadMeSample
 {
-  public static SomeObject DeepCopy(SomeObject source)
-  {
-    return source != null ? new SomeObject(source) : (SomeObject) null;
-  }
+  public static ReadMeSample DeepCopy(ReadMeSample source) => source != null ? new ReadMeSample(source) : (ReadMeSample) null;
 }
 
-public class SomeObject
+public class ReadMeSample
 {
-  public SomeObject() { }
-
-  public SomeObject(SomeObject obj)
-  {
-    this.Integer = obj.Integer;
-    this.Enum = obj.Enum;
-    this.DateTime = obj.DateTime;
-    this.String = obj.String != null ? string.Copy(obj.String) : (string) null;
-    if (obj.List != null) {
-      var list = new System.Collections.Generic.List<SomeObject>();
-      foreach (var item in obj.List)
-      {
-        SomeObject someObject = ClassWithDeepCopyExtension.CopySomeObject(item);
-        list.Add(someObject);
-      }
-      this.List = list;
-    }
-    if (obj.Dictionary != null) {
-      var dictionary = new System.Collections.Generic.Dictionary<SomeKey, SomeObject>();
-      foreach (var keyValuePair in obj0.Dictionary)
-      {
-        SomeObject someObject = ClassWithDeepCopyExtension.CopySomeObject(keyValuePair.Value);
-        dictionary[keyValuePair.Key] = someObject;
-      }
-      this.Dictionary = dictionary;
-    }
-  }
-  
   public int Integer { get; set; }
-  public SomeEnum Enum { get; set; }
+  public ReadMeEnum Enum { get; set; }
   public DateTime DateTime { get; set; }
   public string String { get; set; }
-  public IList<SomeObject> List { get; set; }
-  public IDictionary<SomeKey, SomeObject> Dictionary { get; set; }
+  public IList<ReadMeSample> List { get; set; }
+  public IDictionary<ReadMeEnum, ReadMeSample> Dictionary { get; set; }
+
+  public ReadMeSample() { }
+
+  public ReadMeSample(ReadMeSample source)
+  {
+    this.Integer = source.Integer;
+    this.Enum = source.Enum;
+    this.DateTime = source.DateTime;
+    this.String = source.String != null ? string.Copy(source.String) : (string) null;
+    if (source.List != null)
+    {
+      IList<ReadMeSample> readMeSampleList = (IList<ReadMeSample>) new System.Collections.Generic.List<ReadMeSample>();
+      foreach (ReadMeSample source1 in (IEnumerable<ReadMeSample>) source.List)
+        readMeSampleList.Add(StaticReadMeSample.DeepCopy(source1));
+      this.List = readMeSampleList;
+    }
+    if (source.Dictionary == null)
+      return;
+    IDictionary<ReadMeEnum, ReadMeSample> dictionary = (IDictionary<ReadMeEnum, ReadMeSample>) new System.Collections.Generic.Dictionary<ReadMeEnum, ReadMeSample>();
+    foreach (KeyValuePair<ReadMeEnum, ReadMeSample> keyValuePair in (IEnumerable<KeyValuePair<ReadMeEnum, ReadMeSample>>) source.Dictionary)
+    {
+      ReadMeEnum key = keyValuePair.Key;
+      ReadMeSample readMeSample = StaticReadMeSample.DeepCopy(keyValuePair.Value);
+      dictionary[key] = readMeSample;
+    }
+    this.Dictionary = dictionary;
+  }
 }
 ```
+Decompiled with `JetBrains dotPeek 2020.2.20200820.132610`
 
 ## Icon
 
