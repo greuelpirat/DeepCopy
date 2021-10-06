@@ -94,7 +94,11 @@ namespace DeepCopy.Fody
 
         private void AddDeepConstructor(TypeDefinition type)
         {
-            var constructor = new MethodDefinition(ConstructorName, ConstructorAttributes, TypeSystem.VoidReference);
+            var constructor = new MethodDefinition(
+                ConstructorName,
+                ConstructorAttributes,
+                ModuleDefinition.ImportReference(TypeSystem.VoidReference)
+            );
             constructor.Parameters.Add(new ParameterDefinition(ConstructorParameterName, ParameterAttributes.None, type));
 
             var processor = constructor.Body.GetILProcessor();

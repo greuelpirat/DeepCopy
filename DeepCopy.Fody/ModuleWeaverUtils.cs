@@ -13,7 +13,13 @@ namespace DeepCopy.Fody
     {
         private MethodReference NewConstructor(TypeReference type, TypeReference parameter = null)
         {
-            var constructor = new MethodReference(ConstructorName, TypeSystem.VoidDefinition, type) { HasThis = true };
+            var constructor = new MethodReference(
+                ConstructorName,
+                ModuleDefinition.ImportReference(TypeSystem.VoidDefinition),
+                type)
+            {
+                HasThis = true
+            };
             if (parameter != null)
                 constructor.Parameters.Add(new ParameterDefinition(parameter));
             return constructor;
