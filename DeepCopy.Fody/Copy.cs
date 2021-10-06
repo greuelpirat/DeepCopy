@@ -3,6 +3,8 @@ using DeepCopy.Fody.Utils;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
+using System.Linq;
 
 namespace DeepCopy.Fody
 {
@@ -81,7 +83,11 @@ namespace DeepCopy.Fody
                 using (target.Build(list, out var next))
                 {
                     list.AddRange(source.BuildNullSafe(next));
-                    list.Add(Instruction.Create(OpCodes.Call, StringCopy()));
+                    
+                    var toCharArray = TypeSystem.StringDefinition.GetMethod(nameof(string.ToCharArray));
+                    list.Add(Instruction.Create(OpCodes.Call, ModuleDefinition.ImportReference(toCharArray)));
+                    list.Add(Instruction.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(
+                        TypeSystem.StringDefinition.GetConstructors().Single(c => c.HasSingleParameter(toCharArray.ReturnType)))));
                 }
             }
             else if (IsCopyConstructorAvailable(type, out var constructor))

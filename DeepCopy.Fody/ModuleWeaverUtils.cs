@@ -62,15 +62,6 @@ namespace DeepCopy.Fody
             return ModuleDefinition.ImportReference(method);
         }
 
-        private MethodReference StringCopy()
-        {
-            return ModuleDefinition.ImportReference(
-                new MethodReference(nameof(string.Copy), TypeSystem.StringDefinition, TypeSystem.StringDefinition)
-                {
-                    Parameters = { new ParameterDefinition(TypeSystem.StringDefinition) }
-                });
-        }
-
         private bool IsCopyConstructorAvailable(TypeReference type, out MethodReference constructor)
         {
             if (type == null)

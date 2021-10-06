@@ -43,10 +43,21 @@ namespace DeepCopy.Fody.Utils
             return attributeProvider.CustomAttributes.Single(a => a.AttributeType.FullName == name);
         }
 
-        public static bool HasSingleParameter(this MethodDefinition method, TypeDefinition parameterType)
+        public static bool HasSingleParameter(this MethodDefinition method, TypeReference parameterType)
         {
-            return method.Parameters.Count == 1
-                   && method.Parameters.Single().ParameterType.ResolveExt().MetadataToken == parameterType.MetadataToken;
+            var parameters = method.Parameters;
+            if (parameters.Count != 1)
+                return false;
+            var parameter = parameters.Single().ParameterType;
+            if (parameterType.IsArray != parameter.IsArray)
+                return false;
+            if (parameterType.IsArray)
+            {
+                parameterType = parameterType.GetElementType();
+                parameter = parameter.GetElementType();
+            }
+            return parameter.MetadataToken == parameterType.MetadataToken
+                   && parameter.MetadataType == parameterType.MetadataType;
         }
 
         public static MethodReference MakeGeneric(this MethodReference source, params TypeReference[] arguments)
