@@ -34,5 +34,28 @@ namespace Tests
             Assert.Equal(new List<int> { 1, 5, 7 }, copy.Integers);
             Assert.Equal(new List<int> { 1, 2, 3, 3, 2, 1 }, copy.SpecialObject.List);
         }
+
+        [Fact]
+        public void TestEmptyCopyConstructor()
+        {
+            var type = GetTestType(typeof(ClassWithEmptyCopyConstructor));
+            dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
+            instance.Integer = Random.Next();
+            instance.Enum = (int) SomeEnum.Value1;
+            instance.DateTime = DateTime.Now;
+            instance.String = "Hello " + Random.Next();
+            
+            var copy = Activator.CreateInstance(type, instance);
+            Assert.NotNull(copy);
+            Assert.Equal(instance.Integer, copy.Integer);
+            Assert.Equal(instance.Enum, copy.Enum);
+            Assert.Equal(instance.DateTime, copy.DateTime);
+            Assert.Equal(instance.String, copy.String);
+            Assert.NotSame(instance.Integer, copy.Integer);
+            Assert.NotSame(instance.Enum, copy.Enum);
+            Assert.NotSame(instance.DateTime, copy.DateTime);
+            Assert.NotSame(instance.String, copy.String);
+        }
     }
 }
