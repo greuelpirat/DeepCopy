@@ -186,7 +186,7 @@ namespace DeepCopy.Fody
             if (type.IsValueType)
                 return 0;
 
-            var baseConstructorCall = body.Instructions.SingleOrDefault(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference method && method.Name == ConstructorName);
+            var baseConstructorCall = body.Instructions.SingleOrDefault(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference { Name: ConstructorName });
             if (baseConstructorCall == null)
                 throw new WeavingException("Call of base constructor not found");
             return body.Instructions.IndexOf(baseConstructorCall) + 1;
