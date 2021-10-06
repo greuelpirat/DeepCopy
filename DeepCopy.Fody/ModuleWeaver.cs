@@ -34,7 +34,7 @@ namespace DeepCopy.Fody
             AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values, false);
             AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)), true);
             InjectDeepCopyConstructors();
-            if (_fails > 0)
+            if (fails > 0)
                 Cancel();
         }
 

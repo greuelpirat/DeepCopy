@@ -127,7 +127,7 @@ namespace DeepCopy.Fody
             return variable;
         }
 
-        private int _fails;
+        private int fails;
 
         private void Run(MemberReference reference, Action action)
         {
@@ -138,12 +138,12 @@ namespace DeepCopy.Fody
             catch (WeavingException exception)
             {
                 WriteError($"{reference.FullName}: {exception.Message}");
-                _fails++;
+                fails++;
             }
             catch (Exception exception)
             {
                 WriteError($"{reference.FullName}{Environment.NewLine}{exception}");
-                _fails++;
+                fails++;
             }
         }
     }
