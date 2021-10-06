@@ -13,7 +13,7 @@ namespace Tests
     public partial class WeaverTests
     {
         private static readonly TestResult TestResult;
-        private static Random Random { get; } = new Random();
+        private static Random Random { get; } = new();
 
         static WeaverTests()
         {

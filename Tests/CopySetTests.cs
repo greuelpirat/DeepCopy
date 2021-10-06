@@ -12,6 +12,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithSet));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Set = new HashSet<int> { 42, 84 };
 
             var copy = Activator.CreateInstance(type, instance);
@@ -42,6 +43,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithSetString));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Set = new HashSet<string> { "Hello", "World", null };
 
             var copy = Activator.CreateInstance(type, instance);
@@ -66,6 +68,7 @@ namespace Tests
             dynamic instance = Activator.CreateInstance(type);
 
             dynamic set = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(GetTestType(typeof(SomeObject))));
+            Assert.NotNull(instance);
             instance.Set = set;
             instance.Set.Add(CreateSomeObject());
             instance.Set.Add(CreateSomeObject());
@@ -88,6 +91,7 @@ namespace Tests
             dynamic instance = Activator.CreateInstance(type);
 
             dynamic list = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(GetTestType(typeof(SomeObject))));
+            Assert.NotNull(instance);
             instance.Set = list;
             instance.Set.Add(CreateSomeObject());
             instance.Set.Add(CreateSomeObject());

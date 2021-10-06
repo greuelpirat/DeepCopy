@@ -12,6 +12,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithList));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.List = new List<int> { 42, 84 };
 
             var copy = Activator.CreateInstance(type, instance);
@@ -40,6 +41,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithListString));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.List = new List<string> { "Hello", "World", null };
 
             var copy = Activator.CreateInstance(type, instance);
@@ -62,6 +64,7 @@ namespace Tests
             dynamic instance = Activator.CreateInstance(type);
 
             dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTestType(typeof(SomeObject))));
+            Assert.NotNull(instance);
             instance.List = list;
             instance.List.Add(CreateSomeObject());
             instance.List.Add(CreateSomeObject());
@@ -82,6 +85,7 @@ namespace Tests
             dynamic instance = Activator.CreateInstance(type);
 
             dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTestType(typeof(SomeObject))));
+            Assert.NotNull(instance);
             instance.List = list;
             instance.List.Add(CreateSomeObject());
             instance.List.Add(CreateSomeObject());
@@ -100,14 +104,18 @@ namespace Tests
             var type = GetTestType(typeof(ClassWithListOfDictionary));
 
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
 
             var dictionaryType = typeof(Dictionary<,>).MakeGenericType(typeof(string), GetTestType(typeof(SomeObject)));
             dynamic instance1 = Activator.CreateInstance(dictionaryType);
+            Assert.NotNull(instance1);
             instance1["one"] = CreateSomeObject();
             instance1["two"] = CreateSomeObject();
             dynamic instance2 = Activator.CreateInstance(dictionaryType);
+            Assert.NotNull(instance2);
             instance2["three"] = CreateSomeObject();
             dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(dictionaryType));
+            Assert.NotNull(list);
             list.Add(instance1);
             list.Add(instance2);
             instance.List = list;

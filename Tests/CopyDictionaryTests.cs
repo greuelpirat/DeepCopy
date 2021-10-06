@@ -12,6 +12,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithDictionary));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Dictionary = new Dictionary<int, int> { [42] = 100, [84] = 200 };
 
             var copy = Activator.CreateInstance(type, instance);
@@ -40,6 +41,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithDictionaryString));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Dictionary = new Dictionary<string, string> { ["Hello"] = "World", ["One"] = "Two", ["Three"] = null };
 
             var copy = Activator.CreateInstance(type, instance);
@@ -65,6 +67,7 @@ namespace Tests
 
             dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>)
                 .MakeGenericType(GetTestType(typeof(SomeKey)), GetTestType(typeof(SomeObject))));
+            Assert.NotNull(instance);
             instance.Dictionary = dictionary;
             instance.Dictionary[someKey1] = CreateSomeObject();
             instance.Dictionary[someKey2] = CreateSomeObject();
@@ -98,6 +101,7 @@ namespace Tests
 
             dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>)
                 .MakeGenericType(GetTestType(typeof(SomeKey)), GetTestType(typeof(SomeObject))));
+            Assert.NotNull(instance);
             instance.Dictionary = dictionary;
             instance.Dictionary[someKey1] = CreateSomeObject();
             instance.Dictionary[someKey2] = CreateSomeObject();

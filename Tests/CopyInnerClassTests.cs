@@ -14,6 +14,7 @@ namespace Tests
             
             var one = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassOne));
             one.ObjectOne = CreateSomeObject();
+            Assert.NotNull(instance);
             instance.One = one;
 
             var two = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassTwo));

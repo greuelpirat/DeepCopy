@@ -19,6 +19,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithObject));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Object = CreateSomeObject();
             var copy = Activator.CreateInstance(type, instance);
             AssertCopyOfSomeClass(instance.Object, copy.Object);
@@ -40,6 +41,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithIgnoreDuringDeepCopy));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Integer = 42;
             instance.IntegerIgnored = 84;
             instance.String = "Hello";
@@ -67,6 +69,7 @@ namespace Tests
             var type = GetTestType(typeof(AutoPropertyInitializerObject));
             dynamic instance = Activator.CreateInstance(type);
             var guid = Guid.NewGuid();
+            Assert.NotNull(instance);
             instance.Guid = guid;
             var copy = Activator.CreateInstance(type, instance);
             Assert.NotSame(instance, copy);
@@ -79,6 +82,7 @@ namespace Tests
             var type = GetTestType(typeof(AutoPropertyInitializerConstructorObject));
             dynamic instance = Activator.CreateInstance(type);
             var guid = Guid.NewGuid();
+            Assert.NotNull(instance);
             instance.Guid = guid;
             var copy = Activator.CreateInstance(type, instance);
             Assert.NotSame(instance, copy);

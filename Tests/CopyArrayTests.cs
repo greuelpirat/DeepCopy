@@ -11,6 +11,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithArray));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Array = new[] { 42, 84 };
 
             var copy = Activator.CreateInstance(type, instance);
@@ -39,6 +40,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithArrayString));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Array = new[] { "Hello", "World", null };
 
             var copy = Activator.CreateInstance(type, instance);
@@ -59,6 +61,7 @@ namespace Tests
             dynamic instance = Activator.CreateInstance(GetTestType(typeof(ClassWithArrayObject)));
 
             dynamic array = Array.CreateInstance(GetTestType(typeof(SomeObject)), 3);
+            Assert.NotNull(instance);
             instance.Array = array;
             instance.Array[0] = CreateSomeObject();
             instance.Array[1] = CreateSomeObject();

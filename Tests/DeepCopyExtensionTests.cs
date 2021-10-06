@@ -100,13 +100,14 @@ namespace Tests
             Assert.NotNull(method);
 
             var instance = CreateTestInstance(typeof(OuterClassObject.InnerClassObject));
+            Assert.NotNull(instance);
             instance.One = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassOne));
             instance.One.ObjectOne = CreateSomeObject();
             instance.Two = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassTwo));
             instance.Two.ObjectTwo = CreateSomeObject();
 
             dynamic copy = method.Invoke(null, new object[] { instance });
-            Assert.NotNull(instance);
+            Assert.NotNull(copy);
             Assert.Same(instance.GetType(), copy.GetType());
             Assert.NotSame(instance, copy);
             AssertCopyOfSomeClass(instance.One.ObjectOne, copy.One.ObjectOne);

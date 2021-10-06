@@ -23,7 +23,7 @@ namespace DeepCopy.Fody
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
 
-        internal ThreadLocal<MethodBody> CurrentBody { get; } = new ThreadLocal<MethodBody>();
+        internal ThreadLocal<MethodBody> CurrentBody { get; } = new();
         private IDictionary<MetadataToken, TypeDefinition> AddDeepCopyConstructorTargets { get; } = new Dictionary<MetadataToken, TypeDefinition>();
         private IDictionary<MetadataToken, MethodReference> DeepCopyExtensions { get; } = new Dictionary<MetadataToken, MethodReference>();
 
@@ -44,6 +44,8 @@ namespace DeepCopy.Fody
             {
                 Run(method, () =>
                 {
+                    if (!method.IsStatic)
+                        throw new WeavingException("[DeepCopyExtension] is only for static methods provided");
                     var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
                     InjectDeepCopyExtension(method, attribute);
                     method.CustomAttributes.Remove(attribute);

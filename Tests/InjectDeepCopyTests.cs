@@ -12,6 +12,7 @@ namespace Tests
         {
             var type = GetTestType(typeof(ClassWithCopyConstructor));
             dynamic instance = Activator.CreateInstance(type);
+            Assert.NotNull(instance);
             instance.Integer = 3;
             instance.Integers = new List<int> { 1, 5, 7 };
             dynamic specialObject = Activator.CreateInstance(GetTestType(typeof(ClassWithNoCopyConstructor)));
@@ -23,7 +24,7 @@ namespace Tests
             Assert.Equal(3, instance.SpecialObject.List.Count);
 
             Assert.NotNull(copy.Integers);
-            Assert.NotNull(copy.SpecialObject.List);
+            Assert.NotNull(copy.SpecialObject);
             Assert.NotNull(copy.SpecialObject.List);
 
             Assert.NotSame(instance.Integers, copy.Integers);
