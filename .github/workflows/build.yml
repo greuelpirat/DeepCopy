@@ -15,6 +15,6 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore /p:AssemblyVersion=%ASSEMBLY_VERSION%
       - name: Test
-        run: dotnet test --no-build
+        run: dotnet test --configuration Release --no-build
       - name: Package
         run: dotnet pack --configuration Release /p:PackageVersion=%PACKAGE_VERSION% /p:AssemblyVersion=%ASSEMBLY_VERSION%
