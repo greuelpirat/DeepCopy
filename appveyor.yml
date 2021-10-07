@@ -6,6 +6,6 @@ build_script:
   - cmd: dotnet restore
   - cmd: dotnet build --configuration Release --no-restore /p:AssemblyVersion=%ASSEMBLY_VERSION%
   - cmd: dotnet test --configuration Release --no-build --framework net472
-  - cmd: dotnet pack --configuration Release /p:PackageVersion=%PACKAGE_VERSION% /p:AssemblyVersion=%ASSEMBLY_VERSION%
+  - cmd: dotnet pack --configuration Release --no-build /p:PackageVersion=%PACKAGE_VERSION% /p:AssemblyVersion=%ASSEMBLY_VERSION%
 artifacts:
   - path: nugets\DeepCopy.Fody.*.nupkg
