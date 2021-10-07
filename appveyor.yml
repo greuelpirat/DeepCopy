@@ -3,10 +3,9 @@ environment:
   PACKAGE_VERSION: 1.0.15
   ASSEMBLY_VERSION: $(PACKAGE_VERSION).$(APPVEYOR_BUILD_NUMBER)
 build_script:
-  - cmd: dotnet --version
   - cmd: dotnet restore
-  - cmd: dotnet build --configuration Release --no-restore /p:AssemblyVersion=%ASSEMBLY_VERSION%
-  - cmd: dotnet test --configuration Release --no-build
+  - cmd: dotnet build --configuration Release --no-restore --verbosity detailed /p:AssemblyVersion=%ASSEMBLY_VERSION%
+  - cmd: dotnet test --configuration Release --no-build --verbosity detailed
   - cmd: dotnet pack --configuration Release /p:PackageVersion=%PACKAGE_VERSION% /p:AssemblyVersion=%ASSEMBLY_VERSION%
 artifacts:
   - path: nugets\DeepCopy.Fody.*.nupkg
