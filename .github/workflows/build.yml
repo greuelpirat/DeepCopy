@@ -14,7 +14,7 @@ jobs:
         run: "echo ASSEMBLY_VERSION=\"$env:PACKAGE_VERSION.$env:GITHUB_RUN_NUMBER\" >> $env:GITHUB_ENV"
       - name: Set continuous package version
         if: ${{ github.ref == 'refs/heads/main' }}
-        run: "echo PACKAGE_VERSION=\"$env:PACKAGE_VERSION$(Get-Date -f \"-yyyyMMdd-hhmmss\")\" >> $env:GITHUB_ENV"
+        run: "echo PACKAGE_VERSION=\"$env:PACKAGE_VERSION-build.$env:GITHUB_RUN_NUMBER\" >> $env:GITHUB_ENV"
       - name: Restore
         run: dotnet restore
       - name: Build
