@@ -1,9 +1,10 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/17401ybvptlsvfy1?svg=true)](https://ci.appveyor.com/project/greuelpirat/deepcopy) [![nuget](https://img.shields.io/nuget/v/DeepCopy.Fody.svg)](https://www.nuget.org/packages/DeepCopy.Fody/)
+![build](https://github.com/greuelpirat/DeepCopy/actions/workflows/build.yml/badge.svg)
+[![nuget](https://img.shields.io/nuget/v/DeepCopy.Fody.svg)](https://www.nuget.org/packages/DeepCopy.Fody/)
 
 
 ## This is an add-in for [Fody](https://github.com/Fody/Home/)
 
-![Icon](https://github.com/greuelpirat/DeepCopy/blob/master/package_icon.png)
+![Icon](https://github.com/greuelpirat/DeepCopy/blob/main/package_icon.png)
 
 Generate copy constructors and extension methods to create a new instance with deep copy of properties.
 
