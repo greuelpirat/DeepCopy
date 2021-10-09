@@ -10,14 +10,15 @@ jobs:
       PACKAGE_VERSION_SUFFIX: -ci
     steps:
       - uses: actions/checkout@v2
-      - name: Install dependencies
+      - run: echo %PACKAGE_VERSION%.%GITHUB_RUN_NUMBER%
+      - name: Restore
         run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore /p:AssemblyVersion=%PACKAGE_VERSION%.%GITHUB_RUN_NUMBER%
       - name: Test
         run: dotnet test --configuration Release --no-build
-      - name: Package
+      - name: Pack
         run: dotnet pack --configuration Release /p:PackageVersion=%PACKAGE_VERSION%%PACKAGE_VERSION_SUFFIX% /p:AssemblyVersion=%PACKAGE_VERSION%.%GITHUB_RUN_NUMBER%
-      - name: Publish
+      - name: Nuget push
         if: ${{ github.ref != 'refs/heads/main' }}
         run: dotnet nuget push nugets/DeepCopy.Fody.%PACKAGE_VERSION%%PACKAGE_VERSION_SUFFIX%.nupkg --source https://api.nuget.org/v3/index.json --api-key %NUGET_API_KEY%
