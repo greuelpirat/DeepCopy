@@ -4,7 +4,7 @@
 
 ## This is an add-in for [Fody](https://github.com/Fody/Home/)
 
-![Icon](https://github.com/greuelpirat/DeepCopy/blob/main/package_icon.png)
+![Icon](https://raw.githubusercontent.com/greuelpirat/DeepCopy/main/package_icon.png)
 
 Generate copy constructors and extension methods to create a new instance with deep copy of properties.
 
