@@ -4,12 +4,6 @@ using System.Collections.Generic;
 
 namespace SmokeTest
 {
-    public static class StaticReadMeSample
-    {
-        [DeepCopyExtension]
-        public static ReadMeSample DeepCopy(ReadMeSample source) => source;
-    }
-
     public enum ReadMeEnum
     {
         Value1,
@@ -19,6 +13,9 @@ namespace SmokeTest
 
     public class ReadMeSample
     {
+        public ReadMeSample() { }
+        [InjectDeepCopy] public ReadMeSample(ReadMeSample source) { }
+
         public int Integer { get; set; }
         public ReadMeEnum Enum { get; set; }
         public DateTime DateTime { get; set; }

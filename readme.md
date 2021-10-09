@@ -41,16 +41,11 @@ Source at `SmokeTest\ReadMeSample.cs`
 
 #### Your Code
 ```csharp
-public static class StaticReadMeSample
-{
-  [DeepCopyExtension]
-  public static ReadMeSample DeepCopy(ReadMeSample source) => source;
-}
-
-public enum ReadMeEnum { Value1, Value2, Value3 }
-
 public class ReadMeSample
 {
+  public ReadMeSample() { }
+  [InjectDeepCopy] public ReadMeSample(ReadMeSample source) { }
+  
   public int Integer { get; set; }
   public ReadMeEnum Enum { get; set; }
   public DateTime DateTime { get; set; }
@@ -62,20 +57,8 @@ public class ReadMeSample
 
 #### What gets compiled
 ```csharp
-public static class StaticReadMeSample
-{
-  public static ReadMeSample DeepCopy(ReadMeSample source) => source != null ? new ReadMeSample(source) : (ReadMeSample) null;
-}
-
 public class ReadMeSample
 {
-  public int Integer { get; set; }
-  public ReadMeEnum Enum { get; set; }
-  public DateTime DateTime { get; set; }
-  public string String { get; set; }
-  public IList<ReadMeSample> List { get; set; }
-  public IDictionary<ReadMeEnum, ReadMeSample> Dictionary { get; set; }
-
   public ReadMeSample() { }
 
   public ReadMeSample(ReadMeSample source)
@@ -83,28 +66,35 @@ public class ReadMeSample
     this.Integer = source.Integer;
     this.Enum = source.Enum;
     this.DateTime = source.DateTime;
-    this.String = source.String != null ? string.Copy(source.String) : (string) null;
+    this.String = source.String != null ? new string(source.String.ToCharArray()) : (string)null;
     if (source.List != null)
     {
-      IList<ReadMeSample> readMeSampleList = (IList<ReadMeSample>) new System.Collections.Generic.List<ReadMeSample>();
-      foreach (ReadMeSample source1 in (IEnumerable<ReadMeSample>) source.List)
-        readMeSampleList.Add(StaticReadMeSample.DeepCopy(source1));
+      IList<ReadMeSample> readMeSampleList = (IList<ReadMeSample>)new System.Collections.Generic.List<ReadMeSample>();
+      foreach (ReadMeSample source1 in (IEnumerable<ReadMeSample>)source.List)
+        readMeSampleList.Add(source1 != null ? new ReadMeSample(source1) : (ReadMeSample)null);
       this.List = readMeSampleList;
     }
     if (source.Dictionary == null)
       return;
-    IDictionary<ReadMeEnum, ReadMeSample> dictionary = (IDictionary<ReadMeEnum, ReadMeSample>) new System.Collections.Generic.Dictionary<ReadMeEnum, ReadMeSample>();
-    foreach (KeyValuePair<ReadMeEnum, ReadMeSample> keyValuePair in (IEnumerable<KeyValuePair<ReadMeEnum, ReadMeSample>>) source.Dictionary)
+    IDictionary<ReadMeEnum, ReadMeSample> dictionary = (IDictionary<ReadMeEnum, ReadMeSample>)new System.Collections.Generic.Dictionary<ReadMeEnum, ReadMeSample>();
+    foreach (KeyValuePair<ReadMeEnum, ReadMeSample> keyValuePair in (IEnumerable<KeyValuePair<ReadMeEnum, ReadMeSample>>)source.Dictionary)
     {
       ReadMeEnum key = keyValuePair.Key;
-      ReadMeSample readMeSample = StaticReadMeSample.DeepCopy(keyValuePair.Value);
+      ReadMeSample readMeSample = keyValuePair.Value != null ? new ReadMeSample(keyValuePair.Value) : (ReadMeSample)null;
       dictionary[key] = readMeSample;
     }
     this.Dictionary = dictionary;
   }
+  
+  public int Integer { get; set; }
+  public ReadMeEnum Enum { get; set; }
+  public DateTime DateTime { get; set; }
+  public string String { get; set; }
+  public IList<ReadMeSample> List { get; set; }
+  public IDictionary<ReadMeEnum, ReadMeSample> Dictionary { get; set; }
 }
 ```
-Decompiled with `JetBrains dotPeek 2020.2.20200820.132610`
+Decompiled with `JetBrains dotPeek 2021.2.1 Build 212.0.20210826.112035`
 
 ## Icon
 
