@@ -11,15 +11,15 @@ jobs:
     steps:
       - name: Checkout  
         uses: actions/checkout@v2
-      - run: echo $PACKAGE_VERSION.$GITHUB_RUN_NUMBER
+      - run: echo $env:PACKAGE_VERSION.$env:GITHUB_RUN_NUMBER
       - name: Restore
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release --no-restore /p:AssemblyVersion=$PACKAGE_VERSION.$GITHUB_RUN_NUMBER
+        run: dotnet build --configuration Release --no-restore /p:AssemblyVersion=$env:PACKAGE_VERSION.$env:GITHUB_RUN_NUMBER
       - name: Test
         run: dotnet test --configuration Release --no-build
       - name: Pack
-        run: dotnet pack --configuration Release /p:PackageVersion=$PACKAGE_VERSION$PACKAGE_VERSION_SUFFIX /p:AssemblyVersion=$PACKAGE_VERSION.$GITHUB_RUN_NUMBER
+        run: dotnet pack --configuration Release /p:PackageVersion=$env:PACKAGE_VERSION$env:PACKAGE_VERSION_SUFFIX /p:AssemblyVersion=$env:PACKAGE_VERSION.$env:GITHUB_RUN_NUMBER
       - name: Nuget push
         if: ${{ github.ref != 'refs/heads/main' }}
-        run: dotnet nuget push nugets/DeepCopy.Fody.$PACKAGE_VERSION$PACKAGE_VERSION_SUFFIX.nupkg --source https://api.nuget.org/v3/index.json --api-key $NUGET_API_KEY
+        run: dotnet nuget push nugets/DeepCopy.Fody.$env:PACKAGE_VERSION$env:PACKAGE_VERSION_SUFFIX.nupkg --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY
