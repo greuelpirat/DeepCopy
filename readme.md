@@ -1,4 +1,4 @@
-![build](https://github.com/greuelpirat/DeepCopy/actions/workflows/build.yml/badge.svg)
+[![build](https://github.com/greuelpirat/DeepCopy/actions/workflows/build.yml/badge.svg)](https://github.com/greuelpirat/DeepCopy/actions/workflows/build.yml)
 [![nuget](https://img.shields.io/nuget/v/DeepCopy.Fody.svg)](https://www.nuget.org/packages/DeepCopy.Fody/)
 
 
