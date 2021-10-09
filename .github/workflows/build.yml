@@ -15,9 +15,9 @@ jobs:
       - name: Set continuous package version
         if: ${{ github.ref == 'refs/heads/main' }}
         run: $env:PACKAGE_VERSION += Get-Date -f "-yyyyMMdd-hhmmss" 
-      - run: echo "assembly version: $env:ASSEMBLY_VERSION"
-      - run: echo "package version: $env:PACKAGE_VERSION"
-      - run: echo "github_ref: $env:GITHUB_REF"
+      - run: "echo \"assembly version: $env:ASSEMBLY_VERSION\""
+      - run: "echo \"package version: $env:PACKAGE_VERSION\""
+      - run: "echo \"github_ref: $env:GITHUB_REF\""
       - name: Restore
         run: dotnet restore
       - name: Build
