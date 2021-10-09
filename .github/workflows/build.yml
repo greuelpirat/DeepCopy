@@ -26,5 +26,7 @@ jobs:
         run: dotnet test --configuration Release --no-build
       - name: Pack
         run: dotnet pack --configuration Release --no-build /p:PackageVersion=$env:PACKAGE_VERSION /p:AssemblyVersion=$env:ASSEMBLY_VERSION
-      - name: Nuget push
+      - name: Push to nuget.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: dotnet nuget push nugets/DeepCopy.Fody.$env:PACKAGE_VERSION.nupkg --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY
