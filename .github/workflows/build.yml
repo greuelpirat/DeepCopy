@@ -15,9 +15,6 @@ jobs:
       - name: Set continuous package version
         if: ${{ github.ref == 'refs/heads/main' }}
         run: "echo PACKAGE_VERSION=\"$env:PACKAGE_VERSION$(Get-Date -f \"-yyyyMMdd-hhmmss\")\" >> $env:GITHUB_ENV"
-      - run: |
-          echo "assembly version: $env:ASSEMBLY_VERSION"
-          echo "package version: $env:PACKAGE_VERSION"
       - name: Restore
         run: dotnet restore
       - name: Build
@@ -29,4 +26,4 @@ jobs:
       - name: Push to nuget.org
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: dotnet nuget push nugets/DeepCopy.Fody.$env:PACKAGE_VERSION.nupkg --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY
+        run: dotnet nuget push nugets/DeepCopy.Fody.$env:PACKAGE_VERSION.nupkg --source https://api.nuget.org/v3/index.json --api-key "$env:NUGET_API_KEY"
