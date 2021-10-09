@@ -1,4 +1,4 @@
-name: dotnet package
+name: Build
 
 on: [push]
 
@@ -6,15 +6,18 @@ jobs:
   build:
     runs-on: windows-latest
     env:
-      PACKAGE_VERSION: 1.0.15
-      ASSEMBLY_VERSION: ${{ jobs.build.env.PACKAGE_VERSION }}.${{ github.run_id }}
+      PACKAGE_VERSION: 1.0.16
+      PACKAGE_VERSION_SUFFIX: -ci
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release --no-restore /p:AssemblyVersion=%ASSEMBLY_VERSION%
+        run: dotnet build --configuration Release --no-restore /p:AssemblyVersion=%PACKAGE_VERSION%.%GITHUB_RUN_ID%
       - name: Test
         run: dotnet test --configuration Release --no-build
       - name: Package
-        run: dotnet pack --configuration Release /p:PackageVersion=%PACKAGE_VERSION% /p:AssemblyVersion=%ASSEMBLY_VERSION%
+        run: dotnet pack --configuration Release /p:PackageVersion=%PACKAGE_VERSION%%PACKAGE_VERSION_SUFFIX% /p:AssemblyVersion=%PACKAGE_VERSION%.%GITHUB_RUN_ID%
+      - name: Publish
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: dotnet nuget push nugets/DeepCopy.Fody.%PACKAGE_VERSION%%PACKAGE_VERSION_SUFFIX%.nupkg --source https://api.nuget.org/v3/index.json --api-key %NUGET_API_KEY%
