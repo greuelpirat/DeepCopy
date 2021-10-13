@@ -23,7 +23,7 @@ namespace DeepCopy.Fody
                 {
                     list.AddRange(Copy(typeOfArgument,
                         ValueSource.New().Variable(forEach.Current),
-                        ValueTarget.New().Instance(variable).Callvirt(ImportMethod(type.ResolveExt(), nameof(IList<object>.Add), typeOfArgument))));
+                        ValueTarget.New().Instance(variable).Callvirt(ImportMethod<ICollection<object>>(type.ResolveExt(), nameof(ICollection<object>.Add), typeOfArgument))));
                 }
 
                 if (!target.IsTargetingBase)

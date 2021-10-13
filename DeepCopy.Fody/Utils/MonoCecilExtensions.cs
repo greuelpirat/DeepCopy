@@ -19,9 +19,14 @@ namespace DeepCopy.Fody.Utils
             return constructor != null;
         }
 
-        public static MethodReference GetMethod(this TypeDefinition type, string name)
+        public static MethodReference GetMethod(this TypeDefinition type, string name, string declaringType = null)
         {
-            if (type.TryFindMethod(name, out var method))
+            declaringType ??= type.FullName;
+
+            var method = type.TraverseHierarchy()
+                .SelectMany(t => t.ResolveExt().Methods)
+                .FirstOrDefault(m => m.Name == name && m.DeclaringType.FullName == declaringType);
+            if (method != null)
                 return method;
 
             throw new WeavingException($"{type.FullName} has no method {name}");

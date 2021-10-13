@@ -18,12 +18,6 @@ namespace DeepCopy.Fody.Utils
             return interfaceType != null;
         }
 
-        public static bool TryFindMethod(this TypeReference type, string name, out MethodReference method)
-        {
-            method = type.TraverseHierarchy().SelectMany(t => t.ResolveExt().Methods).FirstOrDefault(m => m.Name == name);
-            return method != null;
-        }
-
         public static IEnumerable<TypeReference> TraverseHierarchy(this TypeReference type)
         {
             var current = type;

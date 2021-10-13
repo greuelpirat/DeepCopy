@@ -57,7 +57,7 @@ namespace DeepCopy.Fody.Utils
         public void Dispose()
         {
             _instructions.Add(_startCondition);
-            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod(_typeEnumerator, nameof(IEnumerator.MoveNext))));
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod<IEnumerator>(_typeEnumerator, nameof(IEnumerator.MoveNext))));
             _instructions.Add(Instruction.Create(OpCodes.Brtrue, _startLoop));
 
             // end try
