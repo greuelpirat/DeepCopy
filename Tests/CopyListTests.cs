@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AssemblyToProcess;
+using System.ComponentModel;
 using Xunit;
 
 namespace Tests
@@ -127,6 +128,25 @@ namespace Tests
             AssertCopyOfSomeClass(instance.List[0]["one"], copy.List[0]["one"]);
             AssertCopyOfSomeClass(instance.List[0]["two"], copy.List[0]["two"]);
             AssertCopyOfSomeClass(instance.List[1]["three"], copy.List[1]["three"]);
+        }
+
+        [Fact]
+        public void TestClassWithBindingList()
+        {
+            var instance = CreateTestInstance<ClassWithBindingList>();
+            instance.Strings = new BindingList<string>
+            {
+                "one",
+                "two"
+            };
+
+            var copy = CreateTestInstance<ClassWithBindingList>((object)instance);
+            Assert.NotNull(copy);
+            Assert.NotNull(copy.Strings);
+            Assert.Equal("one", copy.Strings[0]);
+            Assert.Equal("two", copy.Strings[1]);
+            Assert.NotSame(instance.Strings[0], copy.Strings[0]);
+            Assert.NotSame(instance.Strings[1], copy.Strings[1]);
         }
     }
 }

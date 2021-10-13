@@ -23,7 +23,15 @@ namespace Tests
 
         private static Type GetTestType(Type type)
         {
-            return TestResult.Assembly.GetType(type.FullName ?? throw new WeavingException($"{type} has no name"));
+            return TestResult.Assembly.GetType(type.FullName ?? throw new WeavingException($"{type} has no name"))
+                ?? throw new WeavingException($"{type} not found in test assembly");
+        }
+
+        private static dynamic CreateTestInstance<T>(params object[] args)
+        {
+            var testInstance = Activator.CreateInstance(GetTestType(typeof(T)), args);
+            Assert.NotNull(testInstance);
+            return testInstance;
         }
 
         private static dynamic CreateTestInstance(Type type, params object[] args) => Activator.CreateInstance(GetTestType(type), args);
