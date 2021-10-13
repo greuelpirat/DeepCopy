@@ -27,7 +27,7 @@ namespace Tests
                 .GetMethod(nameof(ClassWithDeepCopyExtension.CopyBaseClass), BindingFlags.Public | BindingFlags.Static);
             Assert.NotNull(method);
 
-            var derivedInstance = CreateTestInstance(typeof(DerivedClass));
+            var derivedInstance = CreateTestInstance<DerivedClass>();
             derivedInstance.Object = CreateSomeObject();
             derivedInstance.BaseObject = CreateSomeObject();
 
@@ -46,7 +46,7 @@ namespace Tests
                 .GetMethod(nameof(ClassWithDeepCopyExtension.CopyBaseClass), BindingFlags.Public | BindingFlags.Static);
             Assert.NotNull(method);
 
-            var derivedInstance = CreateTestInstance(typeof(OtherDerivedClass));
+            var derivedInstance = CreateTestInstance<OtherDerivedClass>();
             derivedInstance.OtherObject = CreateSomeObject();
             derivedInstance.BaseObject = CreateSomeObject();
 
@@ -65,15 +65,15 @@ namespace Tests
                 .GetMethod(nameof(ClassWithDeepCopyExtension.CopyBaseClassCollection), BindingFlags.Public | BindingFlags.Static);
             Assert.NotNull(method);
 
-            var anotherDerivedClass = CreateTestInstance(typeof(AnotherDerivedClass));
+            var anotherDerivedClass = CreateTestInstance<AnotherDerivedClass>();
             anotherDerivedClass.BaseObject = CreateSomeObject();
             anotherDerivedClass.AnotherObject = CreateSomeObject();
 
-            var yetAnotherDerivedClass = CreateTestInstance(typeof(YetAnotherDerivedClass));
+            var yetAnotherDerivedClass = CreateTestInstance<YetAnotherDerivedClass>();
             yetAnotherDerivedClass.BaseObject = CreateSomeObject();
             yetAnotherDerivedClass.YetAnotherObject = CreateSomeObject();
 
-            var instance = CreateTestInstance(typeof(BaseClassCollection));
+            var instance = CreateTestInstance<BaseClassCollection>();
             dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTestType(typeof(AbstractBaseClass))));
             instance.BaseClasses = list;
             instance.BaseClasses.Add(anotherDerivedClass);
@@ -99,11 +99,11 @@ namespace Tests
                 .GetMethod(nameof(ClassWithDeepCopyExtension.DeepCopyInnerClassObject), BindingFlags.Public | BindingFlags.Static);
             Assert.NotNull(method);
 
-            var instance = CreateTestInstance(typeof(OuterClassObject.InnerClassObject));
+            var instance = CreateTestInstance<OuterClassObject.InnerClassObject>();
             Assert.NotNull(instance);
-            instance.One = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassOne));
+            instance.One = CreateTestInstance<OuterClassObject.InnerClassObject.InnerClassOne>();
             instance.One.ObjectOne = CreateSomeObject();
-            instance.Two = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassTwo));
+            instance.Two = CreateTestInstance<OuterClassObject.InnerClassObject.InnerClassTwo>();
             instance.Two.ObjectTwo = CreateSomeObject();
 
             dynamic copy = method.Invoke(null, new object[] { instance });

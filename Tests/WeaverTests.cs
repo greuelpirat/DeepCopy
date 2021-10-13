@@ -34,11 +34,9 @@ namespace Tests
             return testInstance;
         }
 
-        private static dynamic CreateTestInstance(Type type, params object[] args) => Activator.CreateInstance(GetTestType(type), args);
-
         private static dynamic CreateSomeObject()
         {
-            var instance = CreateTestInstance(typeof(SomeObject));
+            var instance = CreateTestInstance<SomeObject>();
             instance.Integer = Random.Next();
             instance.Enum = (int) SomeEnum.Value1;
             instance.DateTime = DateTime.Now;
@@ -48,7 +46,7 @@ namespace Tests
         
         private static dynamic CreateSomeStruct()
         {
-            var instance = CreateTestInstance(typeof(SomeStruct));
+            var instance = CreateTestInstance<SomeStruct>();
             instance.Integer = Random.Next();
             instance.Enum = (int) SomeEnum.Value1;
             instance.DateTime = DateTime.Now;
@@ -59,7 +57,7 @@ namespace Tests
 
         private static dynamic CreateSomeKey()
         {
-            return CreateTestInstance(typeof(SomeKey), Random.Next(), Random.Next());
+            return CreateTestInstance<SomeKey>(Random.Next(), Random.Next());
         }
 
         private static void AssertCopyOfSomeClass(dynamic instance, dynamic copy)

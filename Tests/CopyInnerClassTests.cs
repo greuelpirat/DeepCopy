@@ -12,12 +12,12 @@ namespace Tests
             var type = GetTestType(typeof(OuterClassObject.InnerClassObject));
             dynamic instance = Activator.CreateInstance(type);
             
-            var one = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassOne));
+            var one = CreateTestInstance<OuterClassObject.InnerClassObject.InnerClassOne>();
             one.ObjectOne = CreateSomeObject();
             Assert.NotNull(instance);
             instance.One = one;
 
-            var two = CreateTestInstance(typeof(OuterClassObject.InnerClassObject.InnerClassTwo));
+            var two = CreateTestInstance<OuterClassObject.InnerClassObject.InnerClassTwo>();
             two.ObjectTwo = CreateSomeObject();
             instance.Two = two;
 

@@ -1,4 +1,3 @@
-using System;
 using AssemblyToProcess;
 using Xunit;
 
@@ -10,7 +9,7 @@ namespace Tests
         public void TestSomeStruct()
         {
             var instance = CreateSomeStruct();
-            var copy = Activator.CreateInstance(GetTestType(typeof(SomeStruct)), instance);
+            var copy = CreateTestInstance<SomeStruct>((object)instance);
 
             Assert.NotNull(copy);
             Assert.NotSame(instance, copy);
@@ -28,9 +27,9 @@ namespace Tests
         [Fact]
         public void TestStructWithReference()
         {
-            var instance = CreateTestInstance(typeof(StructWithReference));
+            var instance = CreateTestInstance<StructWithReference>();
             instance.Object = CreateSomeObject();
-            var copy = Activator.CreateInstance(GetTestType(typeof(StructWithReference)), instance);
+            var copy = CreateTestInstance<StructWithReference>((object)instance);
 
             Assert.NotNull(copy);
             Assert.NotSame(instance, copy);

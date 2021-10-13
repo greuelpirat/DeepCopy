@@ -9,12 +9,12 @@ namespace Tests
         [Fact]
         public void TestClassWithDeepCopyByReference()
         {
-            var instance = CreateTestInstance(typeof(ClassWithDeepCopyByReference));
+            var instance = CreateTestInstance<ClassWithDeepCopyByReference>();
             instance.Object1 = CreateSomeObject();
             instance.Object2 = CreateSomeObject();
             instance.Object3 = CreateSomeObject();
 
-            var copy = Activator.CreateInstance(GetTestType(typeof(ClassWithDeepCopyByReference)), instance);
+            var copy = CreateTestInstance<ClassWithDeepCopyByReference>((object)instance);
             Assert.NotNull(copy);
             Assert.NotSame(instance, copy);
             AssertCopyOfSomeClass(instance.Object1, copy.Object1);
