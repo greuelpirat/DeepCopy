@@ -113,17 +113,20 @@ namespace DeepCopy.Fody
         {
             var typeResolved = type.ResolveExt();
             var typesOfArguments = type.GetGenericArguments();
-            TypeReference typeOfInstance = typeResolved;
+            TypeReference typeOfInstance;
 
             if (typeResolved.IsInterface)
             {
-                if (IsType(typeResolved, supportedInterface))
-                    typeOfInstance = ImportType(defaultType, typesOfArguments);
-                else
+                if (!IsType(typeResolved, supportedInterface))
                     throw new WeavingException(Message.NotSupported(type));
+                typeOfInstance = ImportType(defaultType, typesOfArguments);
             }
-            else if (!typeResolved.HasDefaultConstructor())
-                throw new WeavingException(Message.NotSupported(type));
+            else
+            {
+                if (!typeResolved.GetConstructors().Any(c => c.IsPublic && c.Parameters.Count == 0))
+                    throw new WeavingException(Message.NotSupported(type));
+                typeOfInstance = typeResolved;
+            }
 
             var constructor = ModuleDefinition.ImportReference(NewConstructor(typeOfInstance).MakeGeneric(typesOfArguments));
 

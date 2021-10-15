@@ -8,11 +8,6 @@ namespace DeepCopy.Fody.Utils
 {
     public static class Extensions
     {
-        public static bool HasDefaultConstructor(this TypeDefinition type)
-        {
-            return type.GetConstructors().Any(c => c.Parameters.Count == 0);
-        }
-
         public static bool HasCopyConstructor(this TypeDefinition type, out MethodReference constructor)
         {
             constructor = type.GetConstructors().SingleOrDefault(c => c.HasSingleParameter(type));
