@@ -14,6 +14,7 @@ namespace SmokeTest
     public class ReadMeSample
     {
         public ReadMeSample() { }
+        // ReSharper disable once UnusedParameter.Local
         [InjectDeepCopy] public ReadMeSample(ReadMeSample source) { }
 
         public int Integer { get; set; }

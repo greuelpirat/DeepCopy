@@ -6,6 +6,7 @@ namespace AssemblyToProcess
     public class ClassWithEmptyCopyConstructor
     {
         public ClassWithEmptyCopyConstructor() { }
+        // ReSharper disable once UnusedParameter.Local
         [InjectDeepCopy] public ClassWithEmptyCopyConstructor(ClassWithEmptyCopyConstructor source) { }
 
         public int Integer { get; set; }
