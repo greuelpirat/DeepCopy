@@ -10,12 +10,12 @@ namespace Tests
         [Fact]
         public void TestClassCopyConstructor()
         {
-            var type = GetTestType(typeof(ClassWithCopyConstructor));
+            var type = TestType<ClassWithCopyConstructor>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Integer = 3;
             instance.Integers = new List<int> { 1, 5, 7 };
-            dynamic specialObject = Activator.CreateInstance(GetTestType(typeof(ClassWithNoCopyConstructor)));
+            dynamic specialObject = Activator.CreateInstance(TestType<ClassWithNoCopyConstructor>());
             instance.SpecialObject = specialObject;
             instance.SpecialObject.List = new List<int> { 3, 2, 1 };
 
@@ -38,7 +38,7 @@ namespace Tests
         [Fact]
         public void TestEmptyCopyConstructor()
         {
-            var type = GetTestType(typeof(ClassWithEmptyCopyConstructor));
+            var type = TestType<ClassWithEmptyCopyConstructor>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Integer = Random.Next();

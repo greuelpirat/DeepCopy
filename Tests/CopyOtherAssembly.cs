@@ -9,7 +9,7 @@ namespace Tests
         [Fact]
         public void TestClassUsingOtherAssembly()
         {
-            var type = GetTestType(typeof(ClassUsingOtherAssembly));
+            var type = TestType<ClassUsingOtherAssembly>();
             var instance = Activator.CreateInstance(type);
             var copy = Activator.CreateInstance(type, instance);
             Assert.NotSame(instance, copy);

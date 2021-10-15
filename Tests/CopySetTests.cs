@@ -10,7 +10,7 @@ namespace Tests
         [Fact]
         public void TestClassWithSet()
         {
-            var type = GetTestType(typeof(ClassWithSet));
+            var type = TestType<ClassWithSet>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Set = new HashSet<int> { 42, 84 };
@@ -30,7 +30,7 @@ namespace Tests
         [Fact]
         public void TestClassWithSetNull()
         {
-            var type = GetTestType(typeof(ClassWithSet));
+            var type = TestType<ClassWithSet>();
             dynamic instance = Activator.CreateInstance(type);
 
             var copy = Activator.CreateInstance(type, instance);
@@ -41,7 +41,7 @@ namespace Tests
         [Fact]
         public void TestClassWithSetString()
         {
-            var type = GetTestType(typeof(ClassWithSetString));
+            var type = TestType<ClassWithSetString>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Set = new HashSet<string> { "Hello", "World", null };
@@ -63,11 +63,11 @@ namespace Tests
         [Fact]
         public void TestClassWithSetObject()
         {
-            var type = GetTestType(typeof(ClassWithSetObject));
+            var type = TestType<ClassWithSetObject>();
 
             dynamic instance = Activator.CreateInstance(type);
 
-            dynamic set = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(GetTestType(typeof(SomeObject))));
+            dynamic set = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(TestType<SomeObject>()));
             Assert.NotNull(instance);
             instance.Set = set;
             instance.Set.Add(CreateSomeObject());
@@ -86,11 +86,11 @@ namespace Tests
         [Fact]
         public void TestAnotherClassWithSetObject()
         {
-            var type = GetTestType(typeof(ClassWithSetInstance));
+            var type = TestType<ClassWithSetInstance>();
 
             dynamic instance = Activator.CreateInstance(type);
 
-            dynamic list = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(GetTestType(typeof(SomeObject))));
+            dynamic list = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(TestType<SomeObject>()));
             Assert.NotNull(instance);
             instance.Set = list;
             instance.Set.Add(CreateSomeObject());

@@ -9,7 +9,7 @@ namespace Tests
         [Fact]
         public void TestDerivedClass()
         {
-            var type = GetTestType(typeof(DerivedClass));
+            var type = TestType<DerivedClass>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Object = CreateSomeObject();
@@ -23,7 +23,7 @@ namespace Tests
         [Fact]
         public void TestClassWithDerivedProperties()
         {
-            var type = GetTestType(typeof(ClassWithDerivedProperties));
+            var type = TestType<ClassWithDerivedProperties>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Dictionary = Dictionary(out _);
@@ -45,7 +45,7 @@ namespace Tests
 
         private static dynamic Dictionary(out Type type)
         {
-            type = GetTestType(typeof(DictionaryClass));
+            type = TestType<DictionaryClass>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.SomeProperty = CreateSomeObject();
@@ -55,7 +55,7 @@ namespace Tests
 
         private static dynamic List(out Type type)
         {
-            type = GetTestType(typeof(ListClass));
+            type = TestType<ListClass>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.SomeProperty = CreateSomeObject();
@@ -65,7 +65,7 @@ namespace Tests
 
         private static dynamic Set(out Type type)
         {
-            type = GetTestType(typeof(SetClass));
+            type = TestType<SetClass>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.SomeProperty = CreateSomeObject();

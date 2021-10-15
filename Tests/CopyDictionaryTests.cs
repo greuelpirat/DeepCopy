@@ -10,7 +10,7 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionary()
         {
-            var type = GetTestType(typeof(ClassWithDictionary));
+            var type = TestType<ClassWithDictionary>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Dictionary = new Dictionary<int, int> { [42] = 100, [84] = 200 };
@@ -28,7 +28,7 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionaryNull()
         {
-            var type = GetTestType(typeof(ClassWithDictionary));
+            var type = TestType<ClassWithDictionary>();
             dynamic instance = Activator.CreateInstance(type);
 
             var copy = Activator.CreateInstance(type, instance);
@@ -39,7 +39,7 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionaryString()
         {
-            var type = GetTestType(typeof(ClassWithDictionaryString));
+            var type = TestType<ClassWithDictionaryString>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Dictionary = new Dictionary<string, string> { ["Hello"] = "World", ["One"] = "Two", ["Three"] = null };
@@ -62,11 +62,11 @@ namespace Tests
             var someKey2 = CreateSomeKey();
             var someKey3 = CreateSomeKey();
 
-            var type = GetTestType(typeof(ClassWithDictionaryObject));
+            var type = TestType<ClassWithDictionaryObject>();
             dynamic instance = Activator.CreateInstance(type);
 
             dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>)
-                .MakeGenericType(GetTestType(typeof(SomeKey)), GetTestType(typeof(SomeObject))));
+                .MakeGenericType(TestType<SomeKey>(), TestType<SomeObject>()));
             Assert.NotNull(instance);
             instance.Dictionary = dictionary;
             instance.Dictionary[someKey1] = CreateSomeObject();
@@ -96,11 +96,11 @@ namespace Tests
             var someKey2 = CreateSomeKey();
             var someKey3 = CreateSomeKey();
 
-            var type = GetTestType(typeof(ClassWithDictionaryInstance));
+            var type = TestType<ClassWithDictionaryInstance>();
             dynamic instance = Activator.CreateInstance(type);
 
             dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>)
-                .MakeGenericType(GetTestType(typeof(SomeKey)), GetTestType(typeof(SomeObject))));
+                .MakeGenericType(TestType<SomeKey>(), TestType<SomeObject>()));
             Assert.NotNull(instance);
             instance.Dictionary = dictionary;
             instance.Dictionary[someKey1] = CreateSomeObject();

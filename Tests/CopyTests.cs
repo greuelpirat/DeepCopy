@@ -10,14 +10,14 @@ namespace Tests
         public void TestSomeClass()
         {
             var instance = CreateSomeObject();
-            var copy = Activator.CreateInstance(GetTestType(typeof(SomeObject)), instance);
+            var copy = Activator.CreateInstance(TestType<SomeObject>(), instance);
             AssertCopyOfSomeClass(instance, copy);
         }
 
         [Fact]
         public void TestClassWithObject()
         {
-            var type = GetTestType(typeof(ClassWithObject));
+            var type = TestType<ClassWithObject>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Object = CreateSomeObject();
@@ -28,7 +28,7 @@ namespace Tests
         [Fact]
         public void TestSomeKey()
         {
-            var type = GetTestType(typeof(SomeKey));
+            var type = TestType<SomeKey>();
             dynamic instance = Activator.CreateInstance(type, 35, 148);
             var copy = Activator.CreateInstance(type, instance);
             Assert.NotSame(instance, copy);
@@ -39,7 +39,7 @@ namespace Tests
         [Fact]
         public void TestIgnoreDuringDeepCopy()
         {
-            var type = GetTestType(typeof(ClassWithIgnoreDuringDeepCopy));
+            var type = TestType<ClassWithIgnoreDuringDeepCopy>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Integer = 42;
@@ -57,7 +57,7 @@ namespace Tests
         [Fact]
         public void TestEmptyObject()
         {
-            var type = GetTestType(typeof(EmptyObject));
+            var type = TestType<EmptyObject>();
             var instance = Activator.CreateInstance(type);
             var copy = Activator.CreateInstance(type, instance);
             Assert.NotSame(instance, copy);
@@ -66,7 +66,7 @@ namespace Tests
         [Fact]
         public void TestAutoPropertyInitializer()
         {
-            var type = GetTestType(typeof(AutoPropertyInitializerObject));
+            var type = TestType<AutoPropertyInitializerObject>();
             dynamic instance = Activator.CreateInstance(type);
             var guid = Guid.NewGuid();
             Assert.NotNull(instance);
@@ -79,7 +79,7 @@ namespace Tests
         [Fact]
         public void TestAutoPropertyConstructorInitializer()
         {
-            var type = GetTestType(typeof(AutoPropertyInitializerConstructorObject));
+            var type = TestType<AutoPropertyInitializerConstructorObject>();
             dynamic instance = Activator.CreateInstance(type);
             var guid = Guid.NewGuid();
             Assert.NotNull(instance);

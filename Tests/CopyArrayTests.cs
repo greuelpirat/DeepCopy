@@ -9,7 +9,7 @@ namespace Tests
         [Fact]
         public void TestClassWithArray()
         {
-            var type = GetTestType(typeof(ClassWithArray));
+            var type = TestType<ClassWithArray>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Array = new[] { 42, 84 };
@@ -27,7 +27,7 @@ namespace Tests
         [Fact]
         public void TestClassWithArrayNull()
         {
-            var type = GetTestType(typeof(ClassWithArray));
+            var type = TestType<ClassWithArray>();
             dynamic instance = Activator.CreateInstance(type);
 
             var copy = Activator.CreateInstance(type, instance);
@@ -38,7 +38,7 @@ namespace Tests
         [Fact]
         public void TestClassWithArrayString()
         {
-            var type = GetTestType(typeof(ClassWithArrayString));
+            var type = TestType<ClassWithArrayString>();
             dynamic instance = Activator.CreateInstance(type);
             Assert.NotNull(instance);
             instance.Array = new[] { "Hello", "World", null };
@@ -58,16 +58,16 @@ namespace Tests
         [Fact]
         public void TestClassWithArrayObject()
         {
-            dynamic instance = Activator.CreateInstance(GetTestType(typeof(ClassWithArrayObject)));
+            dynamic instance = Activator.CreateInstance(TestType<ClassWithArrayObject>());
 
-            dynamic array = Array.CreateInstance(GetTestType(typeof(SomeObject)), 3);
+            dynamic array = Array.CreateInstance(TestType<SomeObject>(), 3);
             Assert.NotNull(instance);
             instance.Array = array;
             instance.Array[0] = CreateSomeObject();
             instance.Array[1] = CreateSomeObject();
             instance.Array[2] = null;
 
-            var copy = Activator.CreateInstance(GetTestType(typeof(ClassWithArrayObject)), instance);
+            var copy = Activator.CreateInstance(TestType<ClassWithArrayObject>(), instance);
             Assert.Equal(instance.Array.Length, copy.Array.Length);
             AssertCopyOfSomeClass(instance.Array[0], copy.Array[0]);
             AssertCopyOfSomeClass(instance.Array[1], copy.Array[1]);

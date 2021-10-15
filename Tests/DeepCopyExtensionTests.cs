@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using AssemblyToProcess;
 using Xunit;
 
@@ -11,10 +10,7 @@ namespace Tests
         [Fact]
         public void TestClassWithDeepCopyExtension_CopySomeObject()
         {
-            var method = GetTestType(typeof(ClassWithDeepCopyExtension))
-                .GetMethod(nameof(ClassWithDeepCopyExtension.CopySomeObject), BindingFlags.Public | BindingFlags.Static);
-            Assert.NotNull(method);
-
+            var method = StaticTestMethod(typeof(ClassWithDeepCopyExtension), nameof(ClassWithDeepCopyExtension.CopySomeObject));
             var instance = CreateSomeObject();
             dynamic copy = method.Invoke(null, new object[] { instance });
             AssertCopyOfSomeClass(instance, copy);
@@ -23,11 +19,8 @@ namespace Tests
         [Fact]
         public void TestClassWithDeepCopyExtension_CopyBaseClass_DerivedClass()
         {
-            var method = GetTestType(typeof(ClassWithDeepCopyExtension))
-                .GetMethod(nameof(ClassWithDeepCopyExtension.CopyBaseClass), BindingFlags.Public | BindingFlags.Static);
-            Assert.NotNull(method);
-
-            var derivedInstance = CreateTestInstance<DerivedClass>();
+            var method = StaticTestMethod(typeof(ClassWithDeepCopyExtension), nameof(ClassWithDeepCopyExtension.CopyBaseClass));
+            var derivedInstance = TestInstance<DerivedClass>();
             derivedInstance.Object = CreateSomeObject();
             derivedInstance.BaseObject = CreateSomeObject();
 
@@ -42,11 +35,9 @@ namespace Tests
         [Fact]
         public void TestClassWithDeepCopyExtension_CopyBaseClass_OtherDerivedClass()
         {
-            var method = GetTestType(typeof(ClassWithDeepCopyExtension))
-                .GetMethod(nameof(ClassWithDeepCopyExtension.CopyBaseClass), BindingFlags.Public | BindingFlags.Static);
-            Assert.NotNull(method);
+            var method = StaticTestMethod(typeof(ClassWithDeepCopyExtension), nameof(ClassWithDeepCopyExtension.CopyBaseClass));
 
-            var derivedInstance = CreateTestInstance<OtherDerivedClass>();
+            var derivedInstance = TestInstance<OtherDerivedClass>();
             derivedInstance.OtherObject = CreateSomeObject();
             derivedInstance.BaseObject = CreateSomeObject();
 
@@ -61,20 +52,18 @@ namespace Tests
         [Fact]
         public void TestClassWithDeepCopyExtension_CopyBaseClassCollection()
         {
-            var method = GetTestType(typeof(ClassWithDeepCopyExtension))
-                .GetMethod(nameof(ClassWithDeepCopyExtension.CopyBaseClassCollection), BindingFlags.Public | BindingFlags.Static);
-            Assert.NotNull(method);
+            var method = StaticTestMethod(typeof(ClassWithDeepCopyExtension), nameof(ClassWithDeepCopyExtension.CopyBaseClassCollection));
 
-            var anotherDerivedClass = CreateTestInstance<AnotherDerivedClass>();
+            var anotherDerivedClass = TestInstance<AnotherDerivedClass>();
             anotherDerivedClass.BaseObject = CreateSomeObject();
             anotherDerivedClass.AnotherObject = CreateSomeObject();
 
-            var yetAnotherDerivedClass = CreateTestInstance<YetAnotherDerivedClass>();
+            var yetAnotherDerivedClass = TestInstance<YetAnotherDerivedClass>();
             yetAnotherDerivedClass.BaseObject = CreateSomeObject();
             yetAnotherDerivedClass.YetAnotherObject = CreateSomeObject();
 
-            var instance = CreateTestInstance<BaseClassCollection>();
-            dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTestType(typeof(AbstractBaseClass))));
+            var instance = TestInstance<BaseClassCollection>();
+            dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(TestType<AbstractBaseClass>()));
             instance.BaseClasses = list;
             instance.BaseClasses.Add(anotherDerivedClass);
             instance.BaseClasses.Add(yetAnotherDerivedClass);
@@ -95,15 +84,13 @@ namespace Tests
         [Fact]
         public void TestDeepCopyExtensionsForNestedTypes()
         {
-            var method = GetTestType(typeof(ClassWithDeepCopyExtension))
-                .GetMethod(nameof(ClassWithDeepCopyExtension.DeepCopyInnerClassObject), BindingFlags.Public | BindingFlags.Static);
-            Assert.NotNull(method);
+            var method = StaticTestMethod(typeof(ClassWithDeepCopyExtension), nameof(ClassWithDeepCopyExtension.DeepCopyInnerClassObject));
 
-            var instance = CreateTestInstance<OuterClassObject.InnerClassObject>();
+            var instance = TestInstance<OuterClassObject.InnerClassObject>();
             Assert.NotNull(instance);
-            instance.One = CreateTestInstance<OuterClassObject.InnerClassObject.InnerClassOne>();
+            instance.One = TestInstance<OuterClassObject.InnerClassObject.InnerClassOne>();
             instance.One.ObjectOne = CreateSomeObject();
-            instance.Two = CreateTestInstance<OuterClassObject.InnerClassObject.InnerClassTwo>();
+            instance.Two = TestInstance<OuterClassObject.InnerClassObject.InnerClassTwo>();
             instance.Two.ObjectTwo = CreateSomeObject();
 
             dynamic copy = method.Invoke(null, new object[] { instance });
