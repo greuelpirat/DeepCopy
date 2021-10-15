@@ -25,7 +25,7 @@ namespace DeepCopy.Fody
             if (types.Count == 0 || types.All(t => t.IsAbstract))
                 throw new WeavingException($"{method.FullName} has no types to copy (check abstraction)");
 
-            DeepCopyExtensions[copyType.MetadataToken] = method;
+            DeepCopyExtensions[copyType] = method;
 
             if (types.Count > 1)
                 BuildMultiTypeSwitchMethodBody(method, copyType, types);
@@ -39,7 +39,7 @@ namespace DeepCopy.Fody
 
             if (!IsCopyConstructorAvailable(type, out var constructor))
             {
-                AddDeepCopyConstructorTargets[type.MetadataToken] = type;
+                AddDeepCopyConstructorTargets[type] = type;
                 constructor = NewConstructor(type, type);
             }
 
@@ -91,7 +91,7 @@ namespace DeepCopy.Fody
             {
                 if (!IsCopyConstructorAvailable(type, out var constructor))
                 {
-                    AddDeepCopyConstructorTargets[type.MetadataToken] = type;
+                    AddDeepCopyConstructorTargets[type] = type;
                     constructor = NewConstructor(type, type);
                 }
 

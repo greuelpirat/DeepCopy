@@ -98,7 +98,7 @@ namespace DeepCopy.Fody
                 return true;
             }
 
-            if (AddDeepCopyConstructorTargets.TryGetValue(resolved.MetadataToken, out var targetType)
+            if (AddDeepCopyConstructorTargets.TryGetValue(resolved, out var targetType)
                 && resolved.FullName == targetType.FullName)
             {
                 constructor = NewConstructor(type, type);

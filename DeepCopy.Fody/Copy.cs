@@ -68,9 +68,10 @@ namespace DeepCopy.Fody
                 return list;
             }
 
-            var typeToken = type.ResolveExt().MetadataToken;
+            var typeDefinition = type.ResolveExt();
+            var typeToken = typeDefinition.MetadataToken;
 
-            if (DeepCopyExtensions.TryGetValue(typeToken, out var extensionMethod))
+            if (DeepCopyExtensions.TryGetValue(typeDefinition, out var extensionMethod))
             {
                 using (target.Build(list))
                 {
