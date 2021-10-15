@@ -11,12 +11,10 @@ namespace Tests
         [Fact]
         public void TestClassWithList()
         {
-            var type = TestType<ClassWithList>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithList>();
             instance.List = new List<int> { 42, 84 };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.List.Count, copy.List.Count);
             Assert.Equal(instance.List[0], copy.List[0]);
             Assert.Equal(instance.List[1], copy.List[1]);
@@ -29,10 +27,8 @@ namespace Tests
         [Fact]
         public void TestClassWithListNull()
         {
-            var type = TestType<ClassWithList>();
-            dynamic instance = Activator.CreateInstance(type);
-
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = TestInstance<ClassWithList>();
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
             Assert.Null(copy.List);
         }
@@ -40,12 +36,10 @@ namespace Tests
         [Fact]
         public void TestClassWithListString()
         {
-            var type = TestType<ClassWithListString>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithListString>();
             instance.List = new List<string> { "Hello", "World", null };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.List.Count, copy.List.Count);
             Assert.Equal(instance.List[0], copy.List[0]);
             Assert.Equal(instance.List[1], copy.List[1]);
@@ -60,18 +54,15 @@ namespace Tests
         [Fact]
         public void TestClassWithListObject()
         {
-            var type = TestType<ClassWithListObject>();
-
-            dynamic instance = Activator.CreateInstance(type);
+            var instance = TestInstance<ClassWithListObject>();
 
             dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(TestType<SomeObject>()));
-            Assert.NotNull(instance);
             instance.List = list;
             instance.List.Add(CreateSomeObject());
             instance.List.Add(CreateSomeObject());
             instance.List.Add(null);
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.List.Count, copy.List.Count);
             AssertCopyOfSomeClass(instance.List[0], copy.List[0]);
             AssertCopyOfSomeClass(instance.List[1], copy.List[1]);
@@ -81,18 +72,15 @@ namespace Tests
         [Fact]
         public void TestAnotherClassWithListObject()
         {
-            var type = TestType<ClassWithListInstance>();
-
-            dynamic instance = Activator.CreateInstance(type);
+            var instance = TestInstance<ClassWithListInstance>();
 
             dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(TestType<SomeObject>()));
-            Assert.NotNull(instance);
             instance.List = list;
             instance.List.Add(CreateSomeObject());
             instance.List.Add(CreateSomeObject());
             instance.List.Add(null);
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.List.Count, copy.List.Count);
             AssertCopyOfSomeClass(instance.List[0], copy.List[0]);
             AssertCopyOfSomeClass(instance.List[1], copy.List[1]);
@@ -102,10 +90,7 @@ namespace Tests
         [Fact]
         public void TestClassWithListOfDictionary()
         {
-            var type = TestType<ClassWithListOfDictionary>();
-
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithListOfDictionary>();
 
             var dictionaryType = typeof(Dictionary<,>).MakeGenericType(typeof(string), TestType<SomeObject>());
             dynamic instance1 = Activator.CreateInstance(dictionaryType);
@@ -121,7 +106,7 @@ namespace Tests
             list.Add(instance2);
             instance.List = list;
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.List.Count, copy.List.Count);
             Assert.Equal(instance.List[0].Count, copy.List[0].Count);
             Assert.Equal(instance.List[1].Count, copy.List[1].Count);
@@ -140,7 +125,7 @@ namespace Tests
                 "two"
             };
 
-            var copy = TestInstance<ClassWithBindingList>((object)instance);
+            var copy = CopyByConstructor(instance);
             Assert.NotNull(copy);
             Assert.NotNull(copy.Strings);
             Assert.Equal("one", copy.Strings[0]);

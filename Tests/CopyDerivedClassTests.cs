@@ -1,5 +1,4 @@
 using AssemblyToProcess;
-using System;
 using Xunit;
 
 namespace Tests
@@ -9,13 +8,11 @@ namespace Tests
         [Fact]
         public void TestDerivedClass()
         {
-            var type = TestType<DerivedClass>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<DerivedClass>();
             instance.Object = CreateSomeObject();
             instance.BaseObject = CreateSomeObject();
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             AssertCopyOfSomeClass(instance.Object, copy.Object);
             AssertCopyOfSomeClass(instance.BaseObject, copy.BaseObject);
         }
@@ -23,14 +20,12 @@ namespace Tests
         [Fact]
         public void TestClassWithDerivedProperties()
         {
-            var type = TestType<ClassWithDerivedProperties>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
-            instance.Dictionary = Dictionary(out _);
-            instance.List = List(out _);
-            instance.Set = Set(out _);
+            var instance = TestInstance<ClassWithDerivedProperties>();
+            instance.Dictionary = Dictionary();
+            instance.List = List();
+            instance.Set = Set();
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
             AssertCopyOfSomeClass(instance.Dictionary.SomeProperty, copy.Dictionary.SomeProperty);
             AssertCopyOfSomeClass(instance.Dictionary["foo"], copy.Dictionary["foo"]);
@@ -43,31 +38,25 @@ namespace Tests
             AssertCopyOfSomeClass(instanceArray[0], copyArray[0]);
         }
 
-        private static dynamic Dictionary(out Type type)
+        private static dynamic Dictionary()
         {
-            type = TestType<DictionaryClass>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<DictionaryClass>();
             instance.SomeProperty = CreateSomeObject();
             instance["foo"] = CreateSomeObject();
             return instance;
         }
 
-        private static dynamic List(out Type type)
+        private static dynamic List()
         {
-            type = TestType<ListClass>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ListClass>();
             instance.SomeProperty = CreateSomeObject();
             instance.Add(CreateSomeObject());
             return instance;
         }
 
-        private static dynamic Set(out Type type)
+        private static dynamic Set()
         {
-            type = TestType<SetClass>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<SetClass>();
             instance.SomeProperty = CreateSomeObject();
             instance.Add(CreateSomeObject());
             return instance;
@@ -76,8 +65,8 @@ namespace Tests
         [Fact]
         public void TestDerivedDictionaryClass()
         {
-            var instance = Dictionary(out var type);
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = Dictionary();
+            var copy = CopyByConstructor(instance);
             AssertCopyOfSomeClass(instance.SomeProperty, copy.SomeProperty);
             AssertCopyOfSomeClass(instance["foo"], copy["foo"]);
         }
@@ -85,8 +74,8 @@ namespace Tests
         [Fact]
         public void TestDerivedListClass()
         {
-            var instance = List(out var type);
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = List();
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Count, copy.Count);
             AssertCopyOfSomeClass(instance.SomeProperty, copy.SomeProperty);
             AssertCopyOfSomeClass(instance[0], copy[0]);
@@ -95,8 +84,8 @@ namespace Tests
         [Fact]
         public void TestDerivedSetClass()
         {
-            var instance = Set(out var type);
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = Set();
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Count, copy.Count);
             AssertCopyOfSomeClass(instance.SomeProperty, copy.SomeProperty);
             var instanceArray = ToArray(instance);

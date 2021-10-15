@@ -1,5 +1,4 @@
 using AssemblyToProcess;
-using System;
 using Xunit;
 
 namespace Tests
@@ -9,9 +8,8 @@ namespace Tests
         [Fact]
         public void TestClassUsingOtherAssembly()
         {
-            var type = TestType<ClassUsingOtherAssembly>();
-            var instance = Activator.CreateInstance(type);
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = TestInstance<ClassUsingOtherAssembly>();
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
         }
     }

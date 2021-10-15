@@ -13,7 +13,7 @@ namespace Tests
             instance.Object2 = CreateSomeObject();
             instance.Object3 = CreateSomeObject();
 
-            var copy = TestInstance<ClassWithDeepCopyByReference>((object)instance);
+            var copy = CopyByConstructor(instance);
             Assert.NotNull(copy);
             Assert.NotSame(instance, copy);
             AssertCopyOfSomeClass(instance.Object1, copy.Object1);

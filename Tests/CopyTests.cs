@@ -10,18 +10,16 @@ namespace Tests
         public void TestSomeClass()
         {
             var instance = CreateSomeObject();
-            var copy = Activator.CreateInstance(TestType<SomeObject>(), instance);
+            var copy = CopyByConstructor(instance);
             AssertCopyOfSomeClass(instance, copy);
         }
 
         [Fact]
         public void TestClassWithObject()
         {
-            var type = TestType<ClassWithObject>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithObject>();
             instance.Object = CreateSomeObject();
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             AssertCopyOfSomeClass(instance.Object, copy.Object);
         }
 
@@ -30,7 +28,7 @@ namespace Tests
         {
             var type = TestType<SomeKey>();
             dynamic instance = Activator.CreateInstance(type, 35, 148);
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
             Assert.Equal(35, copy.HighKey);
             Assert.Equal(148, copy.LowKey);
@@ -39,14 +37,12 @@ namespace Tests
         [Fact]
         public void TestIgnoreDuringDeepCopy()
         {
-            var type = TestType<ClassWithIgnoreDuringDeepCopy>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithIgnoreDuringDeepCopy>();
             instance.Integer = 42;
             instance.IntegerIgnored = 84;
             instance.String = "Hello";
             instance.StringIgnored = "World";
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
             Assert.Equal(42, copy.Integer);
             Assert.Equal(default(int), copy.IntegerIgnored);
@@ -57,36 +53,29 @@ namespace Tests
         [Fact]
         public void TestEmptyObject()
         {
-            var type = TestType<EmptyObject>();
-            var instance = Activator.CreateInstance(type);
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = TestInstance<EmptyObject>();
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
         }
 
         [Fact]
         public void TestAutoPropertyInitializer()
         {
-            var type = TestType<AutoPropertyInitializerObject>();
-            dynamic instance = Activator.CreateInstance(type);
             var guid = Guid.NewGuid();
-            Assert.NotNull(instance);
+            var instance = TestInstance<AutoPropertyInitializerObject>();
             instance.Guid = guid;
-            var copy = Activator.CreateInstance(type, instance);
-            Assert.NotSame(instance, copy);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Guid, copy.Guid);
         }
 
         [Fact]
         public void TestAutoPropertyConstructorInitializer()
         {
-            var type = TestType<AutoPropertyInitializerConstructorObject>();
-            dynamic instance = Activator.CreateInstance(type);
             var guid = Guid.NewGuid();
-            Assert.NotNull(instance);
+            var instance = TestInstance<AutoPropertyInitializerConstructorObject>();
             instance.Guid = guid;
-            var copy = Activator.CreateInstance(type, instance);
-            Assert.NotSame(instance, copy);
-            Assert.Equal(instance.Guid, copy.Guid);
+            var copy = CopyByConstructor(instance);
+            Assert.Equal(guid, copy.Guid);
         }
     }
 }

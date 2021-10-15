@@ -9,7 +9,7 @@ namespace Tests
         public void TestSomeStruct()
         {
             var instance = CreateSomeStruct();
-            var copy = TestInstance<SomeStruct>((object)instance);
+            var copy = CopyByConstructor(instance);
 
             Assert.NotNull(copy);
             Assert.NotSame(instance, copy);
@@ -29,7 +29,7 @@ namespace Tests
         {
             var instance = TestInstance<StructWithReference>();
             instance.Object = CreateSomeObject();
-            var copy = TestInstance<StructWithReference>((object)instance);
+            var copy = CopyByConstructor(instance);
 
             Assert.NotNull(copy);
             Assert.NotSame(instance, copy);

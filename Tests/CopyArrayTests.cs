@@ -9,12 +9,10 @@ namespace Tests
         [Fact]
         public void TestClassWithArray()
         {
-            var type = TestType<ClassWithArray>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithArray>();
             instance.Array = new[] { 42, 84 };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Array.Length, copy.Array.Length);
             Assert.Equal(instance.Array[0], copy.Array[0]);
             Assert.Equal(instance.Array[1], copy.Array[1]);
@@ -27,10 +25,8 @@ namespace Tests
         [Fact]
         public void TestClassWithArrayNull()
         {
-            var type = TestType<ClassWithArray>();
-            dynamic instance = Activator.CreateInstance(type);
-
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = TestInstance<ClassWithArray>();
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
             Assert.Null(copy.Array);
         }
@@ -38,12 +34,10 @@ namespace Tests
         [Fact]
         public void TestClassWithArrayString()
         {
-            var type = TestType<ClassWithArrayString>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithArrayString>();
             instance.Array = new[] { "Hello", "World", null };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Array.Length, copy.Array.Length);
             Assert.Equal(instance.Array[0], copy.Array[0]);
             Assert.Equal(instance.Array[1], copy.Array[1]);
@@ -58,8 +52,7 @@ namespace Tests
         [Fact]
         public void TestClassWithArrayObject()
         {
-            dynamic instance = Activator.CreateInstance(TestType<ClassWithArrayObject>());
-
+            var instance = TestInstance<ClassWithArrayObject>();
             dynamic array = Array.CreateInstance(TestType<SomeObject>(), 3);
             Assert.NotNull(instance);
             instance.Array = array;
@@ -67,7 +60,7 @@ namespace Tests
             instance.Array[1] = CreateSomeObject();
             instance.Array[2] = null;
 
-            var copy = Activator.CreateInstance(TestType<ClassWithArrayObject>(), instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Array.Length, copy.Array.Length);
             AssertCopyOfSomeClass(instance.Array[0], copy.Array[0]);
             AssertCopyOfSomeClass(instance.Array[1], copy.Array[1]);

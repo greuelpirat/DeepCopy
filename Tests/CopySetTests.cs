@@ -10,12 +10,10 @@ namespace Tests
         [Fact]
         public void TestClassWithSet()
         {
-            var type = TestType<ClassWithSet>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithSet>();
             instance.Set = new HashSet<int> { 42, 84 };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             var array = ToArray(instance.Set);
             var arrayCopy = ToArray(copy.Set);
             Assert.Equal(instance.Set.Count, copy.Set.Count);
@@ -30,10 +28,8 @@ namespace Tests
         [Fact]
         public void TestClassWithSetNull()
         {
-            var type = TestType<ClassWithSet>();
-            dynamic instance = Activator.CreateInstance(type);
-
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = TestInstance<ClassWithSet>();
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
             Assert.Null(copy.Set);
         }
@@ -41,12 +37,10 @@ namespace Tests
         [Fact]
         public void TestClassWithSetString()
         {
-            var type = TestType<ClassWithSetString>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithSetString>();
             instance.Set = new HashSet<string> { "Hello", "World", null };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             var array = ToArray(instance.Set);
             var arrayCopy = ToArray(copy.Set);
             Assert.Equal(instance.Set.Count, copy.Set.Count);
@@ -63,18 +57,13 @@ namespace Tests
         [Fact]
         public void TestClassWithSetObject()
         {
-            var type = TestType<ClassWithSetObject>();
-
-            dynamic instance = Activator.CreateInstance(type);
-
-            dynamic set = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(TestType<SomeObject>()));
-            Assert.NotNull(instance);
-            instance.Set = set;
+            var instance = TestInstance<ClassWithSetObject>();
+            instance.Set = (dynamic)Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(TestType<SomeObject>()));
             instance.Set.Add(CreateSomeObject());
             instance.Set.Add(CreateSomeObject());
             instance.Set.Add(null);
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             var array = ToArray(instance.Set);
             var arrayCopy = ToArray(copy.Set);
             Assert.Equal(instance.Set.Count, copy.Set.Count);
@@ -86,18 +75,13 @@ namespace Tests
         [Fact]
         public void TestAnotherClassWithSetObject()
         {
-            var type = TestType<ClassWithSetInstance>();
-
-            dynamic instance = Activator.CreateInstance(type);
-
-            dynamic list = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(TestType<SomeObject>()));
-            Assert.NotNull(instance);
-            instance.Set = list;
+            var instance = TestInstance<ClassWithSetInstance>();
+            instance.Set = (dynamic)Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(TestType<SomeObject>()));
             instance.Set.Add(CreateSomeObject());
             instance.Set.Add(CreateSomeObject());
             instance.Set.Add(null);
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             var array = ToArray(instance.Set);
             var arrayCopy = ToArray(copy.Set);
             Assert.Equal(instance.Set.Count, copy.Set.Count);

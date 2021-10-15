@@ -37,12 +37,21 @@ namespace Tests
             return method;
         }
 
-        private static dynamic TestInstance<T>(params object[] args)
+        private static dynamic TestInstance<T>()
         {
             var testType = TestType<T>();
-            var testInstance = Activator.CreateInstance(testType, args);
+            var testInstance = Activator.CreateInstance(testType);
             Assert.IsType(testType, testInstance);
             return testInstance;
+        }
+
+        private static dynamic CopyByConstructor(object instance)
+        {
+            var testType = instance.GetType();
+            var copy = Activator.CreateInstance(testType, instance);
+            Assert.IsType(testType, copy);
+            Assert.NotSame(instance, copy);
+            return copy;
         }
 
         private static dynamic CreateSomeObject()
@@ -66,7 +75,7 @@ namespace Tests
             return instance;
         }
 
-        private static dynamic CreateSomeKey() => TestInstance<SomeKey>(Random.Next(), Random.Next());
+        private static dynamic CreateRandomSomeKey() => Activator.CreateInstance(TestType<SomeKey>(), Random.Next(), Random.Next());
 
         private static void AssertCopyOfSomeClass(dynamic instance, dynamic copy)
         {

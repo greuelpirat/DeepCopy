@@ -10,12 +10,10 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionary()
         {
-            var type = TestType<ClassWithDictionary>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithDictionary>();
             instance.Dictionary = new Dictionary<int, int> { [42] = 100, [84] = 200 };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Dictionary.Count, copy.Dictionary.Count);
             Assert.Equal(instance.Dictionary[42], copy.Dictionary[42]);
             Assert.Equal(instance.Dictionary[84], copy.Dictionary[84]);
@@ -28,10 +26,8 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionaryNull()
         {
-            var type = TestType<ClassWithDictionary>();
-            dynamic instance = Activator.CreateInstance(type);
-
-            var copy = Activator.CreateInstance(type, instance);
+            var instance = TestInstance<ClassWithDictionary>();
+            var copy = CopyByConstructor(instance);
             Assert.NotSame(instance, copy);
             Assert.Null(copy.Dictionary);
         }
@@ -39,12 +35,10 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionaryString()
         {
-            var type = TestType<ClassWithDictionaryString>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithDictionaryString>();
             instance.Dictionary = new Dictionary<string, string> { ["Hello"] = "World", ["One"] = "Two", ["Three"] = null };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Dictionary.Count, copy.Dictionary.Count);
             Assert.Equal(instance.Dictionary["Hello"], copy.Dictionary["Hello"]);
             Assert.Equal(instance.Dictionary["One"], copy.Dictionary["One"]);
@@ -58,22 +52,19 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionaryObject()
         {
-            var someKey1 = CreateSomeKey();
-            var someKey2 = CreateSomeKey();
-            var someKey3 = CreateSomeKey();
+            var someKey1 = CreateRandomSomeKey();
+            var someKey2 = CreateRandomSomeKey();
+            var someKey3 = CreateRandomSomeKey();
 
-            var type = TestType<ClassWithDictionaryObject>();
-            dynamic instance = Activator.CreateInstance(type);
+            var instance = TestInstance<ClassWithDictionaryObject>();
 
-            dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>)
-                .MakeGenericType(TestType<SomeKey>(), TestType<SomeObject>()));
-            Assert.NotNull(instance);
+            dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(TestType<SomeKey>(), TestType<SomeObject>()));
             instance.Dictionary = dictionary;
             instance.Dictionary[someKey1] = CreateSomeObject();
             instance.Dictionary[someKey2] = CreateSomeObject();
             instance.Dictionary[someKey3] = null;
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Dictionary.Count, copy.Dictionary.Count);
             AssertCopyOfSomeClass(instance.Dictionary[someKey1], copy.Dictionary[someKey1]);
             AssertCopyOfSomeClass(instance.Dictionary[someKey2], copy.Dictionary[someKey2]);
@@ -92,22 +83,19 @@ namespace Tests
         [Fact]
         public void TestClassWithDictionaryInstance()
         {
-            var someKey1 = CreateSomeKey();
-            var someKey2 = CreateSomeKey();
-            var someKey3 = CreateSomeKey();
+            var someKey1 = CreateRandomSomeKey();
+            var someKey2 = CreateRandomSomeKey();
+            var someKey3 = CreateRandomSomeKey();
 
-            var type = TestType<ClassWithDictionaryInstance>();
-            dynamic instance = Activator.CreateInstance(type);
+            var instance = TestInstance<ClassWithDictionaryInstance>();
 
-            dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>)
-                .MakeGenericType(TestType<SomeKey>(), TestType<SomeObject>()));
-            Assert.NotNull(instance);
+            dynamic dictionary = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(TestType<SomeKey>(), TestType<SomeObject>()));
             instance.Dictionary = dictionary;
             instance.Dictionary[someKey1] = CreateSomeObject();
             instance.Dictionary[someKey2] = CreateSomeObject();
             instance.Dictionary[someKey3] = null;
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Dictionary.Count, copy.Dictionary.Count);
             AssertCopyOfSomeClass(instance.Dictionary[someKey1], copy.Dictionary[someKey1]);
             AssertCopyOfSomeClass(instance.Dictionary[someKey2], copy.Dictionary[someKey2]);

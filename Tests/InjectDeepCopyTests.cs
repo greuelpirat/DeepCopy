@@ -10,16 +10,13 @@ namespace Tests
         [Fact]
         public void TestClassCopyConstructor()
         {
-            var type = TestType<ClassWithCopyConstructor>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithCopyConstructor>();
             instance.Integer = 3;
             instance.Integers = new List<int> { 1, 5, 7 };
-            dynamic specialObject = Activator.CreateInstance(TestType<ClassWithNoCopyConstructor>());
-            instance.SpecialObject = specialObject;
+            instance.SpecialObject = TestInstance<ClassWithNoCopyConstructor>();
             instance.SpecialObject.List = new List<int> { 3, 2, 1 };
 
-            var copy = Activator.CreateInstance(type, instance);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(3, copy.Integer);
             Assert.Equal(3, instance.SpecialObject.List.Count);
 
@@ -38,16 +35,13 @@ namespace Tests
         [Fact]
         public void TestEmptyCopyConstructor()
         {
-            var type = TestType<ClassWithEmptyCopyConstructor>();
-            dynamic instance = Activator.CreateInstance(type);
-            Assert.NotNull(instance);
+            var instance = TestInstance<ClassWithEmptyCopyConstructor>();
             instance.Integer = Random.Next();
             instance.Enum = (int) SomeEnum.Value1;
             instance.DateTime = DateTime.Now;
             instance.String = "Hello " + Random.Next();
             
-            var copy = Activator.CreateInstance(type, instance);
-            Assert.NotNull(copy);
+            var copy = CopyByConstructor(instance);
             Assert.Equal(instance.Integer, copy.Integer);
             Assert.Equal(instance.Enum, copy.Enum);
             Assert.Equal(instance.DateTime, copy.DateTime);
