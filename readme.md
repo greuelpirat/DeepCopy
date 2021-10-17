@@ -44,7 +44,7 @@ Source at `SmokeTest\ReadMeSample.cs`
 public class ReadMeSample
 {
   public ReadMeSample() { }
-  [InjectDeepCopy] public ReadMeSample(ReadMeSample source) { }
+  [DeepCopyConstructor] public ReadMeSample(ReadMeSample source) { }
   
   public int Integer { get; set; }
   public ReadMeEnum Enum { get; set; }
