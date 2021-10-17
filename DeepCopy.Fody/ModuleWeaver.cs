@@ -17,6 +17,7 @@ namespace DeepCopy.Fody
         private const string DeepCopyExtensionAttribute = "DeepCopy.DeepCopyExtensionAttribute";
         private const string AddDeepCopyConstructorAttribute = "DeepCopy.AddDeepCopyConstructorAttribute";
         private const string InjectDeepCopyAttribute = "DeepCopy.InjectDeepCopyAttribute";
+        private const string DeepCopyConstructorAttribute = "DeepCopy.DeepCopyConstructorAttribute";
         private const string IgnoreDuringDeepCopyAttribute = "DeepCopy.IgnoreDuringDeepCopyAttribute";
         private const string DeepCopyByReferenceAttribute = "DeepCopy.DeepCopyByReferenceAttribute";
 
@@ -31,8 +32,8 @@ namespace DeepCopy.Fody
         {
             TypeReferenceExt.ModuleWeaver = this;
             CreateDeepCopyExtensions();
-            AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values, false);
-            AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.AnyAttribute(AddDeepCopyConstructorAttribute)), true);
+            AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values);
+            AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.Has(AddDeepCopyConstructorAttribute)));
             InjectDeepCopyConstructors();
             if (fails > 0)
                 Cancel();
@@ -40,54 +41,56 @@ namespace DeepCopy.Fody
 
         private void CreateDeepCopyExtensions()
         {
-            foreach (var method in ModuleDefinition.GetTypes().SelectMany(t => t.Methods).Where(m => m.AnyAttribute(DeepCopyExtensionAttribute)))
+            foreach (var method in ModuleDefinition.GetTypes().SelectMany(t => t.Methods))
             {
+                if (!method.Has(DeepCopyExtensionAttribute, out var attribute))
+                    continue;
                 Run(method, () =>
                 {
                     if (!method.IsStatic)
-                        throw new WeavingException("[DeepCopyExtension] is only for static methods provided");
-                    var attribute = method.SingleAttribute(DeepCopyExtensionAttribute);
-                    InjectDeepCopyExtension(method, attribute);
+                        throw new WeavingException("[DeepCopyExtension] is only available for static methods");
                     method.CustomAttributes.Remove(attribute);
+                    InjectDeepCopyExtension(method, attribute);
                 });
             }
         }
 
-        private void AddDeepCopyConstructors(IEnumerable<TypeDefinition> targets, bool removeAttribute)
+        private void AddDeepCopyConstructors(IEnumerable<TypeDefinition> targets)
         {
             foreach (var target in targets)
-            {
                 Run(target, () =>
                 {
                     if (target.HasCopyConstructor(out _))
-                        throw new WeavingException("Constructor exists already. Use [InjectDeepCopy] on constructor if needed");
+                        throw new WeavingException("Type already has copy constructor. Use [DeepCopyConstructor] on constructor to inject deep copy code");
 
                     AddDeepConstructor(target);
-
-                    if (removeAttribute)
-                        target.CustomAttributes.Remove(target.SingleAttribute(AddDeepCopyConstructorAttribute));
+                    target.TryRemove(AddDeepCopyConstructorAttribute);
                 });
-            }
         }
 
         private void InjectDeepCopyConstructors()
         {
-            foreach (var target in ModuleDefinition.Types.Where(t => t.GetConstructors().Any(c => c.AnyAttribute(InjectDeepCopyAttribute))))
+            foreach (var target in ModuleDefinition.Types)
             {
+                var constructors = target.GetConstructors().Where(c => c.Has(DeepCopyConstructorAttribute, InjectDeepCopyAttribute, out _)).ToList();
+                if (constructors.Count == 0)
+                    continue;
                 Run(target, () =>
                 {
-                    var constructors = target.GetConstructors().Where(c => c.AnyAttribute(InjectDeepCopyAttribute)).ToList();
+
                     if (constructors.Count > 1)
-                        throw new WeavingException("Multiple constructors marked with [InjectDeepCopy]");
+                        throw new WeavingException("More then one constructors are marked for deep copy injection");
                     var constructor = constructors.Single();
-                    if (constructor.Parameters.Count != 1
-                        || constructor.Parameters.Single().ParameterType.ResolveExt().MetadataToken != target.ResolveExt().MetadataToken)
-                        throw new WeavingException($"Constructor {constructor} is no copy constructor");
+                    var parameters = constructor.Parameters;
+                    if (parameters.Count != 1
+                        || parameters.Single().ParameterType.ResolveExt().MetadataToken != target.ResolveExt().MetadataToken)
+                        throw new WeavingException($"Constructor {constructor} has no copy constructor signature");
 
                     var constructorResolved = constructor.Resolve();
                     constructorResolved.Body.SimplifyMacros();
                     InsertCopyInstructions(target, constructorResolved, null);
-                    constructorResolved.CustomAttributes.Remove(constructorResolved.SingleAttribute(InjectDeepCopyAttribute));
+                    constructorResolved.TryRemove(DeepCopyConstructorAttribute);
+                    constructorResolved.TryRemove(InjectDeepCopyAttribute);
                 });
             }
         }
@@ -140,7 +143,9 @@ namespace DeepCopy.Fody
                 baseCopyFunc = reference => CopySet(reference, ValueSource.New(), ValueTarget.New());
             }
             else
+            {
                 throw new WeavingException(Message.NoCopyConstructorFound(type.BaseType));
+            }
 
             InsertCopyInstructions(type, constructor, baseCopyFunc);
 

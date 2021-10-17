@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using DeepCopy;
+using System.Collections.Generic;
 
 namespace AssemblyToProcess
 {
@@ -7,7 +7,7 @@ namespace AssemblyToProcess
     {
         public ClassWithCopyConstructor() { }
 
-        [InjectDeepCopy]
+        [DeepCopyConstructor]
         public ClassWithCopyConstructor(ClassWithCopyConstructor source)
         {
             SpecialObject = new ClassWithNoCopyConstructor { List = new List<int>() };

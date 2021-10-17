@@ -33,16 +33,6 @@ namespace DeepCopy.Fody.Utils
             return property.DeclaringType.Fields.SingleOrDefault(f => f.Name == backingFieldName);
         }
 
-        public static bool AnyAttribute(this ICustomAttributeProvider attributeProvider, string name)
-        {
-            return attributeProvider.CustomAttributes.Any(a => a.AttributeType.FullName == name);
-        }
-
-        public static CustomAttribute SingleAttribute(this ICustomAttributeProvider attributeProvider, string name)
-        {
-            return attributeProvider.CustomAttributes.Single(a => a.AttributeType.FullName == name);
-        }
-
         public static bool HasSingleParameter(this MethodDefinition method, TypeReference parameterType)
         {
             var parameters = method.Parameters;
@@ -67,7 +57,7 @@ namespace DeepCopy.Fody.Utils
                 DeclaringType = source.DeclaringType.MakeGeneric(arguments),
                 HasThis = source.HasThis,
                 ExplicitThis = source.ExplicitThis,
-                CallingConvention = source.CallingConvention,
+                CallingConvention = source.CallingConvention
             };
 
             foreach (var parameter in source.Parameters)
@@ -77,13 +67,6 @@ namespace DeepCopy.Fody.Utils
                 reference.GenericParameters.Add(new GenericParameter(genericParameter.Name, reference));
 
             return reference;
-        }
-
-        public static bool GetProperty(this CustomAttribute attribute, string name, bool defaultValue)
-        {
-            if (attribute.Properties.Any(p => p.Name == name))
-                return (bool)attribute.Properties.Single(p => p.Name == name).Argument.Value;
-            return defaultValue;
         }
 
         public static Instruction CreateSetInstruction(this PropertyDefinition property)

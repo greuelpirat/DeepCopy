@@ -92,7 +92,7 @@ namespace DeepCopy.Fody
                 return true;
             }
 
-            if (resolved.AnyAttribute(AddDeepCopyConstructorAttribute))
+            if (resolved.Has(AddDeepCopyConstructorAttribute))
             {
                 constructor = NewConstructor(type, type);
                 return true;

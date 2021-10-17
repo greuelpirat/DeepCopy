@@ -18,7 +18,7 @@ namespace DeepCopy.Fody
             if (!method.HasSingleParameter(copyType))
                 throw new WeavingException($"{method.FullName} must have one parameter with the same type of the return type");
 
-            var types = attribute.GetProperty("Inheritance", true)
+            var types = attribute.GetArgument("Inheritance", true)
                 ? FindDerivedTypes(copyType).ToList()
                 : new List<TypeDefinition> { copyType };
 

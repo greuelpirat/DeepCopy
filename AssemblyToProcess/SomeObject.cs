@@ -1,5 +1,5 @@
-﻿using System;
-using DeepCopy;
+﻿using DeepCopy;
+using System;
 
 namespace AssemblyToProcess
 {
@@ -33,17 +33,17 @@ namespace AssemblyToProcess
 
         #region equals/hashcode
 
-        protected bool Equals(SomeKey other)
-        {
-            return HighKey == other.HighKey && LowKey == other.LowKey;
-        }
+        protected bool Equals(SomeKey other) => HighKey == other.HighKey && LowKey == other.LowKey;
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((SomeKey) obj);
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != GetType())
+                return false;
+            return Equals((SomeKey)obj);
         }
 
         public override int GetHashCode()
@@ -68,7 +68,7 @@ namespace AssemblyToProcess
         public AutoPropertyInitializerConstructorObject() { }
 
         // ReSharper disable once UnusedParameter.Local
-        [InjectDeepCopy]
+        [DeepCopyConstructor]
         public AutoPropertyInitializerConstructorObject(AutoPropertyInitializerConstructorObject source) { }
 
         public Guid Guid { get; set; } = Guid.NewGuid();

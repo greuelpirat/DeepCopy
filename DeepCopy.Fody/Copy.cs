@@ -12,9 +12,8 @@ namespace DeepCopy.Fody
     {
         private bool TryCopy(ParameterDefinition sourceValueType, PropertyDefinition property, out IEnumerable<Instruction> instructions)
         {
-            if (property.AnyAttribute(IgnoreDuringDeepCopyAttribute))
+            if (property.TryRemove(IgnoreDuringDeepCopyAttribute))
             {
-                property.CustomAttributes.Remove(property.SingleAttribute(IgnoreDuringDeepCopyAttribute));
                 instructions = null;
                 return false;
             }
@@ -26,9 +25,8 @@ namespace DeepCopy.Fody
                 return false;
             }
 
-            if (property.AnyAttribute(DeepCopyByReferenceAttribute))
+            if (property.TryRemove(DeepCopyByReferenceAttribute))
             {
-                property.CustomAttributes.Remove(property.SingleAttribute(DeepCopyByReferenceAttribute));
                 instructions = new[]
                 {
                     Instruction.Create(OpCodes.Ldarg_0),
