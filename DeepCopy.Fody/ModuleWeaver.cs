@@ -14,12 +14,6 @@ namespace DeepCopy.Fody
     {
         private const string ConstructorName = ".ctor";
         private const string ConstructorParameterName = "source";
-        private const string DeepCopyExtensionAttribute = "DeepCopy.DeepCopyExtensionAttribute";
-        private const string AddDeepCopyConstructorAttribute = "DeepCopy.AddDeepCopyConstructorAttribute";
-        private const string InjectDeepCopyAttribute = "DeepCopy.InjectDeepCopyAttribute";
-        private const string DeepCopyConstructorAttribute = "DeepCopy.DeepCopyConstructorAttribute";
-        private const string IgnoreDuringDeepCopyAttribute = "DeepCopy.IgnoreDuringDeepCopyAttribute";
-        private const string DeepCopyByReferenceAttribute = "DeepCopy.DeepCopyByReferenceAttribute";
 
         private const MethodAttributes ConstructorAttributes
             = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
@@ -33,7 +27,7 @@ namespace DeepCopy.Fody
             TypeReferenceExt.ModuleWeaver = this;
             CreateDeepCopyExtensions();
             AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values);
-            AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.Has(AddDeepCopyConstructorAttribute)));
+            AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.Has(DeepCopyAttribute.AddDeepCopyConstructor)));
             InjectDeepCopyConstructors();
             if (fails > 0)
                 Cancel();
@@ -43,7 +37,7 @@ namespace DeepCopy.Fody
         {
             foreach (var method in ModuleDefinition.GetTypes().SelectMany(t => t.Methods))
             {
-                if (!method.Has(DeepCopyExtensionAttribute, out var attribute))
+                if (!method.Has(DeepCopyAttribute.DeepCopyExtension, out var attribute))
                     continue;
                 Run(method, () =>
                 {
@@ -64,20 +58,28 @@ namespace DeepCopy.Fody
                         throw new WeavingException("Type already has copy constructor. Use [DeepCopyConstructor] on constructor to inject deep copy code");
 
                     AddDeepConstructor(target);
-                    target.TryRemove(AddDeepCopyConstructorAttribute);
+                    target.TryRemove(DeepCopyAttribute.AddDeepCopyConstructor);
                 });
         }
 
         private void InjectDeepCopyConstructors()
         {
+            var deepCopyConstructor = DeepCopyAttribute.DeepCopyConstructor.GetTypeName();
+            var injectDeepCopy = DeepCopyAttribute.InjectDeepCopy.GetTypeName();
+
+            bool IsMarked(CustomAttribute attribute)
+            {
+                var fullName = attribute.AttributeType.FullName;
+                return fullName == deepCopyConstructor || fullName == injectDeepCopy;
+            }
+
             foreach (var target in ModuleDefinition.Types)
             {
-                var constructors = target.GetConstructors().Where(c => c.Has(DeepCopyConstructorAttribute, InjectDeepCopyAttribute, out _)).ToList();
+                var constructors = target.GetConstructors().Where(c => c.CustomAttributes.Any(IsMarked)).ToList();
                 if (constructors.Count == 0)
                     continue;
                 Run(target, () =>
                 {
-
                     if (constructors.Count > 1)
                         throw new WeavingException("More then one constructors are marked for deep copy injection");
                     var constructor = constructors.Single();
@@ -89,8 +91,8 @@ namespace DeepCopy.Fody
                     var constructorResolved = constructor.Resolve();
                     constructorResolved.Body.SimplifyMacros();
                     InsertCopyInstructions(target, constructorResolved, null);
-                    constructorResolved.TryRemove(DeepCopyConstructorAttribute);
-                    constructorResolved.TryRemove(InjectDeepCopyAttribute);
+                    constructorResolved.TryRemove(DeepCopyAttribute.DeepCopyConstructor);
+                    constructorResolved.TryRemove(DeepCopyAttribute.InjectDeepCopy);
                 });
             }
         }

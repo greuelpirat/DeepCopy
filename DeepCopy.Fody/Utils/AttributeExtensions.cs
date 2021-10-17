@@ -1,10 +1,11 @@
 using Mono.Cecil;
-using System;
 
 namespace DeepCopy.Fody.Utils
 {
     public static class AttributeExtensions
     {
+        public static string GetTypeName(this DeepCopyAttribute deepCopyAttribute) => $"DeepCopy.{deepCopyAttribute}Attribute";
+
         public static T GetArgument<T>(this CustomAttribute attribute, string name, T defaultValue)
         {
             foreach (var property in attribute.Properties)
@@ -13,31 +14,26 @@ namespace DeepCopy.Fody.Utils
             return defaultValue;
         }
 
-        public static bool Has(this ICustomAttributeProvider attributeProvider, string name)
-            => attributeProvider.Has(name, null, out _);
+        public static bool Has(this ICustomAttributeProvider attributeProvider, DeepCopyAttribute attribute) => attributeProvider.Has(attribute, out _);
 
-        public static bool Has(this ICustomAttributeProvider attributeProvider, string name, out CustomAttribute attribute)
-            => attributeProvider.Has(name, null, out attribute);
-
-        public static bool Has(this ICustomAttributeProvider attributeProvider, string name, string alternativeName, out CustomAttribute attribute)
+        public static bool Has(this ICustomAttributeProvider attributeProvider, DeepCopyAttribute attribute, out CustomAttribute customAttribute)
         {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-            foreach (var customAttribute in attributeProvider.CustomAttributes)
+            var typeName = attribute.GetTypeName();
+            foreach (var attr in attributeProvider.CustomAttributes)
             {
-                var fullName = customAttribute.AttributeType.FullName;
-                if (fullName != name && fullName != alternativeName)
+                var fullName = attr.AttributeType.FullName;
+                if (fullName != typeName)
                     continue;
-                attribute = customAttribute;
+                customAttribute = attr;
                 return true;
             }
-            attribute = null;
+            customAttribute = null;
             return false;
         }
 
-        public static bool TryRemove(this ICustomAttributeProvider attributeProvider, string name, string alternativeName = null)
+        public static bool TryRemove(this ICustomAttributeProvider attributeProvider, DeepCopyAttribute name)
         {
-            if (!attributeProvider.Has(name, alternativeName, out var attribute))
+            if (!attributeProvider.Has(name, out var attribute))
                 return false;
             attributeProvider.CustomAttributes.Remove(attribute);
             return true;

@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using DeepCopy.Fody.Utils;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DeepCopy.Fody
@@ -12,7 +12,7 @@ namespace DeepCopy.Fody
     {
         private bool TryCopy(ParameterDefinition sourceValueType, PropertyDefinition property, out IEnumerable<Instruction> instructions)
         {
-            if (property.TryRemove(IgnoreDuringDeepCopyAttribute))
+            if (property.TryRemove(DeepCopyAttribute.IgnoreDuringDeepCopy))
             {
                 instructions = null;
                 return false;
@@ -25,7 +25,7 @@ namespace DeepCopy.Fody
                 return false;
             }
 
-            if (property.TryRemove(DeepCopyByReferenceAttribute))
+            if (property.TryRemove(DeepCopyAttribute.DeepCopyByReference))
             {
                 instructions = new[]
                 {
@@ -48,7 +48,9 @@ namespace DeepCopy.Fody
             if (property.PropertyType.IsArray)
             {
                 using (new IfNotNull(list, source))
+                {
                     list.AddRange(CopyArray(property));
+                }
                 return true;
             }
 
@@ -70,33 +72,27 @@ namespace DeepCopy.Fody
             var typeToken = typeDefinition.MetadataToken;
 
             if (DeepCopyExtensions.TryGetValue(typeDefinition, out var extensionMethod))
-            {
                 using (target.Build(list))
                 {
                     list.AddRange(source);
                     list.Add(Instruction.Create(OpCodes.Call, extensionMethod));
                 }
-            }
             else if (typeToken == TypeSystem.StringDefinition.MetadataToken)
-            {
                 using (target.Build(list, out var next))
                 {
                     list.AddRange(source.BuildNullSafe(next));
-                    
+
                     var toCharArray = TypeSystem.StringDefinition.GetMethod(nameof(string.ToCharArray));
                     list.Add(Instruction.Create(OpCodes.Call, ModuleDefinition.ImportReference(toCharArray)));
                     list.Add(Instruction.Create(OpCodes.Newobj, ModuleDefinition.ImportReference(
                         TypeSystem.StringDefinition.GetConstructors().Single(c => c.HasSingleParameter(toCharArray.ReturnType)))));
                 }
-            }
             else if (IsCopyConstructorAvailable(type, out var constructor))
-            {
                 using (target.Build(list, out var next))
                 {
                     list.AddRange(source.BuildNullSafe(next));
                     list.Add(Instruction.Create(OpCodes.Newobj, constructor));
                 }
-            }
             else if (type.IsImplementing(typeof(IDictionary<,>)))
                 list.AddRange(CopyDictionary(type, source, target));
             else if (type.IsImplementing(typeof(IList<>)))

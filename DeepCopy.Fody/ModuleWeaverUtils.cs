@@ -1,16 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using DeepCopy.Fody.Utils;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {
+        private int fails;
+
         private MethodReference NewConstructor(TypeReference type, TypeReference parameter = null)
         {
             var constructor = new MethodReference(
@@ -38,27 +40,16 @@ namespace DeepCopy.Fody
                 : constructor);
         }
 
-        private bool IsType(IMetadataTokenProvider typeDefinition, Type type)
-        {
-            return typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).ResolveExt().MetadataToken;
-        }
+        private bool IsType(IMetadataTokenProvider typeDefinition, Type type) => typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).ResolveExt().MetadataToken;
 
-        internal TypeReference ImportType(Type type, params TypeReference[] genericArguments)
-        {
-            return ImportType(ModuleDefinition.ImportReference(type), genericArguments);
-        }
+        internal TypeReference ImportType(Type type, params TypeReference[] genericArguments) => ImportType(ModuleDefinition.ImportReference(type), genericArguments);
 
-        internal TypeReference ImportType(TypeReference type, params TypeReference[] genericArguments)
-        {
-            return genericArguments.Length == 0
-                ? ModuleDefinition.ImportReference(type)
-                : ModuleDefinition.ImportReference(type.MakeGeneric(genericArguments));
-        }
+        internal TypeReference ImportType(TypeReference type, params TypeReference[] genericArguments) => genericArguments.Length == 0
+            ? ModuleDefinition.ImportReference(type)
+            : ModuleDefinition.ImportReference(type.MakeGeneric(genericArguments));
 
         internal MethodReference ImportMethod(Type type, string name, params TypeReference[] genericArguments)
-        {
-            return ImportMethod(ModuleDefinition.ImportReference(type).ResolveExt(), name, genericArguments);
-        }
+            => ImportMethod(ModuleDefinition.ImportReference(type).ResolveExt(), name, genericArguments);
 
         internal MethodReference ImportMethod(TypeReference type, string name, params TypeReference[] genericArguments)
         {
@@ -92,7 +83,7 @@ namespace DeepCopy.Fody
                 return true;
             }
 
-            if (resolved.Has(AddDeepCopyConstructorAttribute))
+            if (resolved.Has(DeepCopyAttribute.AddDeepCopyConstructor))
             {
                 constructor = NewConstructor(type, type);
                 return true;
@@ -144,8 +135,6 @@ namespace DeepCopy.Fody
             CurrentBody.Value.Variables.Add(variable);
             return variable;
         }
-
-        private int fails;
 
         private void Run(MemberReference reference, Action action)
         {
