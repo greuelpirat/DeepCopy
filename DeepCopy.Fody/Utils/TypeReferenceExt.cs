@@ -34,7 +34,7 @@ namespace DeepCopy.Fody.Utils
             } while (current != null);
         }
 
-        public static TypeReference ApplyGenericsFrom(this TypeReference type, TypeReference source)
+        private static TypeReference ApplyGenericsFrom(this TypeReference type, TypeReference source)
         {
             if (!source.IsGenericInstance || !type.IsGenericInstance)
                 return type;
@@ -45,8 +45,7 @@ namespace DeepCopy.Fody.Utils
                 .Zip(sourceGeneric.GenericArguments, (p, a) => new Tuple<GenericParameter, TypeReference>(p, a))
                 .ToDictionary(t => t.Item1.Name, t => t.Item2);
 
-            var arguments = genericTarget.SolveGenericParameters(parametersMap).ToList();
-            return type.MakeGeneric(arguments);
+            return type.MakeGeneric(genericTarget.SolveGenericParameters(parametersMap));
         }
 
         private static IEnumerable<TypeReference> SolveGenericParameters(this IGenericInstance type, IDictionary<string, TypeReference> map)
@@ -56,8 +55,7 @@ namespace DeepCopy.Fody.Utils
                 switch (argument)
                 {
                     case GenericInstanceType genericArgument:
-                        var arguments = genericArgument.SolveGenericParameters(map).ToList();
-                        yield return genericArgument.MakeGeneric(arguments);
+                        yield return genericArgument.MakeGeneric(genericArgument.SolveGenericParameters(map));
                         break;
                     case GenericParameter parameter:
                         yield return map[parameter.Name];
@@ -70,20 +68,22 @@ namespace DeepCopy.Fody.Utils
         {
             return type.IsGenericInstance
                 ? ((GenericInstanceType)type).GenericArguments.ToArray()
-                : new TypeReference[0];
+                : Array.Empty<TypeReference>();
         }
 
-        public static TypeReference MakeGeneric(this TypeReference source, params TypeReference[] arguments)
-            => source.MakeGeneric(new List<TypeReference>(arguments));
-
-        public static TypeReference MakeGeneric(this TypeReference source, ICollection<TypeReference> arguments)
+        public static TypeReference MakeGeneric(this TypeReference source, IEnumerable<TypeReference> arguments)
         {
+            using var enumerator = arguments.GetEnumerator();
+            if (!enumerator.MoveNext())
+                return source;
             var resolved = source.ResolveExt();
-            if (resolved.GenericParameters.Count != arguments.Count)
-                throw new WeavingException($"Expected {source.GenericParameters.Count} generic parameters, got {arguments.Count}");
             var instance = new GenericInstanceType(resolved);
-            foreach (var argument in arguments)
-                instance.GenericArguments.Add(argument);
+            var instanceArguments = instance.GenericArguments;
+            instanceArguments.Add(enumerator.Current);
+            while (enumerator.MoveNext())
+                instanceArguments.Add(enumerator.Current);
+            if (resolved.GenericParameters.Count != instanceArguments.Count)
+                throw new WeavingException($"Expected {source.GenericParameters.Count} generic parameters, got {instanceArguments.Count}");
             return instance;
         }
 
