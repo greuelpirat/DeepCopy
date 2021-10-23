@@ -29,7 +29,7 @@ namespace DeepCopy.Fody
             AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values);
             AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.Has(DeepCopyAttribute.AddDeepCopyConstructor)));
             InjectDeepCopyConstructors();
-            if (fails > 0)
+            if (_fails > 0)
                 Cancel();
         }
 

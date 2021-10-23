@@ -11,7 +11,7 @@ namespace DeepCopy.Fody
 {
     public partial class ModuleWeaver
     {
-        private int fails;
+        private int _fails;
 
         private MethodReference NewConstructor(TypeReference type, TypeReference parameter = null)
         {
@@ -145,12 +145,12 @@ namespace DeepCopy.Fody
             catch (WeavingException exception)
             {
                 WriteError($"{reference.FullName}: {exception.Message}");
-                fails++;
+                _fails++;
             }
             catch (Exception exception)
             {
                 WriteError($"{reference.FullName}{Environment.NewLine}{exception}");
-                fails++;
+                _fails++;
             }
         }
     }
