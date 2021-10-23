@@ -10,7 +10,7 @@ namespace DeepCopy.Fody.Utils
 {
     public class ForEach : IDisposable
     {
-        private const string CurrentGetter = "get_Current";
+        private const string GetterCurrent = "get_" + nameof(IEnumerator.Current);
 
         private readonly ModuleWeaver _moduleWeaver;
         private readonly List<Instruction> _instructions;
@@ -50,7 +50,7 @@ namespace DeepCopy.Fody.Utils
 
             _startLoop = Instruction.Create(OpCodes.Ldloc, _enumerator);
             _instructions.Add(_startLoop);
-            _instructions.Add(Instruction.Create(OpCodes.Callvirt, moduleWeaver.ImportMethod(_typeEnumerator, CurrentGetter, typeOfCurrent)));
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, moduleWeaver.ImportMethod(_typeEnumerator, GetterCurrent, typeOfCurrent)));
             _instructions.Add(Instruction.Create(OpCodes.Stloc, Current));
         }
 
