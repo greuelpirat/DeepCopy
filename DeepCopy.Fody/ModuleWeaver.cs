@@ -207,15 +207,17 @@ namespace DeepCopy.Fody
 
         public override bool ShouldCleanReference => true;
 
-        public override IEnumerable<string> GetAssembliesForScanning()
+        private static readonly string[] AssembliesForScanning =
         {
-            yield return "netstandard";
-            yield return "mscorlib";
-            yield return "System";
-            yield return "System.Runtime";
-            yield return "System.Core";
-            yield return "System.Collections";
-        }
+            "netstandard",
+            "mscorlib",
+            "System",
+            "System.Runtime",
+            "System.Core",
+            "System.Collections"
+        };
+
+        public override IEnumerable<string> GetAssembliesForScanning() => AssembliesForScanning;
 
         #endregion
     }
