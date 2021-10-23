@@ -31,7 +31,7 @@ namespace DeepCopy.Fody.Utils
             if (!typeOfEnumerable.TryFindImplementation(typeof(IEnumerable<>), out var typeOfEnumerableImpl))
                 throw new WeavingException($"{typeOfEnumerable.FullName} is no IEnumerable");
 
-            var typeOfCurrent = moduleWeaver.ImportType(((GenericInstanceType) typeOfEnumerableImpl).GenericArguments.Single());
+            var typeOfCurrent = moduleWeaver.ImportType(typeOfEnumerableImpl.GetGenericArguments().Single());
 
             var methodGetEnumerator = moduleWeaver.ImportMethod(moduleWeaver.ImportType(typeof(IEnumerable<>), typeOfCurrent), nameof(IEnumerable.GetEnumerator), typeOfCurrent);
             _typeEnumerator = moduleWeaver.ImportType(methodGetEnumerator.ReturnType, typeOfCurrent);
