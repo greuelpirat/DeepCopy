@@ -27,19 +27,6 @@ namespace DeepCopy.Fody
             return constructor;
         }
 
-        private MethodReference ImportDefaultConstructor(TypeDefinition type)
-        {
-            return ModuleDefinition.ImportReference(type.GetConstructors().Single(c => !c.HasParameters));
-        }
-
-        private MethodReference ImportDefaultConstructor(TypeReference type)
-        {
-            var constructor = type.ResolveExt().GetConstructors().Single(c => !c.HasParameters && !c.IsStatic);
-            return ModuleDefinition.ImportReference(type.IsGenericInstance
-                ? constructor.MakeGeneric(type.GetGenericArguments())
-                : constructor);
-        }
-
         private bool IsType(IMetadataTokenProvider typeDefinition, Type type) => typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).ResolveExt().MetadataToken;
 
         internal MethodReference ImportMethod(Type type, string name, params TypeReference[] genericArguments)

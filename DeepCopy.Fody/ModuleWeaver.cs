@@ -115,7 +115,7 @@ namespace DeepCopy.Fody
             if (baseElementType.MetadataToken == TypeSystem.ObjectDefinition.MetadataToken)
             {
                 processor.Emit(OpCodes.Ldarg_0);
-                processor.Emit(OpCodes.Call, ImportDefaultConstructor(TypeSystem.ObjectDefinition));
+                processor.Emit(OpCodes.Call, TypeSystem.ObjectDefinition.ImportDefaultConstructor());
             }
             else if (IsType(baseElementType, typeof(ValueType)))
             {
@@ -130,19 +130,19 @@ namespace DeepCopy.Fody
             else if (IsType(baseElementType, typeof(Dictionary<,>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
-                processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
+                processor.Emit(OpCodes.Call, type.BaseType.ImportDefaultConstructor());
                 baseCopyFunc = reference => CopyDictionary(reference, ValueSource.New(), ValueTarget.New());
             }
             else if (IsType(baseElementType, typeof(List<>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
-                processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
+                processor.Emit(OpCodes.Call, type.BaseType.ImportDefaultConstructor());
                 baseCopyFunc = reference => CopyList(reference, ValueSource.New(), ValueTarget.New());
             }
             else if (IsType(baseElementType, typeof(HashSet<>)))
             {
                 processor.Emit(OpCodes.Ldarg_0);
-                processor.Emit(OpCodes.Call, ImportDefaultConstructor(type.BaseType));
+                processor.Emit(OpCodes.Call, type.BaseType.ImportDefaultConstructor());
                 baseCopyFunc = reference => CopySet(reference, ValueSource.New(), ValueTarget.New());
             }
             else
