@@ -90,13 +90,13 @@ namespace DeepCopy.Fody
             if (typeResolved.IsInterface)
             {
                 if (!IsType(typeResolved, supportedInterface))
-                    throw new WeavingException(Message.NotSupported(type));
+                    throw Exceptions.NotSupported(type);
                 typeOfInstance = defaultType.Import().With(typesOfArguments);
             }
             else
             {
                 if (!typeResolved.GetConstructors().Any(ModuleHelper.DefaultConstructorPredicate))
-                    throw new WeavingException(Message.NotSupported(type));
+                    throw Exceptions.NotSupported(type);
                 typeOfInstance = typeResolved;
             }
 

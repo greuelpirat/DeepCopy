@@ -147,7 +147,7 @@ namespace DeepCopy.Fody
             }
             else
             {
-                throw new WeavingException(Message.NoCopyConstructorFound(type.BaseType));
+                throw Exceptions.NoCopyConstructorFound(type.BaseType);
             }
 
             InsertCopyInstructions(type, constructor, baseCopyFunc);

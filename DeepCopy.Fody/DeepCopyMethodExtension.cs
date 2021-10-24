@@ -132,7 +132,7 @@ namespace DeepCopy.Fody
             else
             {
                 if (!IsCopyConstructorAvailable(baseType, out var constructor))
-                    throw new WeavingException(Message.NoCopyConstructorFound(baseType));
+                    throw Exceptions.NoCopyConstructorFound(baseType);
 
                 processor.Emit(OpCodes.Ldarg_0);
                 processor.Emit(OpCodes.Newobj, constructor);
