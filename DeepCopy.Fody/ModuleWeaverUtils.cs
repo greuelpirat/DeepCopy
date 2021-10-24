@@ -95,7 +95,7 @@ namespace DeepCopy.Fody
             }
             else
             {
-                if (!typeResolved.GetConstructors().Any(c => c.IsPublic && c.Parameters.Count == 0))
+                if (!typeResolved.GetConstructors().Any(ModuleHelper.DefaultConstructorPredicate))
                     throw new WeavingException(Message.NotSupported(type));
                 typeOfInstance = typeResolved;
             }

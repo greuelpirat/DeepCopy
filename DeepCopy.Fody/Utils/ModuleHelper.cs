@@ -16,7 +16,7 @@ namespace DeepCopy.Fody.Utils
 
         public static TypeReference With(this TypeReference type, IEnumerable<TypeReference> genericArguments) => Module.ImportReference(type.MakeGeneric(genericArguments));
 
-        private static readonly Func<MethodDefinition, bool> DefaultConstructorPredicate = m => !m.IsStatic && !m.HasParameters;
+        public static readonly Func<MethodDefinition, bool> DefaultConstructorPredicate = m => m.IsPublic && !m.IsStatic && !m.HasParameters;
 
         public static MethodReference ImportDefaultConstructor(this TypeReference type)
         {
