@@ -2,6 +2,7 @@ using Fody;
 using Mono.Cecil;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace DeepCopy.Fody.Utils
@@ -74,9 +75,11 @@ namespace DeepCopy.Fody.Utils
         public static TypeReference MakeGeneric(this TypeReference source, IEnumerable<TypeReference> arguments)
         {
             using var enumerator = arguments.GetEnumerator();
-            if (!enumerator.MoveNext())
-                return source;
+            var hasArguments = enumerator.MoveNext();
             var resolved = source.ResolveExt();
+            Debug.Assert(hasArguments == resolved.HasGenericParameters);
+            if (!hasArguments)
+                return source;
             var instance = new GenericInstanceType(resolved);
             var instanceArguments = instance.GenericArguments;
             instanceArguments.Add(enumerator.Current);
