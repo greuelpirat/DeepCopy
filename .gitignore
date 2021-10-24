@@ -3,5 +3,6 @@
 bin
 obj
 nugets
-*.DotSettings.user
-AssemblyToProcess/Demo.cs
+/DeepCopy.sln.DotSettings.user
+/AssemblyToProcess/Demo.cs
+/SmokeTest/FodyWeavers.xsd
