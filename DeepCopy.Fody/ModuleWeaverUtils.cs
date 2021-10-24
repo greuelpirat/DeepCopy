@@ -29,9 +29,6 @@ namespace DeepCopy.Fody
 
         private bool IsType(IMetadataTokenProvider typeDefinition, Type type) => typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).ResolveExt().MetadataToken;
 
-        internal MethodReference ImportMethod(Type type, string name, params TypeReference[] genericArguments)
-            => ImportMethod(ModuleDefinition.ImportReference(type).ResolveExt(), name, genericArguments);
-
         internal MethodReference ImportMethod(TypeReference type, string name, params TypeReference[] genericArguments)
         {
             var method = type.ResolveExt().GetMethod(name);

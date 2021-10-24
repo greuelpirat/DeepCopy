@@ -70,7 +70,7 @@ namespace DeepCopy.Fody.Utils
             var endFinally = Instruction.Create(OpCodes.Endfinally);
             _instructions.Add(Instruction.Create(OpCodes.Brfalse_S, endFinally));
             _instructions.Add(Instruction.Create(OpCodes.Ldloc, _enumerator));
-            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod(typeof(IDisposable), nameof(IDisposable.Dispose))));
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod(typeof(IDisposable).Import(), nameof(IDisposable.Dispose))));
             _instructions.Add(Instruction.Create(OpCodes.Nop));
             _instructions.Add(endFinally);
 
