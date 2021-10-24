@@ -10,7 +10,7 @@ namespace DeepCopy.Fody
         private IEnumerable<Instruction> CopyDictionary(TypeReference type, ValueSource source, ValueTarget target)
         {
             var typesOfArguments = type.GetGenericArguments();
-            var typeKeyValuePair = ImportType(typeof(KeyValuePair<,>), typesOfArguments);
+            var typeKeyValuePair = typeof(KeyValuePair<,>).Import().With(typesOfArguments);
 
             var list = new List<Instruction>();
             using (new IfNotNull(list, source, target.IsTargetingBase))

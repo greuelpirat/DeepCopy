@@ -42,12 +42,6 @@ namespace DeepCopy.Fody
 
         private bool IsType(IMetadataTokenProvider typeDefinition, Type type) => typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).ResolveExt().MetadataToken;
 
-        internal TypeReference ImportType(Type type, params TypeReference[] genericArguments) => ImportType(ModuleDefinition.ImportReference(type), genericArguments);
-
-        internal TypeReference ImportType(TypeReference type, params TypeReference[] genericArguments) => genericArguments.Length == 0
-            ? ModuleDefinition.ImportReference(type)
-            : ModuleDefinition.ImportReference(type.MakeGeneric(genericArguments));
-
         internal MethodReference ImportMethod(Type type, string name, params TypeReference[] genericArguments)
             => ImportMethod(ModuleDefinition.ImportReference(type).ResolveExt(), name, genericArguments);
 
@@ -110,7 +104,7 @@ namespace DeepCopy.Fody
             {
                 if (!IsType(typeResolved, supportedInterface))
                     throw new WeavingException(Message.NotSupported(type));
-                typeOfInstance = ImportType(defaultType, typesOfArguments);
+                typeOfInstance = defaultType.Import().With(typesOfArguments);
             }
             else
             {

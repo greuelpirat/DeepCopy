@@ -24,6 +24,7 @@ namespace DeepCopy.Fody
 
         public override void Execute()
         {
+            ModuleHelper.Module = ModuleDefinition;
             TypeReferenceExt.ModuleWeaver = this;
             CreateDeepCopyExtensions();
             AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values);

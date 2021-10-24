@@ -126,7 +126,7 @@ namespace DeepCopy.Fody
 
             if (baseType.IsAbstract)
             {
-                processor.Emit(OpCodes.Newobj, ImportDefaultConstructor(ImportType(typeof(InvalidOperationException)).ResolveExt()));
+                processor.Emit(OpCodes.Newobj, ImportDefaultConstructor(typeof(InvalidOperationException).Import().ResolveExt()));
                 processor.Emit(OpCodes.Throw);
             }
             else
