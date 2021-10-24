@@ -14,17 +14,14 @@ namespace DeepCopy.Fody.Utils
             return constructor != null;
         }
 
-        public static MethodReference GetMethod(this TypeDefinition type, string name, string declaringType = null)
+        public static MethodReference GetMethod(this TypeDefinition type, string name, string declaringTypeFullName = null)
         {
-            declaringType ??= type.FullName;
+            var declaringType = declaringTypeFullName == null
+                ? type
+                : type.TraverseHierarchy().First(t => t.GetElementType().FullName == declaringTypeFullName).ResolveExt();
 
-            var method = type.TraverseHierarchy()
-                .SelectMany(t => t.ResolveExt().Methods)
-                .FirstOrDefault(m => m.Name == name && m.DeclaringType.FullName == declaringType);
-            if (method != null)
-                return method;
-
-            throw new WeavingException($"{type.FullName} has no method {name}");
+            return declaringType.Methods.FirstOrDefault(m => m.Name == name)
+                   ?? throw new WeavingException($"{type.FullName} has no method {name}");
         }
 
         public static FieldDefinition GetBackingField(this PropertyDefinition property)
