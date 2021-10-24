@@ -10,13 +10,13 @@ namespace DeepCopy.Fody.Utils
     {
         public static ModuleDefinition Module;
 
+        public static readonly Func<MethodDefinition, bool> DefaultConstructorPredicate = m => m.IsPublic && !m.IsStatic && !m.HasParameters;
+
         public static TypeReference Import(this Type type) => Module.ImportReference(type);
 
         public static TypeReference With(this TypeReference type, TypeReference genericArgument) => type.With(new[] { genericArgument });
 
         public static TypeReference With(this TypeReference type, IEnumerable<TypeReference> genericArguments) => Module.ImportReference(type.MakeGeneric(genericArguments));
-
-        public static readonly Func<MethodDefinition, bool> DefaultConstructorPredicate = m => m.IsPublic && !m.IsStatic && !m.HasParameters;
 
         public static MethodReference ImportDefaultConstructor(this TypeReference type)
         {

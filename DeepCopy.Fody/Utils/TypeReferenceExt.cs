@@ -42,7 +42,8 @@ namespace DeepCopy.Fody.Utils
             var sourceGeneric = (GenericInstanceType)source;
             var genericTarget = (GenericInstanceType)type;
 
-            var parametersMap = source.ResolveExt().GenericParameters
+            var parametersMap = source.ResolveExt()
+                .GenericParameters
                 .Zip(sourceGeneric.GenericArguments, (p, a) => new Tuple<GenericParameter, TypeReference>(p, a))
                 .ToDictionary(t => t.Item1.Name, t => t.Item2);
 
@@ -52,7 +53,6 @@ namespace DeepCopy.Fody.Utils
         private static IEnumerable<TypeReference> SolveGenericParameters(this IGenericInstance type, IDictionary<string, TypeReference> map)
         {
             foreach (var argument in type.GenericArguments)
-            {
                 switch (argument)
                 {
                     case GenericInstanceType genericArgument:
@@ -62,15 +62,11 @@ namespace DeepCopy.Fody.Utils
                         yield return map[parameter.Name];
                         break;
                 }
-            }
         }
 
-        public static TypeReference[] GetGenericArguments(this TypeReference type)
-        {
-            return type.IsGenericInstance
-                ? ((GenericInstanceType)type).GenericArguments.ToArray()
-                : Array.Empty<TypeReference>();
-        }
+        public static TypeReference[] GetGenericArguments(this TypeReference type) => type.IsGenericInstance
+            ? ((GenericInstanceType)type).GenericArguments.ToArray()
+            : Array.Empty<TypeReference>();
 
         public static TypeReference MakeGeneric(this TypeReference source, IEnumerable<TypeReference> arguments)
         {

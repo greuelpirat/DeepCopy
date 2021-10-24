@@ -1,27 +1,25 @@
 using Fody;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
 
 namespace DeepCopy.Fody.Utils
 {
     public class ForEach : IDisposable
     {
         private const string GetterCurrent = "get_" + nameof(IEnumerator.Current);
+        private readonly VariableDefinition _enumerator;
+        private readonly List<Instruction> _instructions;
 
         private readonly ModuleWeaver _moduleWeaver;
-        private readonly List<Instruction> _instructions;
-        private readonly VariableDefinition _enumerator;
-        private readonly TypeReference _typeEnumerator;
 
         private readonly Instruction _startCondition;
-        private readonly Instruction _startTry;
         private readonly Instruction _startLoop;
-
-        public VariableDefinition Current { get; }
+        private readonly Instruction _startTry;
+        private readonly TypeReference _typeEnumerator;
 
         public ForEach(ModuleWeaver moduleWeaver, List<Instruction> instructions, TypeReference typeOfEnumerable, ValueSource source)
         {
@@ -53,6 +51,8 @@ namespace DeepCopy.Fody.Utils
             _instructions.Add(Instruction.Create(OpCodes.Callvirt, moduleWeaver.ImportMethod(_typeEnumerator, GetterCurrent, typeOfCurrent)));
             _instructions.Add(Instruction.Create(OpCodes.Stloc, Current));
         }
+
+        public VariableDefinition Current { get; }
 
         public void Dispose()
         {
