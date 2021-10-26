@@ -75,12 +75,12 @@ namespace DeepCopy.Fody
             {
                 if (!typeResolved.GetConstructors().Any(ModuleHelper.DefaultConstructorPredicate))
                     throw Exceptions.NotSupported(type);
-                typeOfInstance = typeResolved;
+                typeOfInstance = type;
             }
 
             var constructor = ModuleDefinition.ImportReference(NewConstructor(typeOfInstance).MakeGeneric(typesOfArguments));
 
-            variable = NewVariable(type);
+            variable = NewVariable(typeOfInstance);
             return new[]
             {
                 Instruction.Create(OpCodes.Newobj, constructor),
