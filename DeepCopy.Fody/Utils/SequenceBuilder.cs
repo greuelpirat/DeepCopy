@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace DeepCopy.Fody.Utils
 {
-    public static class SequenceBuilder
+    public static partial class Extensions
     {
         internal static ModuleWeaver ModuleWeaver;
 
@@ -70,6 +70,8 @@ namespace DeepCopy.Fody.Utils
             });
         }
 
+        public static void AddIfNotNull(this List<Instruction> instructions, ValueSource source, Action content) => instructions.AddIfNotNull(source, false, content);
+
         public static void AddIfNotNull(this List<Instruction> instructions, ValueSource source, bool contentOnly, Action content)
         {
             if (contentOnly)
@@ -78,20 +80,6 @@ namespace DeepCopy.Fody.Utils
                 return;
             }
 
-            var last = Instruction.Create(OpCodes.Nop);
-
-            instructions.AddRange(source);
-            instructions.Add(Instruction.Create(OpCodes.Ldnull));
-            instructions.Add(Instruction.Create(OpCodes.Cgt_Un));
-            instructions.Add(Instruction.Create(OpCodes.Brfalse, last));
-
-            content();
-
-            instructions.Add(last);
-        }
-
-        public static void AddIfNotNull(this List<Instruction> instructions, ValueSource source, Action content)
-        {
             var last = Instruction.Create(OpCodes.Nop);
 
             instructions.AddRange(source);

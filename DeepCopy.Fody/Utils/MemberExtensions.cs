@@ -1,36 +1,11 @@
-using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
 using System.Linq;
 
 namespace DeepCopy.Fody.Utils
 {
-    public static class Extensions
+    public static partial class Extensions
     {
-        public static bool HasCopyConstructor(this TypeDefinition type, out MethodReference constructor)
-        {
-            constructor = type.GetConstructors().SingleOrDefault(c => c.HasSingleParameter(type));
-            return constructor != null;
-        }
-
-        public static MethodReference GetMethod(this TypeDefinition type, string name)
-        {
-            TypeDefinition declaringType;
-            var lastDot = name.LastIndexOf('.');
-            if (lastDot == -1)
-                declaringType = type;
-            else
-            {
-                var declaringTypeFullName = name.Substring(0, lastDot);
-                name = name.Substring(lastDot + 1);
-                declaringType = type.TraverseHierarchy().First(t => t.GetElementType().FullName == declaringTypeFullName).ResolveExt();
-            }
-
-            return declaringType.Methods.FirstOrDefault(m => m.Name == name)
-                   ?? throw new WeavingException($"{type.FullName} has no method {name}");
-        }
-
         public static FieldDefinition GetBackingField(this PropertyDefinition property)
         {
             var backingFieldName = $"<{property.Name}>k__BackingField";

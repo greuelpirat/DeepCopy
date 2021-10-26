@@ -1,5 +1,6 @@
 using Fody;
 using Mono.Cecil;
+using Mono.Cecil.Rocks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,21 +8,44 @@ using System.Linq;
 
 namespace DeepCopy.Fody.Utils
 {
-    public static class TypeReferenceExt
+    public static partial class Extensions
     {
-        internal static ModuleWeaver ModuleWeaver;
-
         public static bool IsA(this TypeReference type, Type expectedType) => type.FullName == expectedType.FullName;
 
         public static bool IsImplementing(this TypeReference type, Type target) => type.TryFindImplementation(target, out _);
 
-        public static bool TryFindImplementation(this TypeReference type, Type target, out TypeReference interfaceType)
+        private static bool TryFindImplementation(this TypeReference type, Type target, out TypeReference interfaceType)
         {
             interfaceType = type.TraverseHierarchy().FirstOrDefault(t => t.GetElementType().FullName == target.FullName);
             return interfaceType != null;
         }
 
-        public static IEnumerable<TypeReference> TraverseHierarchy(this TypeReference type)
+        public static bool HasCopyConstructor(this TypeDefinition type, out MethodReference constructor)
+        {
+            constructor = type.GetConstructors().SingleOrDefault(c => c.HasSingleParameter(type));
+            return constructor != null;
+        }
+
+        public static MethodReference GetMethod(this TypeDefinition type, string name)
+        {
+            TypeDefinition declaringType;
+            var lastDot = name.LastIndexOf('.');
+            if (lastDot == -1)
+            {
+                declaringType = type;
+            }
+            else
+            {
+                var declaringTypeFullName = name.Substring(0, lastDot);
+                name = name.Substring(lastDot + 1);
+                declaringType = type.TraverseHierarchy().First(t => t.GetElementType().FullName == declaringTypeFullName).ResolveExt();
+            }
+
+            return declaringType.Methods.FirstOrDefault(m => m.Name == name)
+                   ?? throw new WeavingException($"{type.FullName} has no method {name}");
+        }
+
+        private static IEnumerable<TypeReference> TraverseHierarchy(this TypeReference type)
         {
             var types = new HashSet<string>();
 
