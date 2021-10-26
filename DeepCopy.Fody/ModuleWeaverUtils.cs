@@ -27,8 +27,6 @@ namespace DeepCopy.Fody
             return constructor;
         }
 
-        private bool IsType(IMetadataTokenProvider typeDefinition, Type type) => typeDefinition.MetadataToken == ModuleDefinition.ImportReference(type).ResolveExt().MetadataToken;
-
         internal MethodReference ImportMethod(TypeReference type, string name, params TypeReference[] genericArguments)
         {
             var method = type.ResolveExt().GetMethod(name);
@@ -86,7 +84,7 @@ namespace DeepCopy.Fody
 
             if (typeResolved.IsInterface)
             {
-                if (!IsType(typeResolved, supportedInterface))
+                if (!typeResolved.IsA(supportedInterface))
                     throw Exceptions.NotSupported(type);
                 typeOfInstance = defaultType.Import().With(typesOfArguments);
             }
