@@ -42,7 +42,7 @@ namespace DeepCopy.Fody.Utils
             content(current);
 
             instructions.Add(startCondition);
-            instructions.Add(Instruction.Create(OpCodes.Callvirt, typeEnumerator.ImportMethod("System.Collections.IEnumerator.MoveNext")));
+            instructions.Add(Instruction.Create(OpCodes.Callvirt, typeEnumerator.ImportMethod(new MethodQuery(null, "System.Collections.IEnumerator", "MoveNext", null))));
             instructions.Add(Instruction.Create(OpCodes.Brtrue, startLoop));
 
             // end try

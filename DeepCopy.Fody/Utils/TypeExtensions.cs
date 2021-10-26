@@ -26,20 +26,13 @@ namespace DeepCopy.Fody.Utils
             return constructor != null;
         }
 
-        public static MethodReference GetMethod(this TypeDefinition type, string name)
+        public static MethodReference GetMethod(this TypeDefinition type, MethodQuery query)
         {
-            TypeDefinition declaringType;
-            var lastDot = name.LastIndexOf('.');
-            if (lastDot == -1)
-            {
-                declaringType = type;
-            }
-            else
-            {
-                var declaringTypeFullName = name.Substring(0, lastDot);
-                name = name.Substring(lastDot + 1);
-                declaringType = type.TraverseHierarchy().First(t => t.GetElementType().FullName == declaringTypeFullName).ResolveExt();
-            }
+            var name = query.Name;
+            var declaringTypeFullName = query.DeclaringType;
+            var declaringType = declaringTypeFullName == null
+                ? type
+                : type.TraverseHierarchy().First(t => t.GetElementType().FullName == declaringTypeFullName).ResolveExt();
 
             return declaringType.Methods.FirstOrDefault(m => m.Name == name)
                    ?? throw new WeavingException($"{type.FullName} has no method {name}");

@@ -22,9 +22,12 @@ namespace DeepCopy.Fody
 
                 list.AddForEach(type, source, current =>
                 {
-                    list.AddRange(Copy(type.GetGenericArguments().Single(),
+                    var itemType = type.GetGenericArguments().Single();
+                    list.AddRange(Copy(itemType,
                         ValueSource.New().Variable(current),
-                        ValueTarget.New().Instance(variable).Callvirt(type.ImportMethod("System.Collections.Generic.ICollection`1.Add", type.GetGenericArguments().Single()))));
+                        ValueTarget.New()
+                            .Instance(variable)
+                            .Callvirt(type.ImportMethod(new MethodQuery(null, "System.Collections.Generic.ICollection`1", "Add", null), itemType))));
                 });
 
                 if (!target.IsTargetingBase)
