@@ -31,7 +31,7 @@ namespace DeepCopy.Fody.Utils
 
             var typeOfCurrent = typeOfEnumerableImpl.GetGenericArguments().Single();
 
-            var methodGetEnumerator = moduleWeaver.ImportMethod(typeof(IEnumerable<>).Import().With(typeOfCurrent), nameof(IEnumerable.GetEnumerator), typeOfCurrent);
+            var methodGetEnumerator = typeof(IEnumerable<>).Import().With(typeOfCurrent).ImportMethod(nameof(IEnumerable.GetEnumerator), typeOfCurrent);
             _typeEnumerator = methodGetEnumerator.ReturnType.With(typeOfCurrent);
 
             _enumerator = moduleWeaver.NewVariable(_typeEnumerator);
@@ -48,7 +48,7 @@ namespace DeepCopy.Fody.Utils
 
             _startLoop = Instruction.Create(OpCodes.Ldloc, _enumerator);
             _instructions.Add(_startLoop);
-            _instructions.Add(Instruction.Create(OpCodes.Callvirt, moduleWeaver.ImportMethod(_typeEnumerator, GetterCurrent, typeOfCurrent)));
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _typeEnumerator.ImportMethod(GetterCurrent, typeOfCurrent)));
             _instructions.Add(Instruction.Create(OpCodes.Stloc, Current));
         }
 
@@ -70,7 +70,7 @@ namespace DeepCopy.Fody.Utils
             var endFinally = Instruction.Create(OpCodes.Endfinally);
             _instructions.Add(Instruction.Create(OpCodes.Brfalse_S, endFinally));
             _instructions.Add(Instruction.Create(OpCodes.Ldloc, _enumerator));
-            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod(typeof(IDisposable).Import(), nameof(IDisposable.Dispose))));
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, typeof(IDisposable).Import().ImportMethod(nameof(IDisposable.Dispose))));
             _instructions.Add(Instruction.Create(OpCodes.Nop));
             _instructions.Add(endFinally);
 

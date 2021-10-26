@@ -25,5 +25,13 @@ namespace DeepCopy.Fody.Utils
                 ? constructor.MakeGeneric(type.GetGenericArguments())
                 : constructor);
         }
+
+        public static MethodReference ImportMethod(this TypeReference type, string name, params TypeReference[] genericArguments)
+        {
+            var method = type.ResolveExt().GetMethod(name);
+            if (genericArguments.Length > 0)
+                method = method.MakeGeneric(genericArguments);
+            return Module.ImportReference(method);
+        }
     }
 }

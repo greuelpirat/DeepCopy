@@ -27,14 +27,6 @@ namespace DeepCopy.Fody
             return constructor;
         }
 
-        internal MethodReference ImportMethod(TypeReference type, string name, params TypeReference[] genericArguments)
-        {
-            var method = type.ResolveExt().GetMethod(name);
-            if (genericArguments.Length > 0)
-                method = method.MakeGeneric(genericArguments);
-            return ModuleDefinition.ImportReference(method);
-        }
-
         internal MethodReference ImportMethod<T>(TypeReference type, string name, params TypeReference[] genericArguments)
         {
             var declaringType = typeof(T);

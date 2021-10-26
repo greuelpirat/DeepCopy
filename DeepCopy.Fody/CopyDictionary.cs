@@ -21,8 +21,8 @@ namespace DeepCopy.Fody
 
                 using (var forEach = new ForEach(this, list, type, source))
                 {
-                    var sourceKey = ValueSource.New().Variable(forEach.Current).Method(ImportMethod(typeKeyValuePair, "get_Key", typesOfArguments));
-                    var sourceValue = ValueSource.New().Variable(forEach.Current).Method(ImportMethod(typeKeyValuePair, "get_Value", typesOfArguments));
+                    var sourceKey = ValueSource.New().Variable(forEach.Current).Method(typeKeyValuePair.ImportMethod("get_Key", typesOfArguments));
+                    var sourceValue = ValueSource.New().Variable(forEach.Current).Method(typeKeyValuePair.ImportMethod("get_Value", typesOfArguments));
 
                     var targetKey = NewVariable(typesOfArguments[0]);
                     list.AddRange(Copy(typesOfArguments[0], sourceKey, ValueTarget.New().Variable(targetKey)));
@@ -32,7 +32,7 @@ namespace DeepCopy.Fody
                     list.Add(variable?.CreateLoadInstruction() ?? Instruction.Create(OpCodes.Ldarg_0));
                     list.Add(targetKey.CreateLoadInstruction());
                     list.Add(targetValue.CreateLoadInstruction());
-                    list.Add(Instruction.Create(OpCodes.Callvirt, ImportMethod(type.ResolveExt(), "set_Item", typesOfArguments)));
+                    list.Add(Instruction.Create(OpCodes.Callvirt, type.ImportMethod("set_Item", typesOfArguments)));
                 }
 
                 if (!target.IsTargetingBase)
