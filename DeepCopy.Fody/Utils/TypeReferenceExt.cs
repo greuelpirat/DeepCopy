@@ -23,15 +23,29 @@ namespace DeepCopy.Fody.Utils
 
         public static IEnumerable<TypeReference> TraverseHierarchy(this TypeReference type)
         {
+            var types = new HashSet<string>();
+
+            bool ReturnType(MemberReference typeReference)
+            {
+                var fullName = typeReference.FullName;
+                if (types.Contains(fullName))
+                    return false;
+                types.Add(fullName);
+                return true;
+            }
+
             var current = type;
             do
             {
-                yield return current;
+                if (ReturnType(current))
+                    yield return current;
+
                 var resolved = current.ResolveExt();
 
-                foreach (var @interface in resolved.Interfaces)
-                foreach (var reference in @interface.InterfaceType.ApplyGenericsFrom(current).TraverseHierarchy())
-                    yield return reference;
+                foreach (var interfaceImpl in resolved.Interfaces)
+                foreach (var reference in interfaceImpl.InterfaceType.ApplyGenericsFrom(current).TraverseHierarchy())
+                    if (ReturnType(reference))
+                        yield return reference;
 
                 current = resolved.BaseType?.ApplyGenericsFrom(current);
             } while (current != null);
