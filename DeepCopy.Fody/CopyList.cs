@@ -19,12 +19,12 @@ namespace DeepCopy.Fody
                 if (!target.IsTargetingBase)
                     list.AddRange(NewInstance(type, typeof(IList<>), typeof(List<>), out variable));
 
-                using (var forEach = new ForEach(this, list, type, source))
+                list.AddForEach(type, source, current =>
                 {
                     list.AddRange(Copy(typeOfArgument,
-                        ValueSource.New().Variable(forEach.Current),
+                        ValueSource.New().Variable(current),
                         ValueTarget.New().Instance(variable).Callvirt(type.ImportMethod("System.Collections.Generic.ICollection`1.Add", typeOfArgument))));
-                }
+                });
 
                 if (!target.IsTargetingBase)
                     list.AddRange(target.Build(variable));
