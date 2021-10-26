@@ -12,7 +12,7 @@ namespace DeepCopy.Fody.Utils
     {
         public static bool IsA(this TypeReference type, Type expectedType) => type.FullName == expectedType.FullName;
 
-        public static bool IsImplementing(this TypeReference type, Type target) => type.TryFindImplementation(target, out _);
+        public static bool Implements(this TypeReference type, Type target) => type.TryFindImplementation(target, out _);
 
         private static bool TryFindImplementation(this TypeReference type, Type target, out TypeReference interfaceType)
         {

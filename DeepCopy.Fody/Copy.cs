@@ -89,11 +89,11 @@ namespace DeepCopy.Fody
                     list.AddRange(source.BuildNullSafe(next));
                     list.Add(Instruction.Create(OpCodes.Newobj, constructor));
                 }
-            else if (type.IsImplementing(typeof(IDictionary<,>)))
+            else if (type.Implements(typeof(IDictionary<,>)))
                 list.AddRange(CopyDictionary(type, source, target));
-            else if (type.IsImplementing(typeof(IList<>)))
+            else if (type.Implements(typeof(IList<>)))
                 list.AddRange(CopyList(type, source, target));
-            else if (type.IsImplementing(typeof(ISet<>)))
+            else if (type.Implements(typeof(ISet<>)))
                 list.AddRange(CopySet(type, source, target));
 
             else if (typeToken == TypeSystem.ObjectDefinition.MetadataToken)
