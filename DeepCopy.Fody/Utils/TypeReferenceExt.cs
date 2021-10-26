@@ -69,15 +69,12 @@ namespace DeepCopy.Fody.Utils
         private static IEnumerable<TypeReference> SolveGenericParameters(this IGenericInstance type, IDictionary<string, TypeReference> map)
         {
             foreach (var argument in type.GenericArguments)
-                switch (argument)
+                yield return argument switch
                 {
-                    case GenericInstanceType genericArgument:
-                        yield return genericArgument.MakeGeneric(genericArgument.SolveGenericParameters(map));
-                        break;
-                    case GenericParameter parameter:
-                        yield return map[parameter.Name];
-                        break;
-                }
+                    GenericInstanceType genericArgument => genericArgument.MakeGeneric(genericArgument.SolveGenericParameters(map)),
+                    GenericParameter parameter => map[parameter.Name],
+                    _ => throw new InvalidOperationException()
+                };
         }
 
         public static TypeReference[] GetGenericArguments(this TypeReference type) => type.IsGenericInstance
