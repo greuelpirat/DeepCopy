@@ -14,7 +14,7 @@ namespace DeepCopy.Fody.Utils
 
         public static void AddForEach(this List<Instruction> instructions, TypeReference typeOfEnumerable, ValueSource source, Action<VariableDefinition> content)
         {
-            if (!typeOfEnumerable.TryFindImplementation(typeof(IEnumerable<>), out var typeOfEnumerableImpl))
+            if (!typeOfEnumerable.Implements(typeof(IEnumerable<>), out var typeOfEnumerableImpl))
                 throw new WeavingException($"{typeOfEnumerable.FullName} is no IEnumerable");
 
             var typeOfCurrent = typeOfEnumerableImpl.GetGenericArguments().Single();
