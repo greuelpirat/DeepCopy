@@ -10,10 +10,11 @@ namespace DeepCopy.Fody
     {
         private IEnumerable<Instruction> CopyList(TypeReference type, ValueSource source, ValueTarget target)
         {
-            var typeOfArgument = type.GetGenericArguments().Single();
-
             var list = new List<Instruction>();
-            using (new IfNotNull(list, source, target.IsTargetingBase))
+            list.AddIfNotNull(source, target.IsTargetingBase, Build);
+            return list;
+
+            void Build()
             {
                 VariableDefinition variable = null;
                 if (!target.IsTargetingBase)
@@ -21,16 +22,14 @@ namespace DeepCopy.Fody
 
                 list.AddForEach(type, source, current =>
                 {
-                    list.AddRange(Copy(typeOfArgument,
+                    list.AddRange(Copy(type.GetGenericArguments().Single(),
                         ValueSource.New().Variable(current),
-                        ValueTarget.New().Instance(variable).Callvirt(type.ImportMethod("System.Collections.Generic.ICollection`1.Add", typeOfArgument))));
+                        ValueTarget.New().Instance(variable).Callvirt(type.ImportMethod("System.Collections.Generic.ICollection`1.Add", type.GetGenericArguments().Single()))));
                 });
 
                 if (!target.IsTargetingBase)
                     list.AddRange(target.Build(variable));
             }
-
-            return list;
         }
     }
 }

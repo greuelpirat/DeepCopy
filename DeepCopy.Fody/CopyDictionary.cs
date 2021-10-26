@@ -9,11 +9,11 @@ namespace DeepCopy.Fody
     {
         private IEnumerable<Instruction> CopyDictionary(TypeReference type, ValueSource source, ValueTarget target)
         {
-            var typesOfArguments = type.GetGenericArguments();
-            var typeKeyValuePair = typeof(KeyValuePair<,>).Import().With(typesOfArguments);
-
             var list = new List<Instruction>();
-            using (new IfNotNull(list, source, target.IsTargetingBase))
+            list.AddIfNotNull(source, target.IsTargetingBase, Build);
+            return list;
+
+            void Build()
             {
                 VariableDefinition variable = null;
                 if (!target.IsTargetingBase)
@@ -21,6 +21,8 @@ namespace DeepCopy.Fody
 
                 list.AddForEach(type, source, current =>
                 {
+                    var typesOfArguments = type.GetGenericArguments();
+                    var typeKeyValuePair = typeof(KeyValuePair<,>).Import().With(typesOfArguments);
                     var sourceKey = ValueSource.New().Variable(current).Method(typeKeyValuePair.ImportMethod("get_Key", typesOfArguments));
                     var sourceValue = ValueSource.New().Variable(current).Method(typeKeyValuePair.ImportMethod("get_Value", typesOfArguments));
 
@@ -38,8 +40,6 @@ namespace DeepCopy.Fody
                 if (!target.IsTargetingBase)
                     list.AddRange(target.Build(ValueSource.New().Variable(variable)));
             }
-
-            return list;
         }
     }
 }

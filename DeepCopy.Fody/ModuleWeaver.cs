@@ -26,7 +26,7 @@ namespace DeepCopy.Fody
         {
             ModuleHelper.Module = ModuleDefinition;
             TypeReferenceExt.ModuleWeaver = this;
-            ForEachBuilder.ModuleWeaver = this;
+            SequenceBuilder.ModuleWeaver = this;
             CreateDeepCopyExtensions();
             AddDeepCopyConstructors(AddDeepCopyConstructorTargets.Values);
             AddDeepCopyConstructors(ModuleDefinition.GetTypes().Where(t => t.Has(DeepCopyAttribute.AddDeepCopyConstructor)));
