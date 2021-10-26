@@ -10,7 +10,6 @@ namespace DeepCopy.Fody.Utils
 {
     public class ForEach : IDisposable
     {
-        private const string GetterCurrent = "get_" + nameof(IEnumerator.Current);
         private readonly VariableDefinition _enumerator;
         private readonly List<Instruction> _instructions;
 
@@ -48,7 +47,7 @@ namespace DeepCopy.Fody.Utils
 
             _startLoop = Instruction.Create(OpCodes.Ldloc, _enumerator);
             _instructions.Add(_startLoop);
-            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _typeEnumerator.ImportMethod(GetterCurrent, typeOfCurrent)));
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _typeEnumerator.ImportMethod("get_Current", typeOfCurrent)));
             _instructions.Add(Instruction.Create(OpCodes.Stloc, Current));
         }
 
@@ -57,7 +56,7 @@ namespace DeepCopy.Fody.Utils
         public void Dispose()
         {
             _instructions.Add(_startCondition);
-            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _moduleWeaver.ImportMethod<IEnumerator>(_typeEnumerator, nameof(IEnumerator.MoveNext))));
+            _instructions.Add(Instruction.Create(OpCodes.Callvirt, _typeEnumerator.ImportMethod("System.Collections.IEnumerator.MoveNext")));
             _instructions.Add(Instruction.Create(OpCodes.Brtrue, _startLoop));
 
             // end try
