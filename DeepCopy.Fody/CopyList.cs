@@ -32,7 +32,7 @@ namespace DeepCopy.Fody
                         ValueSource.New().Variable(current),
                         ValueTarget.New()
                             .Instance(variable)
-                            .Call(targetType.ImportMethod(new MethodQuery("System.Void", null, "Add", itemGenericParameter.FullName), itemType))));
+                            .Callvirt(targetType.ImportMethod(new MethodQuery("System.Void", null, "Add", itemGenericParameter.FullName), itemType))));
                 });
 
                 if (!target.IsTargetingBase)
