@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using DeepCopy.Fody.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DeepCopy.Fody
 {
@@ -17,17 +17,22 @@ namespace DeepCopy.Fody
             void Build()
             {
                 VariableDefinition variable = null;
+                var targetType = type;
                 if (!target.IsTargetingBase)
+                {
                     list.AddRange(NewInstance(type, typeof(IList<>), typeof(List<>), out variable));
+                    targetType = variable.VariableType;
+                }
 
                 list.AddForEach(type, source, current =>
                 {
+                    var itemGenericParameter = (GenericParameter)type.GetGenericArguments(Types.GenericEnumerable).Single();
                     var itemType = type.GetGenericArguments().Single();
                     list.AddRange(Copy(itemType,
                         ValueSource.New().Variable(current),
                         ValueTarget.New()
                             .Instance(variable)
-                            .Callvirt(type.ImportMethod(new MethodQuery(null, "System.Collections.Generic.ICollection`1", "Add", null), itemType))));
+                            .Call(targetType.ImportMethod(new MethodQuery("System.Void", null, "Add", itemGenericParameter.FullName), itemType))));
                 });
 
                 if (!target.IsTargetingBase)

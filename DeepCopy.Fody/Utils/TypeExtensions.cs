@@ -28,17 +28,23 @@ namespace DeepCopy.Fody.Utils
 
         public static MethodReference GetMethod(this TypeDefinition type, MethodQuery query)
         {
-            var name = query.Name;
-            var declaringTypeFullName = query.DeclaringType;
-            var declaringType = declaringTypeFullName == null
-                ? type
-                : type.TraverseHierarchy().First(t => t.GetElementType().FullName == declaringTypeFullName).ResolveExt();
+            var name = query.Name ?? throw new ArgumentNullException(nameof(query), "Name required");
+            var declaringType = query.DeclaringType;
+            var methods = declaringType == null
+                ? type.TraverseHierarchy(false).SelectMany(t => t.ResolveExt().Methods)
+                : type.TraverseHierarchy().First(t => t.GetElementType().FullName == declaringType).ResolveExt().Methods;
 
-            return declaringType.Methods.FirstOrDefault(m => m.Name == name)
-                   ?? throw new WeavingException($"{type.FullName} has no method {name}");
+            methods = methods.Where(m => m.Name == name);
+            if (query.ReturnType != null)
+                methods = methods.Where(m => m.ReturnType.FullName == query.ReturnType);
+            if (query.Arguments != null)
+                methods = methods.Where(m => string.Join(",", m.Parameters.Select(p => p.ParameterType.FullName)) == query.Arguments);
+
+            return methods.FirstOrDefault()
+                   ?? throw new WeavingException($"Method {name} in type {type.FullName} not found");
         }
 
-        private static IEnumerable<TypeReference> TraverseHierarchy(this TypeReference type)
+        private static IEnumerable<TypeReference> TraverseHierarchy(this TypeReference type, bool includeInterfaces = true)
         {
             var types = new HashSet<string>();
 
@@ -59,10 +65,11 @@ namespace DeepCopy.Fody.Utils
 
                 var resolved = current.ResolveExt();
 
-                foreach (var interfaceImpl in resolved.Interfaces)
-                foreach (var reference in interfaceImpl.InterfaceType.ApplyGenericsFrom(current).TraverseHierarchy())
-                    if (ReturnType(reference))
-                        yield return reference;
+                if (includeInterfaces)
+                    foreach (var interfaceImpl in resolved.Interfaces)
+                    foreach (var reference in interfaceImpl.InterfaceType.ApplyGenericsFrom(current).TraverseHierarchy())
+                        if (ReturnType(reference))
+                            yield return reference;
 
                 current = resolved.BaseType?.ApplyGenericsFrom(current);
             } while (current != null);
@@ -124,6 +131,28 @@ namespace DeepCopy.Fody.Utils
             if (ModuleWeaver.TryFindTypeDefinition(reference.FullName, out definition))
                 return definition;
             throw new WeavingException($"{reference.FullName} not found");
+        }
+
+        public static TypeReference[] GetGenericArguments(this TypeReference type, string interfaceFullName)
+        {
+            var current = type;
+            while (current != null)
+            {
+                var definition = current.ResolveExt();
+                var interfaceType = GetInterfaceType(definition, interfaceFullName);
+                if (interfaceType == null)
+                {
+                    current = definition.BaseType;
+                    continue;
+                }
+                return interfaceType.GetGenericArguments();
+            }
+            throw new WeavingException($"{type} does not implement {interfaceFullName}");
+
+            static TypeReference GetInterfaceType(TypeDefinition type, string interfaceFullName)
+            {
+                return type.Interfaces.Select(i => i.InterfaceType).SingleOrDefault(i => i.GetElementType().FullName == interfaceFullName);
+            }
         }
     }
 }
