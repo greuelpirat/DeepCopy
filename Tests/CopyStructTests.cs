@@ -8,7 +8,7 @@ namespace Tests
         [Fact]
         public void TestSomeStruct()
         {
-            var instance = CreateSomeStruct();
+            var instance = Create<SomeStruct>();
             var copy = CopyByConstructor(instance);
 
             Assert.NotNull(copy);

@@ -54,24 +54,17 @@ namespace Tests
             return copy;
         }
 
-        private static dynamic CreateSomeObject()
-        {
-            var instance = TestInstance<SomeObject>();
-            instance.Integer = Random.Next();
-            instance.Enum = (int)SomeEnum.Value1;
-            instance.DateTime = DateTime.Now;
-            instance.String = "Hello " + Random.Next();
-            return instance;
-        }
+        private static dynamic CreateSomeObject() => Create<SomeObject>(false);
 
-        private static dynamic CreateSomeStruct()
+        private static dynamic Create<T>(bool setSomeObject = true)
         {
-            var instance = TestInstance<SomeStruct>();
+            var instance = TestInstance<T>();
             instance.Integer = Random.Next();
             instance.Enum = (int)SomeEnum.Value1;
             instance.DateTime = DateTime.Now;
             instance.String = "Hello " + Random.Next();
-            instance.Object = CreateSomeObject();
+            if (setSomeObject)
+                instance.Object = CreateSomeObject();
             return instance;
         }
 
