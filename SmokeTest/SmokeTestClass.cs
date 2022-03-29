@@ -7,4 +7,10 @@ namespace SmokeTest
     {
         public string String { get; set; }
     }
+
+    [AddDeepCopyConstructor]
+    public record SmokeTestRecord
+    {
+        public string String { get; set; }
+    }
 }

@@ -22,6 +22,8 @@ namespace DeepCopy.Fody
         private Dictionary<TypeDefinition, TypeDefinition> AddDeepCopyConstructorTargets { get; } = new();
         private Dictionary<TypeDefinition, MethodReference> DeepCopyExtensions { get; } = new();
 
+        private bool OverwriteByDefault => Equals(Config.Attribute(nameof(OverwriteByDefault))?.Value, true.ToString());
+
         public override void Execute()
         {
             ModuleHelper.Module = ModuleDefinition;
@@ -55,10 +57,24 @@ namespace DeepCopy.Fody
             foreach (var target in targets)
                 Run(target, () =>
                 {
-                    if (target.HasCopyConstructor(out _))
-                        throw new WeavingException("Type already has copy constructor. Use [DeepCopyConstructor] on constructor to inject deep copy code");
-
-                    AddDeepConstructor(target);
+                    if (target.HasCopyConstructor(out var constructor))
+                    {
+                        if (target.Has(DeepCopyAttribute.AddDeepCopyConstructor, out var attribute)
+                            && attribute.GetArgument("Overwrite", false)
+                            || OverwriteByDefault)
+                        {
+                            AddDeepConstructor(target, ModuleDefinition.ImportReference(constructor).Resolve());
+                        }
+                        else
+                            throw new WeavingException(@"Type already has a copy constructor
+- Use [DeepCopyConstructor] on constructor to inject deep copy code
+- Use [AddDeepCopyConstructor(Overwrite=true)] on type to replace existing constructor
+- Set global config <DeepCopy OverwriteByDefault=""True"" /> in FodyWeavers.xml");
+                    }
+                    else
+                    {
+                        AddDeepConstructor(target, null);
+                    }
                     target.TryRemove(DeepCopyAttribute.AddDeepCopyConstructor);
                 });
         }
@@ -98,14 +114,24 @@ namespace DeepCopy.Fody
             }
         }
 
-        private void AddDeepConstructor(TypeDefinition type)
+        private void AddDeepConstructor(TypeDefinition type, MethodDefinition overwriteTarget)
         {
-            var constructor = new MethodDefinition(
-                ConstructorName,
-                ConstructorAttributes,
-                ModuleDefinition.ImportReference(TypeSystem.VoidReference)
-            );
-            constructor.Parameters.Add(new ParameterDefinition(ConstructorParameterName, ParameterAttributes.None, type));
+            MethodDefinition constructor;
+            if (overwriteTarget == null)
+            {
+                constructor = new MethodDefinition(
+                    ConstructorName,
+                    ConstructorAttributes,
+                    ModuleDefinition.ImportReference(TypeSystem.VoidReference)
+                );
+                constructor.Parameters.Add(new ParameterDefinition(ConstructorParameterName, ParameterAttributes.None, type));
+            }
+            else
+            {
+                constructor = overwriteTarget;
+                constructor.IsPublic = true;
+                constructor.Body.Instructions.Clear();
+            }
 
             var processor = constructor.Body.GetILProcessor();
 
@@ -153,7 +179,8 @@ namespace DeepCopy.Fody
             InsertCopyInstructions(type, constructor, baseCopyFunc);
 
             processor.Emit(OpCodes.Ret);
-            type.Methods.Add(constructor);
+            if (overwriteTarget == null)
+                type.Methods.Add(constructor);
         }
 
         private void InsertCopyInstructions(TypeDefinition type, MethodDefinition constructor, Func<TypeReference, IEnumerable<Instruction>> baseCopyInstruction)
