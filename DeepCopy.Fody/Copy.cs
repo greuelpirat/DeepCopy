@@ -13,6 +13,7 @@ namespace DeepCopy.Fody
         {
             if (property.TryRemove(DeepCopyAttribute.IgnoreDuringDeepCopy))
             {
+                WriteDebug($"  Ignore {property.FullName} by attribute");
                 instructions = null;
                 return false;
             }
@@ -20,12 +21,14 @@ namespace DeepCopy.Fody
             if (property.GetMethod == null
                 || property.SetMethod == null && property.GetBackingField() == null)
             {
+                WriteDebug($"  Ignore {property.FullName}: no backing field");
                 instructions = null;
                 return false;
             }
 
             if (property.TryRemove(DeepCopyAttribute.DeepCopyByReference))
             {
+                WriteDebug($"  Copy {property.FullName} from {sourceValueType?.Name ?? "this"} by reference");
                 instructions = new[]
                 {
                     Instruction.Create(OpCodes.Ldarg_0),
@@ -37,6 +40,8 @@ namespace DeepCopy.Fody
                 };
                 return true;
             }
+            
+            WriteDebug($"  Copy {property.FullName} from {sourceValueType?.Name ?? "this"}");
 
             var source = ValueSource.New().Property(property).SourceParameter(sourceValueType);
             var target = ValueTarget.New().Property(property);

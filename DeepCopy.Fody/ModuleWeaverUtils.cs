@@ -98,6 +98,7 @@ namespace DeepCopy.Fody
 
         private void Run(MemberReference reference, Action action)
         {
+            WriteDebug($"Process {reference.FullName}");
             try
             {
                 action();
@@ -105,6 +106,7 @@ namespace DeepCopy.Fody
             catch (WeavingException exception)
             {
                 WriteError($"{reference.FullName}: {exception.Message}");
+                WriteDebug(exception.ToString());
                 _fails++;
             }
             catch (Exception exception)
