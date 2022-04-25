@@ -57,31 +57,35 @@ namespace DeepCopy.Fody
             foreach (var target in targets)
                 Run(target, () =>
                 {
-                    if (target.HasCopyConstructor(out var constructor))
+                    var hasAttribute = target.TryRemove(DeepCopyAttribute.AddDeepCopyConstructor, out var attribute);
+                    if (!target.HasCopyConstructor(out var constructor))
                     {
-                        if (target.Has(DeepCopyAttribute.AddDeepCopyConstructor, out var attribute)
-                            && attribute.GetArgument("Overwrite", false)
-                            || OverwriteByDefault)
-                        {
-                            AddDeepConstructor(target, ModuleDefinition.ImportReference(constructor).Resolve());
-                        }
-                        else if (!constructor.Resolve().IsPublic)
-                        {
-                            if (!OverwriteByDefault)
-                                WriteWarning($"Non-public constructor for {target.FullName} will be overwritten");
-                            AddDeepConstructor(target, ModuleDefinition.ImportReference(constructor).Resolve());
-                        }
-                        else
-                            throw new WeavingException(@"Type already has a copy constructor
+                        AddDeepConstructor(target, null);
+                        return;
+                    }
+
+                    var constructorResolved = constructor.Resolve();
+                    if (constructorResolved.Has(DeepCopyAttribute.DeepCopyConstructor)
+                        || constructorResolved.Has(DeepCopyAttribute.InjectDeepCopy))
+                        return;
+
+                    if (hasAttribute
+                        && attribute.GetArgument("Overwrite", false)
+                        || OverwriteByDefault)
+                    {
+                        AddDeepConstructor(target, ModuleDefinition.ImportReference(constructor).Resolve());
+                    }
+                    else if (!constructorResolved.IsPublic)
+                    {
+                        if (!OverwriteByDefault)
+                            WriteWarning($"Non-public constructor for {target.FullName} will be overwritten");
+                        AddDeepConstructor(target, ModuleDefinition.ImportReference(constructor).Resolve());
+                    }
+                    else
+                        throw new WeavingException(@"Type already has a copy constructor
 - Use [DeepCopyConstructor] on constructor to inject deep copy code
 - Use [AddDeepCopyConstructor(Overwrite=true)] on type to replace existing constructor
 - Set global config <DeepCopy OverwriteByDefault=""True"" /> in FodyWeavers.xml");
-                    }
-                    else
-                    {
-                        AddDeepConstructor(target, null);
-                    }
-                    target.TryRemove(DeepCopyAttribute.AddDeepCopyConstructor);
                 });
         }
 

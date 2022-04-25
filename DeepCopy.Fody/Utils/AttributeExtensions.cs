@@ -33,7 +33,12 @@ namespace DeepCopy.Fody.Utils
 
         public static bool TryRemove(this ICustomAttributeProvider attributeProvider, DeepCopyAttribute name)
         {
-            if (!attributeProvider.Has(name, out var attribute))
+            return TryRemove(attributeProvider, name, out _);
+        }
+        
+        public static bool TryRemove(this ICustomAttributeProvider attributeProvider, DeepCopyAttribute name, out CustomAttribute attribute)
+        {
+            if (!attributeProvider.Has(name, out attribute))
                 return false;
             attributeProvider.CustomAttributes.Remove(attribute);
             return true;
