@@ -65,6 +65,12 @@ namespace DeepCopy.Fody
                         {
                             AddDeepConstructor(target, ModuleDefinition.ImportReference(constructor).Resolve());
                         }
+                        else if (!constructor.Resolve().IsPublic)
+                        {
+                            if (!OverwriteByDefault)
+                                WriteWarning($"Non-public constructor for {target.FullName} will be overwritten");
+                            AddDeepConstructor(target, ModuleDefinition.ImportReference(constructor).Resolve());
+                        }
                         else
                             throw new WeavingException(@"Type already has a copy constructor
 - Use [DeepCopyConstructor] on constructor to inject deep copy code

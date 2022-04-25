@@ -37,7 +37,7 @@ namespace DeepCopy.Fody
         {
             var copyTypeReference = ModuleDefinition.ImportReference(type);
 
-            if (!IsCopyConstructorAvailable(type, out var constructor))
+            if (!IsCopyConstructorAvailable(type, out var constructor, true))
             {
                 AddDeepCopyConstructorTargets[type] = type;
                 constructor = NewConstructor(type, type);
@@ -89,7 +89,7 @@ namespace DeepCopy.Fody
 
             foreach (var type in types)
             {
-                if (!IsCopyConstructorAvailable(type, out var constructor))
+                if (!IsCopyConstructorAvailable(type, out var constructor, true))
                 {
                     AddDeepCopyConstructorTargets[type] = type;
                     constructor = NewConstructor(type, type);
@@ -131,7 +131,7 @@ namespace DeepCopy.Fody
             }
             else
             {
-                if (!IsCopyConstructorAvailable(baseType, out var constructor))
+                if (!IsCopyConstructorAvailable(baseType, out var constructor, true))
                     throw Exceptions.NoCopyConstructorFound(baseType);
 
                 processor.Emit(OpCodes.Ldarg_0);

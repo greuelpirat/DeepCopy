@@ -13,11 +13,8 @@ public record AnyRecord
     public SomeObject Object { get; set; }
 }
 
-public static class AnyRecordTests
+public static class AnyRecordExtensions
 {
-    public static void Test1()
-    {
-        // var record = new AnyRecord();
-        // var copy = new AnyRecord(record);
-    }
+    [DeepCopyExtension]
+    public static AnyRecord DeepCopy(this AnyRecord anyRecord) => anyRecord;
 }

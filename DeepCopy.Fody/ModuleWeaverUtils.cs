@@ -27,7 +27,7 @@ namespace DeepCopy.Fody
             return constructor;
         }
 
-        private bool IsCopyConstructorAvailable(TypeReference type, out MethodReference constructor)
+        private bool IsCopyConstructorAvailable(TypeReference type, out MethodReference constructor, bool mustBePublic = false)
         {
             if (type == null)
             {
@@ -36,7 +36,8 @@ namespace DeepCopy.Fody
             }
 
             var resolved = type.ResolveExt();
-            if (resolved.HasCopyConstructor(out var existingConstructor))
+            if (resolved.HasCopyConstructor(out var existingConstructor)
+                && (!mustBePublic || existingConstructor.Resolve().IsPublic))
             {
                 constructor = ModuleDefinition.ImportReference(existingConstructor);
                 return true;
