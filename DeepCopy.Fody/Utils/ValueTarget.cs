@@ -123,8 +123,6 @@ namespace DeepCopy.Fody.Utils
                 else if (_property != null)
                     instructions.Add(_property.CreateGetInstruction());
                 _instructions.Add(Instruction.Create(OpCodes.Ldloc, _index));
-
-                return this;
             }
 
             return this;
