@@ -2,8 +2,10 @@
 using AssemblyToProcess;
 using DeepCopy.Fody;
 using Fody;
+using System.IO;
 using System.Reflection;
 using Xunit;
+using TestResult = Fody.TestResult;
 
 #pragma warning disable 618
 
@@ -19,7 +21,21 @@ namespace Tests
         static WeaverTests()
         {
             var weavingTask = new ModuleWeaver();
-            TestResult = weavingTask.ExecuteTestRun("AssemblyToProcess.dll");
+            string assemblyPath = Path.GetFullPath("AssemblyToProcess.dll");
+            TestResult = weavingTask.ExecuteTestRun(assemblyPath, runPeVerify: false);
+
+            if (!Environment.OSVersion.Platform.ToString().StartsWith("win", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            string workingDirectory = Path.GetDirectoryName(assemblyPath);
+            bool beforeValid = PeVerifier.Verify(assemblyPath, [], out _);
+            bool afterValid = PeVerifier.Verify(TestResult.AssemblyPath, [], out _, workingDirectory);
+            if (!beforeValid || !afterValid)
+            {
+                PeVerifier.ThrowIfDifferent(assemblyPath, TestResult.AssemblyPath, workingDirectory);
+            }
         }
 
         private static Type TestType<T>() => TestType(typeof(T));
