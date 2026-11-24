@@ -6,6 +6,8 @@ env:
 
 jobs:
   build:
+    permissions:
+      id-token: write
     runs-on: windows-latest
     steps:
       - name: Checkout
