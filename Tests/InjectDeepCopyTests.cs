@@ -51,5 +51,45 @@ namespace Tests
             Assert.NotSame(instance.DateTime, copy.DateTime);
             Assert.NotSame(instance.String, copy.String);
         }
+        
+        [Fact]
+        public void TestEmptyCopyConstructorInRecord()
+        {
+            var instance = TestInstance<RecordWithEmptyCopyConstructor>();
+            instance.Integer = Random.Next();
+            instance.Enum = (int) SomeEnum.Value1;
+            instance.DateTime = DateTime.Now;
+            instance.String = "Hello " + Random.Next();
+            
+            var copy = CopyByConstructor(instance);
+            Assert.Equal(instance.Integer, copy.Integer);
+            Assert.Equal(instance.Enum, copy.Enum);
+            Assert.Equal(instance.DateTime, copy.DateTime);
+            Assert.Equal(instance.String, copy.String);
+            Assert.NotSame(instance.Integer, copy.Integer);
+            Assert.NotSame(instance.Enum, copy.Enum);
+            Assert.NotSame(instance.DateTime, copy.DateTime);
+            Assert.NotSame(instance.String, copy.String);
+        }
+        
+        [Fact]
+        public void TestEmptyCopyConstructorInInnerRecord()
+        {
+            var instance = TestInstance<RecordWithEmptyCopyConstructor.InnerRecordWithEmptyCopyConstructor>();
+            instance.Integer = Random.Next();
+            instance.Enum = (int) SomeEnum.Value1;
+            instance.DateTime = DateTime.Now;
+            instance.String = "Hello " + Random.Next();
+            
+            var copy = CopyByConstructor(instance);
+            Assert.Equal(instance.Integer, copy.Integer);
+            Assert.Equal(instance.Enum, copy.Enum);
+            Assert.Equal(instance.DateTime, copy.DateTime);
+            Assert.Equal(instance.String, copy.String);
+            Assert.NotSame(instance.Integer, copy.Integer);
+            Assert.NotSame(instance.Enum, copy.Enum);
+            Assert.NotSame(instance.DateTime, copy.DateTime);
+            Assert.NotSame(instance.String, copy.String);
+        }
     }
 }

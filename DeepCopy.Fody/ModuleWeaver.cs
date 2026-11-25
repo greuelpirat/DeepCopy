@@ -100,7 +100,7 @@ namespace DeepCopy.Fody
                 return fullName == deepCopyConstructor || fullName == injectDeepCopy;
             }
 
-            foreach (var target in ModuleDefinition.Types)
+            foreach (var target in ModuleDefinition.GetTypes())
             {
                 var constructors = target.GetConstructors().Where(c => c.CustomAttributes.Any(IsMarked)).ToList();
                 if (constructors.Count == 0)
